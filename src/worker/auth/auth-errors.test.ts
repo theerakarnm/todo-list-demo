@@ -86,6 +86,16 @@ describe("sign-up with an email that is already used", () => {
   });
 });
 
+describe("sign-up with a LINE placeholder email", () => {
+  it("answers 400 VALIDATION_ERROR, so nobody can claim a LINE-only user's address", async () => {
+    const response = await signUp(`LINE_U${crypto.randomUUID()}@Line.Invalid`);
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: { code: "VALIDATION_ERROR", message: thai } });
+    expect(internet.sentEmails).toHaveLength(0);
+  });
+});
+
 describe("sign-in errors", () => {
   it("answers 401 INVALID_CREDENTIALS in Thai for a wrong password", async () => {
     const email = newTestEmail();

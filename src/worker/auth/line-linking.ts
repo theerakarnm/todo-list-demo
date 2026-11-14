@@ -14,7 +14,7 @@ export function linePlaceholderEmail(lineUserId: string) {
 }
 
 export function isLinePlaceholderEmail(email: string) {
-  return email.endsWith(`@${PLACEHOLDER_DOMAIN}`);
+  return email.toLowerCase().endsWith(`@${PLACEHOLDER_DOMAIN}`);
 }
 
 /**
