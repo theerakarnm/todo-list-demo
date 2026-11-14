@@ -35,7 +35,15 @@
   "pages": {
     "today": {
       "eyebrow": "01 - วันนี้ / today - {{date}}",
-      "title": "Today"
+      "title": "Today",
+      "left": "เหลือ / left",
+      "leftLabel": "เหลือ {{count}} งาน",
+      "overdue": "▲ เลยกำหนด / overdue - {{count}}",
+      "group": "วันนี้ / today - {{count}}",
+      "reschedule": "Reschedule",
+      "rescheduleLabel": "ย้ายงานที่เลยกำหนดทั้งหมดมาเป็นวันนี้",
+      "emptyTitle": "เคลียร์ครบแล้ว พักได้เลย",
+      "emptyNote": "all clear - nothing due today"
     },
     "inbox": {
       "eyebrow": "02 - กล่องรับงาน / inbox",

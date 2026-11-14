@@ -274,4 +274,45 @@
     outline: 2px solid var(--highlight);
     outline-offset: 2px;
   }
+
+  /* "All clear" art on an empty Today. The circles are illustration, not UI, so they are round. */
+  .all-clear-art {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    flex: none;
+  }
+
+  .all-clear-dots {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 160px;
+    height: 160px;
+    border-radius: 9999px;
+    background-image: radial-gradient(circle, var(--ink-blue) 2.4px, transparent 3px);
+    background-size: 9px 9px;
+  }
+
+  .all-clear-disc {
+    position: absolute;
+    left: 40px;
+    top: 24px;
+    width: 128px;
+    height: 128px;
+    border-radius: 9999px;
+    background: var(--ink-orange);
+    mix-blend-mode: multiply;
+  }
+
+  [data-theme="dark"] .all-clear-disc {
+    mix-blend-mode: screen;
+  }
+
+  .all-clear-art svg {
+    position: absolute;
+    left: 66px;
+    top: 66px;
+    color: var(--ink-black);
+  }
 }
