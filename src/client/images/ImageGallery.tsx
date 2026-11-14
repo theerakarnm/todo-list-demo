@@ -10,8 +10,14 @@ import { ImageTile } from "./ImageTile";
 /** Also .heic: some systems give HEIC photos no image/ type, so image/* alone would hide them. */
 const ACCEPTED_FILES = "image/*,.heic,.heif";
 
+type ImageGalleryProps = {
+  taskId: string;
+  /** Files are being dragged over the drawer: show where they go. */
+  dropping: boolean;
+};
+
 /** The task's images under the notes: thumbnails, and a button to add more. */
-export function ImageGallery({ taskId }: { taskId: string }) {
+export function ImageGallery({ taskId, dropping }: ImageGalleryProps) {
   const { t } = useTranslation();
   const store = useSyncStore();
   const uploadImages = useUploadImages();
@@ -30,11 +36,17 @@ export function ImageGallery({ taskId }: { taskId: string }) {
           ))}
         </ul>
       )}
-      <button type="button" className="add-task mt-3" onClick={() => fileInput.current?.click()}>
-        <Icon name="plus" size={16} />
-        <span className="flex-1">{t("images.add")}</span>
-        <span className="mono max-sm:hidden">{t("images.addHint")}</span>
-      </button>
+      {dropping ? (
+        <div className="drop-hint mt-3">
+          <span className="mono">{t("images.drop")}</span>
+        </div>
+      ) : (
+        <button type="button" className="add-task mt-3" onClick={() => fileInput.current?.click()}>
+          <Icon name="plus" size={16} />
+          <span className="flex-1">{t("images.add")}</span>
+          <span className="mono max-sm:hidden">{t("images.addHint")}</span>
+        </button>
+      )}
       <input
         ref={fileInput}
         type="file"

@@ -171,6 +171,57 @@ describe("TaskDrawer images: delete", () => {
   });
 });
 
+describe("TaskDrawer images: drop and paste", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("shows where to drop while files are dragged over the drawer, and uploads what is dropped", async () => {
+    stubBrowserImages();
+    answerLater("POST /api/tasks/:id/attachments");
+    const { drawer } = renderDrawer();
+    const dialog = screen.getByRole("dialog");
+    const dataTransfer = { types: ["Files"], files: [aFile("whiteboard.png", "image/png")], dropEffect: "none" };
+
+    fireEvent.dragEnter(drawer.getByRole("textbox", { name: th.drawer.notes }), { dataTransfer });
+    expect(drawer.getByText(th.images.drop)).toBeTruthy();
+    fireEvent.drop(dialog, { dataTransfer });
+
+    expect(drawer.queryByText(th.images.drop)).toBeNull();
+    expect(await drawer.findByRole("progressbar", { name: "กำลังอัปโหลดรูปที่ 1" })).toBeTruthy();
+  });
+
+  it("ignores a drag that carries no files, like selected text", () => {
+    renderDrawer();
+
+    fireEvent.dragEnter(screen.getByRole("dialog"), { dataTransfer: { types: ["text/plain"], files: [] } });
+
+    expect(screen.queryByText(th.images.drop)).toBeNull();
+  });
+
+  it("uploads an image pasted anywhere in the drawer, even into the notes", async () => {
+    stubBrowserImages();
+    answerLater("POST /api/tasks/:id/attachments");
+    const { drawer } = renderDrawer();
+
+    const pasted = fireEvent.paste(drawer.getByRole("textbox", { name: th.drawer.notes }), {
+      clipboardData: { types: ["Files"], files: [aFile("screenshot.png", "image/png")] },
+    });
+
+    expect(pasted).toBe(false);
+    expect(await drawer.findByRole("progressbar", { name: "กำลังอัปโหลดรูปที่ 1" })).toBeTruthy();
+  });
+
+  it("leaves a text paste to the field being typed in", () => {
+    renderDrawer();
+
+    const pasted = fireEvent.paste(screen.getByRole("textbox", { name: th.drawer.notes }), {
+      clipboardData: { types: ["text/plain"], files: [] },
+    });
+
+    expect(pasted).toBe(true);
+    expect(screen.queryByRole("progressbar")).toBeNull();
+  });
+});
+
 async function stubbedUploadForm() {
   const request = requestsTo("POST /api/tasks/t1/attachments")[0];
   if (!request) throw new Error("not sent yet");

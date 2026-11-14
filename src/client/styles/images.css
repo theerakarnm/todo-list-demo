@@ -3,6 +3,12 @@
  * same tokens as the task list. Square corners everywhere.
  */
 @layer components {
+  /* Files dragged over the TaskDrawer: the whole panel is the drop target. */
+  .task-drawer[data-dropping="true"] {
+    outline: var(--rule-roller) dashed var(--highlight);
+    outline-offset: -6px;
+  }
+
   .image-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
