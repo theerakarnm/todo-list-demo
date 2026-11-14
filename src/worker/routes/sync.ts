@@ -2,8 +2,8 @@ import { and, eq, gt, inArray, isNull, or } from "drizzle-orm";
 import { Hono } from "hono";
 import { syncQuerySchema } from "../../shared/schemas/queries";
 import { createDb, type Db } from "../db/client";
-import { projectColumns, subtaskColumns, taskColumns } from "../db/columns";
-import { projects, subtasks, tasks } from "../db/schema";
+import { attachmentColumns, projectColumns, subtaskColumns, taskColumns } from "../db/columns";
+import { attachments, projects, subtasks, tasks } from "../db/schema";
 import { getViewSettings } from "../db/settings-queries";
 import { requireSession } from "../middleware/require-session";
 import type { SessionEnv } from "../types";
@@ -17,7 +17,10 @@ import { validate } from "../validate";
  */
 const CURSOR_OVERLAP_MS = 30_000;
 
-/** First load: active tasks, live projects and the subtasks of those tasks. Completed tasks come from the Logbook. */
+/**
+ * First load: active tasks, live projects and the subtasks and image metadata
+ * of those tasks. Completed tasks come from the Logbook.
+ */
 function fullLoad(db: Db, userId: string) {
   const activeTasks = and(eq(tasks.userId, userId), isNull(tasks.completedAt), isNull(tasks.deletedAt));
   return db.batch([
@@ -36,13 +39,23 @@ function fullLoad(db: Db, userId: string) {
           inArray(subtasks.taskId, db.select({ id: tasks.id }).from(tasks).where(activeTasks)),
         ),
       ),
+    db
+      .select(attachmentColumns)
+      .from(attachments)
+      .where(
+        and(
+          eq(attachments.userId, userId),
+          isNull(attachments.deletedAt),
+          inArray(attachments.taskId, db.select({ id: tasks.id }).from(tasks).where(activeTasks)),
+        ),
+      ),
   ]);
 }
 
 /**
  * Everything that changed after `since`, tombstones and completed tasks included.
- * A changed task brings all its subtasks, so a task that comes back
- * (un-completed) arrives with the subtasks this device never loaded.
+ * A changed task brings all its subtasks and images, so a task that comes back
+ * (un-completed) arrives with the ones this device never loaded.
  */
 function changesSince(db: Db, userId: string, since: number) {
   const changedTasks = and(eq(tasks.userId, userId), gt(tasks.updatedAt, since));
@@ -64,6 +77,18 @@ function changesSince(db: Db, userId: string, since: number) {
           ),
         ),
       ),
+    db
+      .select(attachmentColumns)
+      .from(attachments)
+      .where(
+        and(
+          eq(attachments.userId, userId),
+          or(
+            gt(attachments.updatedAt, since),
+            inArray(attachments.taskId, db.select({ id: tasks.id }).from(tasks).where(changedTasks)),
+          ),
+        ),
+      ),
   ]);
 }
 
@@ -75,10 +100,13 @@ export const syncRoutes = new Hono<SessionEnv>()
     const userId = c.get("userId");
     const { since } = c.req.valid("query");
 
-    // One batch is one D1 transaction, so the three lists agree with each other.
-    const [taskRows, projectRows, subtaskRows] =
+    // One batch is one D1 transaction, so the lists agree with each other.
+    const [taskRows, projectRows, subtaskRows, attachmentRows] =
       since === undefined ? await fullLoad(db, userId) : await changesSince(db, userId, since);
     const settings = await getViewSettings(db, userId);
 
-    return c.json({ tasks: taskRows, projects: projectRows, subtasks: subtaskRows, settings, cursor }, 200);
+    return c.json(
+      { tasks: taskRows, projects: projectRows, subtasks: subtaskRows, attachments: attachmentRows, settings, cursor },
+      200,
+    );
   });

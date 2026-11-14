@@ -6,7 +6,7 @@ import type { SyncResponse } from "./types";
 const settings = { timezone: "Asia/Bangkok", weekStart: "mon" } as const;
 
 function response(rows: Partial<SyncResponse>): SyncResponse {
-  return { tasks: [], projects: [], subtasks: [], settings, cursor: 100, ...rows };
+  return { tasks: [], projects: [], subtasks: [], attachments: [], settings, cursor: 100, ...rows };
 }
 
 describe("mergeSync", () => {
