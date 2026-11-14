@@ -42,14 +42,18 @@
     opacity: 0.35;
   }
 
+  /* A picture of the row: the pointer passes through it to the targets below. */
   .drag-lifted {
     transform: rotate(-1.2deg);
     border: var(--rule-thin) solid var(--rule-color);
     background-color: var(--bg);
     color: var(--fg);
-    padding-left: 10px;
-    padding-right: 10px;
-    cursor: grabbing;
+    padding: 0 10px;
+    pointer-events: none;
+  }
+
+  .drag-lifted .task-row {
+    border-bottom: 0;
   }
 
   /* A sidebar project with a task over it. */
