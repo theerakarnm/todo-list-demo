@@ -171,6 +171,30 @@ describe("POST /api/tasks/:id/attachments", () => {
     expect(body.error.message).toContain("200 MB");
   });
 
+  it("takes an 11th image once one of the 10 is deleted", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+    await seedAttachments(userId, taskId, LIMITS.attachmentsPerTask - 1);
+    const tenth = await uploadPng(userId, taskId);
+    expect((await upload(userId, taskId, attachmentForm(pngFile()))).status).toBe(409);
+
+    await apiAs(userId).delete(`/api/attachments/${tenth.id}`);
+
+    expect((await upload(userId, taskId, attachmentForm(pngFile()))).status).toBe(201);
+  });
+
+  it("frees a deleted image's bytes for a new upload when the account is full", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+    await seedAttachments(userId, await createTask(userId), 1, { bytes: LIMITS.storageBytesPerUser - 64 });
+    const last = await uploadPng(userId, taskId);
+    expect((await upload(userId, taskId, attachmentForm(pngFile(64)))).status).toBe(409);
+
+    await apiAs(userId).delete(`/api/attachments/${last.id}`);
+
+    expect((await upload(userId, taskId, attachmentForm(pngFile(64)))).status).toBe(201);
+  });
+
   it("does not count another user's images against the storage limit", async () => {
     const userId = await createTestUser();
     const otherUserId = await createTestUser();
