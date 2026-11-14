@@ -81,6 +81,12 @@ LINE Login needs `LINE_LOGIN_CHANNEL_ID` and `LINE_LOGIN_CHANNEL_SECRET`, with t
 A LINE email that matches a verified account signs in to that account; one that matches only an unverified sign-up replaces it; without an email, LINE gets a separate account.
 The browser's time zone is saved at `POST /api/onboarding/complete` (field `timezone`); until then it is `Asia/Bangkok`.
 
+In the client (`src/client/auth/`), `useMe()` reads `GET /api/me` and the route guards in `src/client/routes.tsx` decide where each visitor may go.
+Signed-out visitors on `/app/*` go to `/login?next=<path>` and come back after signing in; new users go through `/onboarding/1` and `/onboarding/2` once.
+The Signup and Forgot password pages load the Turnstile widget with the site key from `GET /api/config`.
+Locally the widget only passes when `TURNSTILE_SITE_KEY` is valid for `localhost` (for example Cloudflare's test keys).
+Client tests replace `fetch` with a fake API server (`src/client/test/fake-api.ts`); by default the user is signed in and onboarded.
+
 ### Scripts
 
 | Script | What it does |
