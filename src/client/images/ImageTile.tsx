@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Icon } from "../components/Icon";
+import { useDeleteImage } from "../data/attachment-mutations";
 import { useLocalUpload } from "../data/local-uploads";
 import type { Attachment } from "../data/types";
 import { fileUrl } from "./file-url";
@@ -10,6 +12,7 @@ type ImageTileProps = { attachment: Attachment; number: number };
 export function ImageTile({ attachment, number }: ImageTileProps) {
   const { t } = useTranslation();
   const upload = useLocalUpload(attachment.id);
+  const deleteImage = useDeleteImage();
   const [broken, setBroken] = useState(false);
   const percent = upload && Math.round(upload.progress * 100);
 
@@ -25,6 +28,14 @@ export function ImageTile({ attachment, number }: ImageTileProps) {
           onError={() => setBroken(true)}
         />
       )}
+      <button
+        type="button"
+        className="icon-button image-delete"
+        aria-label={t("images.delete", { number })}
+        onClick={() => deleteImage(attachment)}
+      >
+        <Icon name="trash" size={16} />
+      </button>
       {upload && (
         <span
           className="image-progress mono"

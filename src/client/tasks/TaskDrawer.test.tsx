@@ -151,6 +151,26 @@ describe("TaskDrawer images", () => {
   });
 });
 
+describe("TaskDrawer images: delete", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("deletes an image with its own button", async () => {
+    const calls = stubApi({
+      "DELETE /api/attachments/:id": anAttachment({ id: "a1", taskId: "t1", deletedAt: 5, updatedAt: 5 }),
+    });
+    const { drawer } = renderDrawer([
+      anAttachment({ id: "a1", taskId: "t1", position: "a0" }),
+      anAttachment({ id: "a2", taskId: "t1", position: "a1" }),
+    ]);
+
+    fireEvent.click(drawer.getByRole("button", { name: "ลบรูปที่ 1" }));
+
+    await waitFor(() => expect(imageSources(drawer)).toEqual(["/api/files/u/user-1/t/t1/a2"]));
+    expect(drawer.getByText("รูปภาพ / images - 1/10")).toBeTruthy();
+    await waitFor(() => expect(calls.map((call) => call.path)).toEqual(["/api/attachments/a1"]));
+  });
+});
+
 async function stubbedUploadForm() {
   const request = requestsTo("POST /api/tasks/t1/attachments")[0];
   if (!request) throw new Error("not sent yet");

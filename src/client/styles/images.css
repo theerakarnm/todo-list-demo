@@ -38,6 +38,26 @@
     text-align: center;
   }
 
+  /* Small square buttons on the thumbnail's corners, on paper so they show on any photo. */
+  .image-tile .icon-button {
+    position: absolute;
+    top: 0;
+    width: 36px;
+    height: 36px;
+    border-color: var(--rule-color);
+    background: var(--bg);
+  }
+
+  .image-delete {
+    right: 0;
+    border-width: 0 0 var(--rule-thin) var(--rule-thin);
+  }
+
+  .image-tile .image-delete:hover {
+    background: var(--highlight);
+    color: var(--on-highlight);
+  }
+
   /* Upload progress: a slip along the bottom with the percentage, an orange bar on its top edge. */
   .image-progress {
     position: absolute;
