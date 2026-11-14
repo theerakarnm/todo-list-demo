@@ -1,6 +1,7 @@
 import { and, eq, isNull, max } from "drizzle-orm";
 import { generateKeyBetween } from "fractional-indexing";
 import { Hono } from "hono";
+import { LIMITS } from "../../shared/constants";
 import { idParamSchema } from "../../shared/schemas/fields";
 import { createDb, type Db } from "../db/client";
 import { attachmentColumns } from "../db/columns";
@@ -9,7 +10,7 @@ import { assertUsableTask } from "../db/task-queries";
 import { ApiError } from "../errors";
 import { attachmentFileKey } from "../files/file-keys";
 import { SNIFF_BYTES, sniffImageMime } from "../files/sniff-image";
-import { uploadAttachmentSchema } from "../files/upload-forms";
+import { imageBodyLimit, uploadAttachmentSchema } from "../files/uploads";
 import type { SessionEnv } from "../types";
 import { validate } from "../validate";
 
@@ -35,7 +36,7 @@ function findAttachment(db: Db, id: string) {
 export const taskAttachmentRoutes = new Hono<SessionEnv>()
 
   // Upload with the client's UUIDv7, so a retried upload never stores a second copy.
-  .post("/", validate("param", idParamSchema), validate("form", uploadAttachmentSchema), async (c) => {
+  .post("/", imageBodyLimit, validate("param", idParamSchema), validate("form", uploadAttachmentSchema), async (c) => {
     const db = createDb(c.env.DB);
     const userId = c.get("userId");
     const { id: taskId } = c.req.valid("param");
@@ -49,7 +50,8 @@ export const taskAttachmentRoutes = new Hono<SessionEnv>()
     if (existing) return c.json(existing.attachment, 200);
 
     const mime = sniffImageMime(new Uint8Array(await file.slice(0, SNIFF_BYTES).arrayBuffer()));
-    if (!mime) throw new ApiError("INTERNAL_ERROR");
+    if (!mime) throw new ApiError("UNSUPPORTED_FILE");
+    if (file.size > LIMITS.attachmentBytes) throw new ApiError("FILE_TOO_LARGE");
 
     const r2Key = attachmentFileKey(userId, taskId, id);
     await c.env.FILES.put(r2Key, file, { httpMetadata: { contentType: mime } });

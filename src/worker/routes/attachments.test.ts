@@ -1,8 +1,9 @@
 import { env } from "cloudflare:test";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { LIMITS } from "../../shared/constants";
 import { apiAs, bodyOf } from "../test/api";
 import { newId } from "../test/ids";
-import { attachmentForm, createTask, pngFile } from "../test/images";
+import { attachmentForm, createTask, pngFile, renamedExeFile } from "../test/images";
 import { createTestUser } from "../test/users";
 
 type Attachment = {
@@ -102,6 +103,40 @@ describe("POST /api/tasks/:id/attachments", () => {
     const deleted = await upload(owner, taskId, attachmentForm(pngFile()));
     expect(deleted.status).toBe(404);
     expect((await bodyOf<ApiError>(deleted)).error.code).toBe("NOT_FOUND");
+  });
+
+  it("rejects a program renamed to .jpg with 415 UNSUPPORTED_FILE, storing nothing", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+
+    const response = await upload(userId, taskId, attachmentForm(renamedExeFile()));
+
+    expect(response.status).toBe(415);
+    expect((await bodyOf<ApiError>(response)).error.code).toBe("UNSUPPORTED_FILE");
+    expect((await env.FILES.list({ prefix: `u/${userId}/` })).objects).toEqual([]);
+  });
+
+  it("rejects an image over 5 MB with 413 FILE_TOO_LARGE in Thai", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+
+    const response = await upload(userId, taskId, attachmentForm(pngFile(LIMITS.attachmentBytes + 1)));
+
+    expect(response.status).toBe(413);
+    const body = await bodyOf<ApiError>(response);
+    expect(body.error.code).toBe("FILE_TOO_LARGE");
+    expect(body.error.message).toContain("5 MB");
+    expect((await env.FILES.list({ prefix: `u/${userId}/` })).objects).toEqual([]);
+  });
+
+  it("refuses a body far over the limit from its Content-Length, before reading it", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+
+    const response = await upload(userId, taskId, attachmentForm(pngFile(LIMITS.attachmentBytes * 2)));
+
+    expect(response.status).toBe(413);
+    expect((await bodyOf<ApiError>(response)).error.code).toBe("FILE_TOO_LARGE");
   });
 
   it("rejects an id that is not a UUIDv7 and a form without a file", async () => {
