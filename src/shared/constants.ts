@@ -10,6 +10,7 @@ export const LIMITS = {
   positionLength: 128,
   logbookPageSize: 50,
   searchResults: 50,
+  searchQueryLength: 100,
   attachmentBytes: 5 * 1024 * 1024,
   attachmentsPerTask: 10,
   storageBytesPerUser: 200 * 1024 * 1024,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createTaskSchema, updateTaskSchema } from "./task";
+import { createTaskSchema, undoRescheduleSchema, updateTaskSchema } from "./task";
 
 const validTask = { title: "ซื้อนม", position: "a0" };
 
@@ -60,5 +60,23 @@ describe("updateTaskSchema", () => {
 
   it("still validates the fields it receives", () => {
     expect(updateTaskSchema.safeParse({ title: "" }).success).toBe(false);
+  });
+
+  it("lets a due time change alone, because the task may already have a date", () => {
+    expect(updateTaskSchema.safeParse({ dueTime: "09:30" }).success).toBe(true);
+  });
+
+  it("rejects a due time together with clearing the date", () => {
+    expect(updateTaskSchema.safeParse({ dueDate: null, dueTime: "09:30" }).success).toBe(false);
+    expect(updateTaskSchema.safeParse({ dueDate: null, dueTime: null }).success).toBe(true);
+  });
+});
+
+describe("undoRescheduleSchema", () => {
+  it("takes the previous due dates returned by reschedule-overdue", () => {
+    const tasks = [{ id: "019a8c3e-1f2a-7b3c-8d4e-5f6a7b8c9d0e", dueDate: "2026-11-10" }];
+    expect(undoRescheduleSchema.parse({ tasks })).toEqual({ tasks });
+    expect(undoRescheduleSchema.safeParse({ tasks: [{ id: "x", dueDate: "2026-11-10" }] }).success).toBe(false);
+    expect(undoRescheduleSchema.safeParse({ tasks: [{ ...tasks[0], dueDate: null }] }).success).toBe(false);
   });
 });
