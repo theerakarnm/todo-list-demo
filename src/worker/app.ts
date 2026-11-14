@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { authRoutes } from "./auth/auth-routes";
+import { accountRoutes } from "./routes/account";
 import { handleError, handleNotFound } from "./errors";
 import { requestId } from "./middleware/request-id";
 import { securityHeaders } from "./middleware/security-headers";
@@ -19,7 +20,8 @@ export const app = new Hono<AppEnv>()
   .route("/api/auth", authRoutes)
   .route("/api/me", meRoutes)
   .route("/api/settings", settingsRoutes)
-  .route("/api/onboarding", onboardingRoutes);
+  .route("/api/onboarding", onboardingRoutes)
+  .route("/api/account", accountRoutes);
 
 app.notFound(handleNotFound);
 app.onError(handleError);
