@@ -66,7 +66,22 @@
     },
     "project": {
       "eyebrow": "04 - โปรเจกต์ / project",
-      "title": "Project"
+      "title": "Project",
+      "nameLabel": "ชื่อโปรเจกต์",
+      "renameHint": "click title to rename",
+      "menu": "เมนูโปรเจกต์",
+      "delete": "ลบโปรเจกต์ ({{count}} งาน)",
+      "open": "เปิดอยู่ / open - {{count}}",
+      "showCompleted": "แสดงที่เสร็จแล้ว / show completed",
+      "completed": "เสร็จแล้ว / completed - {{count}}",
+      "seeAll": "ดูทั้งหมด / see all",
+      "notFound": "ไม่พบโปรเจกต์นี้",
+      "notFoundNote": "โปรเจกต์อาจถูกลบไปแล้ว",
+      "backToToday": "กลับไปหน้า Today",
+      "confirmTitle": "ลบโปรเจกต์?",
+      "confirmBody": "โปรเจกต์ \"{{name}}\" และงานในโปรเจกต์ {{count}} งานจะถูกลบ กด Undo ได้ภายใน 5 วินาที",
+      "confirmDelete": "ลบโปรเจกต์",
+      "cancel": "Cancel"
     },
     "completed": {
       "eyebrow": "05 - เสร็จแล้ว / completed",

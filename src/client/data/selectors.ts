@@ -103,3 +103,17 @@ export function subtaskProgress(store: SyncStore) {
   }
   return progress;
 }
+
+/**
+ * Completed tasks, newest completion first: the Logbook pages merged with tasks
+ * completed on this device since (still in the store). A task unticked here is left out.
+ * `projectId` narrows to one project (null = Inbox); leave it out for all tasks.
+ */
+export function completedTasks(store: SyncStore, logbook: Task[], projectId?: string | null) {
+  const byId = new Map<string, Task>();
+  for (const task of logbook) byId.set(task.id, task);
+  for (const task of Object.values(store.tasks)) byId.set(task.id, task);
+  return [...byId.values()]
+    .filter((task) => task.completedAt !== null && (projectId === undefined || task.projectId === projectId))
+    .sort((a, b) => (b.completedAt ?? 0) - (a.completedAt ?? 0) || (a.id < b.id ? 1 : -1));
+}

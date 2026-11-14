@@ -366,4 +366,56 @@
     outline: 2px solid var(--highlight);
     outline-offset: 2px;
   }
+
+  /* Destructive action: orange, like .btn-d in the mockups. */
+  .btn-danger {
+    background: var(--highlight);
+    color: var(--on-highlight);
+  }
+
+  .btn-danger:hover {
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+  }
+
+  /* Inline-editable project name (.ptitle in the Project mockup). */
+  .project-title {
+    width: min(100%, 420px);
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    border-bottom: var(--rule-thin) dashed var(--fg);
+    border-radius: 0;
+    background: transparent;
+    color: var(--fg);
+    font-family: var(--font-thai);
+    font-size: 56px;
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .project-title:focus {
+    outline: 2px solid var(--highlight);
+    outline-offset: 4px;
+  }
+
+  @media (max-width: 40rem) {
+    .project-title {
+      font-size: 40px;
+    }
+  }
+
+  .icon-button[data-open="true"] {
+    border-color: var(--fg);
+  }
+
+  .project-menu {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    z-index: 5;
+    width: 296px;
+    border: var(--rule-bold) solid var(--rule-color);
+    background: var(--bg);
+  }
 }

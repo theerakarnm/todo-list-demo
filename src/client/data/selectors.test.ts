@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   compareForAutoSort,
+  completedTasks,
   inboxTasks,
   projectTasks,
   sidebarCounts,
@@ -197,5 +198,21 @@ describe("subtaskProgress", () => {
 
     expect(subtaskProgress(store).get("t1")).toEqual({ done: 1, total: 2 });
     expect(subtaskProgress(store).get("t3")).toBeUndefined();
+  });
+});
+
+describe("completedTasks", () => {
+  it("merges this device's fresh completions with the Logbook, newest first", () => {
+    const store = storeWith({
+      tasks: [
+        aTask({ id: "just-done", completedAt: 30 }),
+        aTask({ id: "unticked", completedAt: null }),
+        aTask({ id: "other-project", projectId: "p2", completedAt: 40 }),
+      ],
+    });
+    const logbook = [aTask({ id: "older", completedAt: 10 }), aTask({ id: "unticked", completedAt: 20 })];
+
+    expect(ids(completedTasks(store, logbook, null))).toEqual(["just-done", "older"]);
+    expect(ids(completedTasks(store, logbook))).toEqual(["other-project", "just-done", "older"]);
   });
 });

@@ -133,19 +133,24 @@ type DeletedTask = { task: Task; subtasks: Subtask[] };
 
 /** Deletes a task (and its subtasks) and offers Undo, which restores both. */
 export function useDeleteTask() {
+  const queryClient = useQueryClient();
   const snapshot = useStoreSnapshot();
   const { showToast } = useToast();
   const { t } = useTranslation();
+  // A deleted completed task also leaves the Logbook.
+  const refreshLogbook = () => void queryClient.invalidateQueries({ queryKey: LOGBOOK_QUERY_KEY });
 
   const remove = useOptimisticMutation({
     request: ({ task }: DeletedTask) => request(api.api.tasks[":id"].$delete({ param: { id: task.id } })),
     apply: (store, { task, subtasks }) =>
       removeRows(store, { tasks: [task.id], subtasks: subtasks.map((subtask) => subtask.id) }),
+    onSettled: refreshLogbook,
   });
   const restore = useOptimisticMutation({
     request: ({ task }: DeletedTask) => request(api.api.tasks[":id"].restore.$post({ param: { id: task.id } })),
     apply: (store, { task, subtasks }) => putRows(store, { tasks: [task], subtasks }),
     confirm: (task) => ({ tasks: [task] }),
+    onSettled: refreshLogbook,
   });
 
   return (task: Task) => {
