@@ -597,7 +597,10 @@
     "clearDate": "ล้างวันที่",
     "cancel": "Cancel",
     "add": "Add task",
-    "enterKey": "Enter"
+    "enterKey": "Enter",
+    "images": "รูปที่จะแนบ",
+    "image": "รูปที่ {{number}}",
+    "removeImage": "เอารูปที่ {{number}} ออก"
   },
   "dnd": {
     "handle": "ลากเพื่อย้าย: {{name}}",

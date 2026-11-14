@@ -41,6 +41,7 @@ type NewTask = {
   priority?: Priority;
 };
 
+/** Adds a task at once and saves it in the background; returns the new task's id. */
 export function useCreateTask() {
   const snapshot = useStoreSnapshot();
   const create = useOptimisticMutation({
@@ -82,6 +83,7 @@ export function useCreateTask() {
       deletedAt: null,
     };
     create.mutate(task);
+    return task.id;
   };
 }
 
