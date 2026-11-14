@@ -64,7 +64,8 @@ Better Auth owns `user`, `session`, `account`, `verification`. App tables:
 
 **subtasks** — `id`, `task_id`, `user_id`, `title` (≤ 500), `completed_at`, `position`, `created_at`, `updated_at`, `deleted_at`. A separate table, so "one level only" is enforced by the schema: a subtask has no children.
 
-**attachments** — `id`, `task_id`, `user_id`, `r2_key`, `mime`, `bytes`, `width`, `height`, `position`, `created_at`, `deleted_at`. See §16.
+**attachments** — `id`, `task_id`, `user_id`, `r2_key`, `mime`, `bytes`, `width`, `height`, `position`, `created_at`, `updated_at`, `deleted_at`. See §16.
+`updated_at` (and the index `attachments(user_id, updated_at)`) was added in migration 0001 so sync deltas and reorder work like the other tables **(default)**.
 
 **push_subscriptions** — `id`, `user_id`, `endpoint` (unique), `p256dh`, `auth`, `created_at`.
 
