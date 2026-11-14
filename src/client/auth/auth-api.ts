@@ -24,6 +24,16 @@ export function signUpWithEmail(email: string, password: string, turnstileToken:
   return postAuth("sign-up/email", { name: "", email, password }, turnstileHeader(turnstileToken));
 }
 
+/** Emails a reset link when an account has this email. Answers the same either way, so it reveals nothing. */
+export function requestPasswordReset(email: string, turnstileToken: string) {
+  return postAuth("request-password-reset", { email }, turnstileHeader(turnstileToken));
+}
+
+/** Sets a new password with the token from the reset email. */
+export function resetPassword(token: string, newPassword: string) {
+  return postAuth("reset-password", { token, newPassword });
+}
+
 /** Asks Better Auth where LINE's sign-in page is; LINE sends the user back to `callbackURL`. */
 export function startLineSignIn(callbackURL: string) {
   return postAuth<{ url: string }>("sign-in/social", { provider: "line", callbackURL, errorCallbackURL: "/login" });

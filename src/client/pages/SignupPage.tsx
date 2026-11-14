@@ -5,7 +5,7 @@ import { Link } from "react-router";
 import { ApiRequestError } from "../api/request-error";
 import { signUpWithEmail } from "../auth/auth-api";
 import { AuthLayout, OrDivider } from "../auth/AuthLayout";
-import { CheckEmail } from "../auth/CheckEmail";
+import { AuthNotice } from "../auth/AuthNotice";
 import { errorMessage } from "../auth/error-message";
 import { EmailField, PasswordField } from "../auth/fields";
 import { FormError } from "../auth/FormError";
@@ -35,7 +35,12 @@ export default function SignupPage() {
   if (signUp.isSuccess) {
     return (
       <AuthLayout eyebrow={t("auth.signup.eyebrow")} title={t("pages.signup.title")}>
-        <CheckEmail email={signUp.variables.email} />
+        <AuthNotice
+          title={t("auth.signup.checkEmailTitle")}
+          body={t("auth.signup.checkEmailBody", { email: signUp.variables.email })}
+        >
+          <p className="muted mt-2 mb-0 text-sm">{t("auth.signup.checkEmailHint")}</p>
+        </AuthNotice>
       </AuthLayout>
     );
   }
