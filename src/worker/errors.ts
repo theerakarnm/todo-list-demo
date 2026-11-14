@@ -1,4 +1,5 @@
 import type { Context } from "hono";
+import { HTTPException } from "hono/http-exception";
 import { routePath } from "hono/route";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { LIMITS } from "../shared/constants";
@@ -66,9 +67,16 @@ function errorResponse(c: Context<AppEnv>, code: ErrorCode, route: string) {
   return c.json<ApiErrorBody>({ error: { code, message } }, status);
 }
 
+function errorCodeFor(error: Error): ErrorCode {
+  if (error instanceof ApiError) return error.code;
+  // Hono's own 400s, e.g. a malformed JSON body in the validator.
+  if (error instanceof HTTPException && error.status === 400) return "VALIDATION_ERROR";
+  return "INTERNAL_ERROR";
+}
+
 export function handleError(error: Error, c: Context<AppEnv>) {
   // The pattern of the route that threw, e.g. "/api/tasks/:id", never the ids in the real path.
-  return errorResponse(c, error instanceof ApiError ? error.code : "INTERNAL_ERROR", routePath(c));
+  return errorResponse(c, errorCodeFor(error), routePath(c));
 }
 
 export function handleNotFound(c: Context<AppEnv>) {
