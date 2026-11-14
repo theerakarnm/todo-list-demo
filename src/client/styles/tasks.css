@@ -5,12 +5,21 @@
 @layer components {
   .task-row {
     display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    min-height: 56px;
+    padding: 6px 4px 6px 0;
+    border-bottom: var(--rule-thin) solid var(--rule-color);
+  }
+
+  /* Title and details side by side; on a narrow screen the details wrap under the title. */
+  .task-body {
+    display: flex;
     align-items: center;
     flex-wrap: wrap;
+    flex: 1;
+    min-width: 0;
     gap: 0 6px;
-    min-height: 56px;
-    border-bottom: var(--rule-thin) solid var(--rule-color);
-    padding-right: 4px;
   }
 
   .task-check {
@@ -380,7 +389,8 @@
 
   /* Inline-editable project name (.ptitle in the Project mockup). */
   .project-title {
-    width: min(100%, 420px);
+    width: 100%;
+    max-width: 420px;
     min-width: 0;
     padding: 0;
     border: 0;

@@ -37,6 +37,7 @@ export function ProjectMenu({ project, openTaskCount, onDelete }: ProjectMenuPro
         <div className="project-menu">
           <div className="px-4 pt-3.5 pb-1.5">
             <ColorPicker
+              legend={t("pages.project.changeColor")}
               name="project-color"
               value={project.color}
               onChange={(color) => updateProject(project, { color })}

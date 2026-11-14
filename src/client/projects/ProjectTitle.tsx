@@ -32,9 +32,9 @@ export function ProjectTitle({ project }: { project: Project }) {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-4">
+      <div className="flex items-center gap-4">
         <i className="swatch h-7 w-7" aria-hidden="true" style={{ background: PROJECT_COLOR_HEX[project.color] }} />
-        <h1 className="m-0 min-w-0">
+        <h1 className="m-0 min-w-0 flex-1">
           <input
             className="project-title"
             aria-label={t("pages.project.nameLabel")}

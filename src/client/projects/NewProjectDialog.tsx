@@ -36,7 +36,7 @@ export function NewProjectDialog({ onClose }: { onClose: () => void }) {
             onChange={(event) => setName(event.target.value)}
           />
         </label>
-        <ColorPicker name="new-project-color" value={color} onChange={setColor} />
+        <ColorPicker legend={t("newProject.color")} name="new-project-color" value={color} onChange={setColor} />
         <div className="flex flex-wrap justify-end gap-2.5">
           <button type="button" className="btn btn-outline" onClick={onClose}>
             {t("newProject.cancel")}

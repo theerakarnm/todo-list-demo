@@ -22,6 +22,7 @@ type TaskRowProps = {
 
 function DueDate({ label }: { label: DueLabel }) {
   const { t } = useTranslation();
+  const dayName = (date?: string) => (date === "today" || date === "tomorrow" ? t(`task.${date}`) : undefined);
   if (label.kind === "overdue") {
     return (
       <span className="task-date task-date-overdue mono">
@@ -29,8 +30,7 @@ function DueDate({ label }: { label: DueLabel }) {
       </span>
     );
   }
-  const day =
-    label.date === "today" ? t("task.today") : label.date === "tomorrow" ? t("task.tomorrow") : label.date && formatDayMonth(label.date);
+  const day = dayName(label.date) ?? (label.date && formatDayMonth(label.date));
   return <span className="task-date mono">{[day, label.time].filter(Boolean).join(" ")}</span>;
 }
 
@@ -52,26 +52,28 @@ export function TaskRow({ task, project, progress, dateStyle, today, completedOn
           {done && <Icon name="check" size={14} strokeWidth={2.2} />}
         </span>
       </button>
-      <Link className="task-title" to={{ search: `?task=${task.id}` }}>
-        {task.title}
-      </Link>
-      <span className="task-meta">
-        {progress && (
-          <span className="task-progress mono" title={t("task.subtaskProgressLabel", progress)}>
-            <Icon name="subtasks" size={12} />
-            {t("task.subtaskProgress", progress)}
-          </span>
-        )}
-        {project && (
-          <span className="task-project">
-            <i className="swatch" style={{ background: PROJECT_COLOR_HEX[project.color] }} />
-            {project.name}
-          </span>
-        )}
-        {completedOn && <span className="task-date mono">{formatDayMonth(completedOn)}</span>}
-        {dueLabel && <DueDate label={dueLabel} />}
-        {!done && <PriorityBadge priority={task.priority} />}
-      </span>
+      <div className="task-body">
+        <Link className="task-title" to={{ search: `?task=${task.id}` }}>
+          {task.title}
+        </Link>
+        <span className="task-meta">
+          {progress && (
+            <span className="task-progress mono" title={t("task.subtaskProgressLabel", progress)}>
+              <Icon name="subtasks" size={12} />
+              {t("task.subtaskProgress", progress)}
+            </span>
+          )}
+          {project && (
+            <span className="task-project">
+              <i className="swatch" style={{ background: PROJECT_COLOR_HEX[project.color] }} />
+              {project.name}
+            </span>
+          )}
+          {completedOn && <span className="task-date mono">{formatDayMonth(completedOn)}</span>}
+          {dueLabel && <DueDate label={dueLabel} />}
+          {!done && <PriorityBadge priority={task.priority} />}
+        </span>
+      </div>
     </div>
   );
 }

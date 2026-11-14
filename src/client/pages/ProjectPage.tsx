@@ -52,8 +52,8 @@ function ProjectView({ project }: { project: Project }) {
 
   return (
     <AppPage>
-      <header className="relative flex flex-wrap items-end justify-between gap-5 border-b-2 border-rule pb-[22px]">
-        <div className="min-w-0">
+      <header className="relative flex items-end justify-between gap-5 border-b-2 border-rule pb-[22px]">
+        <div className="min-w-0 flex-1">
           <div className="mono muted mb-2.5">{t("pages.project.eyebrow")}</div>
           <ProjectTitle project={project} />
         </div>

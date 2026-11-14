@@ -77,6 +77,12 @@
     flex: none;
   }
 
+  /* The black and dark green swatches vanish on night stock without an edge. */
+  [data-theme="dark"] .swatch {
+    outline: 1px solid var(--fg-muted);
+    outline-offset: -1px;
+  }
+
   .icon-button {
     display: inline-flex;
     align-items: center;
@@ -279,7 +285,7 @@
     }
   }
 
-  /* Undo toast (no mockup): an ink slip, bottom left, above the mobile bottom bar. */
+  /* Undo toast (no mockup): an ink slip, bottom centre, above the mobile bottom bar. */
   .toast-region {
     position: fixed;
     z-index: 50;
@@ -288,15 +294,13 @@
     bottom: calc(60px + env(safe-area-inset-bottom) + 12px);
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 8px;
     pointer-events: none;
   }
 
   @media (min-width: 64rem) {
     .toast-region {
-      right: auto;
-      left: 24px;
       bottom: 24px;
     }
   }

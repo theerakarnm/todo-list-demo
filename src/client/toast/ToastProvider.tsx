@@ -19,7 +19,7 @@ const ToastContext = createContext<{ showToast: (toast: ToastInput) => void } | 
 /** The newest toasts on screen at once; older ones make room. */
 const MAX_TOASTS = 3;
 
-/** Holds the toasts and shows them above the page, bottom left (above the bottom bar on mobile). */
+/** Holds the toasts and shows them above the page, bottom centre (above the bottom bar on mobile). */
 export function ToastProvider({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
   const [toasts, setToasts] = useState<Toast[]>([]);

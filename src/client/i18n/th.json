@@ -81,7 +81,8 @@
       "confirmTitle": "ลบโปรเจกต์?",
       "confirmBody": "โปรเจกต์ \"{{name}}\" และงานในโปรเจกต์ {{count}} งานจะถูกลบ กด Undo ได้ภายใน 5 วินาที",
       "confirmDelete": "ลบโปรเจกต์",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "changeColor": "เปลี่ยนสี / color"
     },
     "completed": {
       "eyebrow": "05 - เสร็จแล้ว / completed",
@@ -192,7 +193,6 @@
     }
   },
   "projectColors": {
-    "legend": "สี / color",
     "blue": "สีน้ำเงิน",
     "orange": "สีส้ม",
     "violet": "สีม่วง",
@@ -204,7 +204,8 @@
     "name": "ชื่อโปรเจกต์ / name",
     "namePlaceholder": "เช่น งาน, ส่วนตัว",
     "cancel": "Cancel",
-    "create": "Create project"
+    "create": "Create project",
+    "color": "สี / color"
   },
   "drawer": {
     "label": "รายละเอียดงาน",
