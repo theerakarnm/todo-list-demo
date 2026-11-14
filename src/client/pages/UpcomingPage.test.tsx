@@ -42,6 +42,7 @@ describe("UpcomingPage", () => {
       "ศุกร์ 20 พ.ย.",
       "เสาร์ 21 พ.ย.",
     ]);
+    expect(screen.getByRole("region", { name: /^พรุ่งนี้/ }).textContent).toContain("ซักผ้าห่ม");
     expect(screen.getByText("1 งาน")).toBeTruthy();
     expect(screen.getAllByText(th.pages.upcoming.free)).toHaveLength(6);
     expect(screen.getByRole("img", { name: th.pages.upcoming.loadLabel })).toBeTruthy();

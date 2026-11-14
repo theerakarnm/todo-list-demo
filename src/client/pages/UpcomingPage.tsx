@@ -27,9 +27,9 @@ function DaySection({ day, isTomorrow }: { day: Day; isTomorrow: boolean }) {
   const showDropHint = isOver && dragged?.type === "task" && !day.tasks.some((task) => task.id === dragged.id);
 
   return (
-    <div ref={setNodeRef}>
+    <section ref={setNodeRef} aria-labelledby={`day-${day.date}`}>
       <div className="mt-[26px] flex flex-wrap items-center justify-between gap-3 border-t-2 border-rule pt-2.5 pb-1">
-        <h2 className="m-0 text-[22px] leading-[1.4] font-extrabold">
+        <h2 id={`day-${day.date}`} className="m-0 text-[22px] leading-[1.4] font-extrabold">
           {isTomorrow ? (
             <>
               {t("pages.upcoming.tomorrow")}
@@ -65,7 +65,7 @@ function DaySection({ day, isTomorrow }: { day: Day; isTomorrow: boolean }) {
           </div>
         )
       )}
-    </div>
+    </section>
   );
 }
 
