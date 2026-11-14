@@ -155,6 +155,20 @@
     display: grid;
     place-items: center;
     font-weight: 700;
+    overflow: hidden;
+  }
+
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* The photo in Settings → Account (80 px in the mockup). */
+  .avatar-large {
+    width: 80px;
+    height: 80px;
+    font-size: 34px;
   }
 
   .search-row {

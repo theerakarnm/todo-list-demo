@@ -1,5 +1,8 @@
 import { useSyncExternalStore } from "react";
 
+/** The id the new profile photo's upload is kept under (task images use their attachment id). */
+export const AVATAR_UPLOAD_ID = "avatar";
+
 /** An image on its way to the server: a preview of the picked file, and how much is sent (0 to 1). */
 export type LocalUpload = { previewUrl: string; progress: number };
 

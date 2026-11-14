@@ -351,6 +351,10 @@
     "general": "General"
   },
   "settingsAccount": {
+    "photoLabel": "รูปโปรไฟล์ / photo",
+    "photoAlt": "รูปโปรไฟล์ของคุณ",
+    "changePhoto": "เปลี่ยนรูป",
+    "removePhoto": "ลบรูป",
     "nameLabel": "ชื่อ / name",
     "save": "บันทึก",
     "saved": "บันทึกแล้ว",
