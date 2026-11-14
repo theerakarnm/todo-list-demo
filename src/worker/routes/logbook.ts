@@ -1,10 +1,10 @@
-import { and, desc, eq, isNotNull, isNull, lt, or } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { LIMITS } from "../../shared/constants";
 import { logbookQuerySchema } from "../../shared/schemas/queries";
 import { createDb } from "../db/client";
-import { taskColumns } from "../db/columns";
-import { tasks } from "../db/schema";
+import { subtaskColumns, taskColumns } from "../db/columns";
+import { subtasks, tasks } from "../db/schema";
 import { apiRateLimit } from "../middleware/api-rate-limit";
 import { currentUser } from "../middleware/current-user";
 import type { AppEnv } from "../types";
@@ -20,7 +20,8 @@ function afterCursor(before?: number, beforeId?: string) {
 export const logbookRoutes = new Hono<AppEnv>()
   .use(currentUser, apiRateLimit)
 
-  // Completed tasks, newest completion first, 50 a page. The id breaks ties,
+  // Completed tasks, newest completion first, 50 a page, with their subtasks
+  // (the sync full load leaves completed tasks out). The id breaks ties,
   // so tasks completed in the same millisecond are never skipped or repeated.
   .get("/", validate("query", logbookQuerySchema), async (c) => {
     const db = createDb(c.env.DB);
@@ -48,5 +49,16 @@ export const logbookRoutes = new Hono<AppEnv>()
       rows.length > LIMITS.logbookPageSize && last?.completedAt
         ? { before: last.completedAt, beforeId: last.id }
         : null;
-    return c.json({ tasks: pageRows, next }, 200);
+    const pageIds = JSON.stringify(pageRows.map((task) => task.id));
+    const subtaskRows = await db
+      .select(subtaskColumns)
+      .from(subtasks)
+      .where(
+        and(
+          eq(subtasks.userId, c.get("userId")),
+          isNull(subtasks.deletedAt),
+          inArray(subtasks.taskId, sql`(SELECT value FROM json_each(${pageIds}))`),
+        ),
+      );
+    return c.json({ tasks: pageRows, subtasks: subtaskRows, next }, 200);
   });

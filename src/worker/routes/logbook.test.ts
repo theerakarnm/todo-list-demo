@@ -91,4 +91,18 @@ describe("GET /api/logbook", () => {
 
     expect((await bodyOf<Page>(response)).tasks.map((task) => task.id)).toEqual([inProjectId]);
   });
+
+  it("brings the subtasks of the tasks on the page", async () => {
+    const userId = await createTestUser();
+    const taskId = newId();
+    const subtaskId = newId();
+    await apiAs(userId).put(`/api/tasks/${taskId}`, { title: "เสร็จ", position: "a0" });
+    await apiAs(userId).put(`/api/subtasks/${subtaskId}`, { taskId, title: "ย่อย", position: "a0" });
+    await apiAs(userId).patch(`/api/tasks/${taskId}`, { completed: true });
+
+    const response = await apiAs(userId).get("/api/logbook");
+
+    const body = await bodyOf<Page & { subtasks: { id: string; taskId: string }[] }>(response);
+    expect(body.subtasks.map((subtask) => subtask.id)).toEqual([subtaskId]);
+  });
 });
