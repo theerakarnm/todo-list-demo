@@ -483,6 +483,7 @@
     "dismiss": "ปิดการแจ้งเตือน",
     "completed": "ทำเสร็จแล้ว: {{title}}",
     "deleted": "ลบงานแล้ว: {{title}}",
+    "imageDeleted": "ลบรูปแล้ว",
     "rescheduled": "ย้าย {{count}} งานมาเป็นวันนี้แล้ว",
     "projectDeleted": "ลบโปรเจกต์ {{name}} แล้ว"
   },

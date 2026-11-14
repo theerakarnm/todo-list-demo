@@ -1,4 +1,4 @@
-import { act, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import th from "../i18n/th.json";
 import { answerLater, apiError, requestsTo, stubApi } from "../test/fake-api";
@@ -156,6 +156,37 @@ describe("useDeleteImage", () => {
 
     await waitFor(() => expect(requestsTo(`DELETE /api/attachments/${local?.id}`)).toHaveLength(1));
     await waitFor(() => expect(imagesIn(queryClient)).toEqual([]));
+  });
+
+  it("offers Undo, which puts the image back and restores it on the server", async () => {
+    stubApi({
+      "DELETE /api/attachments/:id": anAttachment({ id: "a1", taskId: "t1", deletedAt: 5, updatedAt: 5 }),
+      "POST /api/attachments/:id/restore": anAttachment({ id: "a1", taskId: "t1", updatedAt: 6 }),
+    });
+    const image = anAttachment({ id: "a1", taskId: "t1" });
+    const { result, queryClient } = renderHookWithStore(useDeleteImage, storeWith({ attachments: [image] }));
+
+    act(() => result.current(image));
+    expect(await screen.findByText(th.toast.imageDeleted)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: th.toast.undo }));
+
+    await waitFor(() => expect(imagesIn(queryClient)).toEqual([anAttachment({ id: "a1", taskId: "t1", updatedAt: 6 })]));
+    expect(requestsTo("POST /api/attachments/a1/restore")).toHaveLength(1);
+  });
+
+  it("takes the image off again and explains when Undo fails", async () => {
+    stubApi({
+      "DELETE /api/attachments/:id": anAttachment({ id: "a1", taskId: "t1", deletedAt: 5, updatedAt: 5 }),
+      "POST /api/attachments/:id/restore": apiError(409, "STORAGE_LIMIT"),
+    });
+    const image = anAttachment({ id: "a1", taskId: "t1" });
+    const { result, queryClient } = renderHookWithStore(useDeleteImage, storeWith({ attachments: [image] }));
+
+    act(() => result.current(image));
+    fireEvent.click(await screen.findByRole("button", { name: th.toast.undo }));
+
+    expect(await screen.findByText(th.errors.api.STORAGE_LIMIT)).toBeTruthy();
+    expect(imagesIn(queryClient)).toEqual([]);
   });
 
   it("puts the image back and explains when the delete fails", async () => {

@@ -86,18 +86,27 @@ export function useUploadImages() {
   };
 }
 
-/**
- * Deletes an image. There is no Undo: the server removes the file right away
- * (ARCHITECTURE §16). A failed delete puts the image back with a Thai toast.
- */
+/** Deletes an image and offers Undo for 5 seconds. Undo restores it on the server (ARCHITECTURE §7). */
 export function useDeleteImage() {
+  const { showToast } = useToast();
+  const { t } = useTranslation();
   const remove = useOptimisticMutation({
     request: (attachment: Attachment) => request(api.api.attachments[":id"].$delete({ param: { id: attachment.id } })),
     apply: (store, attachment) => removeRows(store, { attachments: [attachment.id] }),
     // The tombstone also removes a copy an upload still on its way brings back.
     confirm: (tombstone) => ({ attachments: [tombstone] }),
   });
-  return (attachment: Attachment) => remove.mutate(attachment);
+  const restore = useOptimisticMutation({
+    request: (attachment: Attachment) =>
+      request(api.api.attachments[":id"].restore.$post({ param: { id: attachment.id } })),
+    apply: (store, attachment) => putRows(store, { attachments: [attachment] }),
+    confirm: (attachment) => ({ attachments: [attachment] }),
+  });
+
+  return (attachment: Attachment) => {
+    remove.mutate(attachment);
+    showToast({ message: t("toast.imageDeleted"), onUndo: () => restore.mutate(attachment) });
+  };
 }
 
 /** Drag-to-reorder in the gallery: only the moved image gets a new position. */

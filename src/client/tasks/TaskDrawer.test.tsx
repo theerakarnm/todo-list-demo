@@ -236,6 +236,29 @@ describe("TaskDrawer images: delete", () => {
     expect(drawer.getByText("รูปภาพ / images - 1/10")).toBeTruthy();
     await waitFor(() => expect(calls.map((call) => call.path)).toEqual(["/api/attachments/a1"]));
   });
+
+  it("brings a deleted image back with Undo in the toast", async () => {
+    const calls = stubApi({
+      "DELETE /api/attachments/:id": anAttachment({ id: "a1", taskId: "t1", deletedAt: 5, updatedAt: 5 }),
+      "POST /api/attachments/:id/restore": anAttachment({ id: "a1", taskId: "t1", updatedAt: 6 }),
+    });
+    const { drawer } = renderDrawer([anAttachment({ id: "a1", taskId: "t1" })]);
+
+    fireEvent.click(drawer.getByRole("button", { name: "ลบรูปที่ 1" }));
+    await waitFor(() => expect(imageSources(drawer)).toEqual([]));
+    const toast = within(screen.getByRole("status", { name: th.toast.region }));
+    expect(toast.getByText(th.toast.imageDeleted)).toBeTruthy();
+    fireEvent.click(toast.getByRole("button", { name: th.toast.undo }));
+
+    await waitFor(() => expect(imageSources(drawer)).toEqual(["/api/files/u/user-1/t/t1/a1"]));
+    expect(drawer.getByText("รูปภาพ / images - 1/10")).toBeTruthy();
+    await waitFor(() =>
+      expect(calls.map((call) => `${call.method} ${call.path}`)).toEqual([
+        "DELETE /api/attachments/a1",
+        "POST /api/attachments/a1/restore",
+      ]),
+    );
+  });
 });
 
 describe("TaskDrawer images: drop and paste", () => {
