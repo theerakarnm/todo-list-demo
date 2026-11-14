@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 import { clientsClaim } from "workbox-core";
 import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
-import { pickClientToFocus, readPushMessage, safeAppPath } from "./push/push-message";
+import { openAppPath, readPushMessage, safeAppPath } from "./push/push-message";
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -30,17 +30,12 @@ self.addEventListener("push", (event) => {
 // A tap opens the task (or Today): in an open app tab if there is one, else in a new window.
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = safeAppPath(event.notification.data?.url);
+  const path = safeAppPath(event.notification.data?.url);
   event.waitUntil(
     (async () => {
-      const tabs = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
-      const tab = pickClientToFocus(tabs, self.location.origin);
-      if (tab) {
-        await tab.focus();
-        await tab.navigate(url);
-      } else {
-        await self.clients.openWindow(url);
-      }
+      // Only tabs this service worker controls: navigate fails on any other.
+      const tabs = await self.clients.matchAll({ type: "window" });
+      await openAppPath(tabs, self.location.origin, path, (newPath) => self.clients.openWindow(newPath));
     })(),
   );
 });

@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { pickClientToFocus, readPushMessage, safeAppPath } from "./push-message";
+import { describe, expect, it, vi } from "vitest";
+import { openAppPath, pickClientToFocus, readPushMessage, safeAppPath } from "./push-message";
 
 describe("safeAppPath", () => {
   it.each(["/task/abc", "/today", "/app/today?task=1"])("accepts %s", (path) => {
@@ -58,5 +58,53 @@ describe("pickClientToFocus", () => {
   it("returns undefined when no app tab is open", () => {
     expect(pickClientToFocus([tab("/login"), { url: "https://other.example/app" }], origin)).toBeUndefined();
     expect(pickClientToFocus([], origin)).toBeUndefined();
+  });
+});
+
+describe("openAppPath", () => {
+  const origin = "https://jotlist.example";
+
+  function appTab(navigateResult: () => Promise<unknown>) {
+    return { url: `${origin}/app/inbox`, focus: vi.fn(async () => ({})), navigate: vi.fn(navigateResult) };
+  }
+
+  it("focuses an open app tab and navigates it to the path", async () => {
+    const tab = appTab(async () => ({}));
+    const openWindow = vi.fn(async () => null);
+
+    await openAppPath([tab], origin, "/task/t1", openWindow);
+
+    expect(tab.focus).toHaveBeenCalled();
+    expect(tab.navigate).toHaveBeenCalledWith("/task/t1");
+    expect(openWindow).not.toHaveBeenCalled();
+  });
+
+  it("opens a new window when no app tab is open", async () => {
+    const openWindow = vi.fn(async () => null);
+
+    await openAppPath([{ url: `${origin}/login`, focus: vi.fn(), navigate: vi.fn() }], origin, "/today", openWindow);
+
+    expect(openWindow).toHaveBeenCalledWith("/today");
+  });
+
+  it.each([
+    ["navigate gives no tab back", () => Promise.resolve(null)],
+    ["navigate fails", () => Promise.reject(new TypeError("not controlled"))],
+  ])("opens a new window when %s", async (_case, navigateResult) => {
+    const openWindow = vi.fn(async () => null);
+
+    await openAppPath([appTab(navigateResult)], origin, "/task/t1", openWindow);
+
+    expect(openWindow).toHaveBeenCalledWith("/task/t1");
+  });
+
+  it("opens a new window when the tab cannot be focused", async () => {
+    const tab = appTab(async () => ({}));
+    tab.focus.mockRejectedValue(new Error("not allowed"));
+    const openWindow = vi.fn(async () => null);
+
+    await openAppPath([tab], origin, "/task/t1", openWindow);
+
+    expect(openWindow).toHaveBeenCalledWith("/task/t1");
   });
 });

@@ -45,3 +45,31 @@ export function readPushMessage(text: string | undefined): PushMessage {
 export function pickClientToFocus<Client extends { url: string }>(clients: readonly Client[], origin: string) {
   return clients.find((client) => client.url.startsWith(`${origin}/app`));
 }
+
+/** The parts of a WindowClient that opening a path needs. */
+type AppTab = { url: string; focus(): Promise<unknown>; navigate(url: string): Promise<unknown> };
+
+/**
+ * Opens an app path from a notification tap: in an open app tab if it can be
+ * focused and navigated, else in a new window. navigate gives null when the tab
+ * left the app and fails when this service worker does not control the tab.
+ */
+export async function openAppPath(
+  tabs: readonly AppTab[],
+  origin: string,
+  path: string,
+  openWindow: (path: string) => Promise<unknown>,
+) {
+  const tab = pickClientToFocus(tabs, origin);
+  if (tab && (await reuseTab(tab, path))) return;
+  await openWindow(path);
+}
+
+async function reuseTab(tab: AppTab, path: string) {
+  try {
+    await tab.focus();
+    return (await tab.navigate(path)) !== null;
+  } catch {
+    return false;
+  }
+}
