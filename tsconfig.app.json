@@ -6,6 +6,6 @@
     "jsx": "react-jsx",
     "outDir": ".tsbuild/app"
   },
-  "include": ["src/client"],
+  "include": ["src/client", "src/client/**/*.json"],
   "references": [{ "path": "./tsconfig.shared.json" }, { "path": "./tsconfig.worker.json" }]
 }
