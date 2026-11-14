@@ -18,6 +18,16 @@ export async function findOwnTask(db: Db, userId: string, id: string) {
   return task;
 }
 
+/** Subtasks and attachments live under a task that is the user's and not deleted. Otherwise 404. */
+export async function assertUsableTask(db: Db, userId: string, taskId: string) {
+  const task = await db
+    .select({ id: tasks.id })
+    .from(tasks)
+    .where(and(eq(tasks.id, taskId), eq(tasks.userId, userId), isNull(tasks.deletedAt)))
+    .get();
+  if (!task) throw new ApiError("NOT_FOUND");
+}
+
 /** The live subtasks of these tasks of the user's (any number of ids: they travel as one JSON parameter). */
 export function subtasksOfTasks(db: Db, userId: string, taskIds: string[]) {
   return db

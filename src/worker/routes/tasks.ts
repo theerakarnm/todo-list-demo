@@ -12,6 +12,7 @@ import { assertRoomForActiveTasks } from "../limits";
 import { requireSession } from "../middleware/require-session";
 import type { SessionEnv } from "../types";
 import { validate } from "../validate";
+import { taskAttachmentRoutes } from "./attachments";
 import { rescheduleOverdueRoutes } from "./reschedule-overdue";
 
 type Task = typeof tasks.$inferSelect;
@@ -40,6 +41,7 @@ async function updateTask(db: Db, userId: string, id: string, changes: Partial<T
 export const taskRoutes = new Hono<SessionEnv>()
   .use(requireSession)
   .route("/reschedule-overdue", rescheduleOverdueRoutes)
+  .route("/:id/attachments", taskAttachmentRoutes)
 
   // Create-or-update with the client's UUIDv7, so a retried create never duplicates.
   .put("/:id", validate("param", idParamSchema), validate("json", createTaskSchema), async (c) => {
