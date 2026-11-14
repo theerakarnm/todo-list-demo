@@ -40,17 +40,18 @@ export function useCreateSubtask() {
   };
 }
 
-type SubtaskChanges = { title?: string; completed?: boolean };
+type SubtaskChanges = { title?: string; completed?: boolean; position?: string };
 
 export function useUpdateSubtask() {
   const update = useOptimisticMutation({
     request: ({ id, changes }: { id: string; changes: SubtaskChanges }) =>
       request(api.api.subtasks[":id"].$patch({ param: { id }, json: changes })),
-    apply: (store, { id, changes: { title, completed } }) => {
+    apply: (store, { id, changes: { title, completed, position } }) => {
       const subtask = store.subtasks[id];
       if (!subtask) return store;
       const completedAt = completed === undefined ? subtask.completedAt : completed ? Date.now() : null;
-      return putRows(store, { subtasks: [{ ...subtask, title: title ?? subtask.title, completedAt }] });
+      const changed = { title: title ?? subtask.title, position: position ?? subtask.position, completedAt };
+      return putRows(store, { subtasks: [{ ...subtask, ...changed }] });
     },
     confirm: (subtask) => ({ subtasks: [subtask] }),
   });
