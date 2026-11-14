@@ -3,6 +3,7 @@ import { z } from "zod";
 import { LIMITS } from "../../shared/constants";
 import { idSchema } from "../../shared/schemas/fields";
 import { ApiError } from "../errors";
+import { type ImageMime, SNIFF_BYTES, sniffImageMime } from "./sniff-image";
 
 // Multipart bodies of the upload routes. They hold a File, so they live on the
 // server; the client builds the FormData itself. The image type and size are
@@ -22,6 +23,9 @@ export const uploadAttachmentSchema = z.object({
   height: imageSideSchema.optional(),
 });
 
+/** `PUT /api/me/avatar`. The client has already cropped the photo square at 512 px. */
+export const uploadAvatarSchema = z.object({ file: z.instanceof(File) });
+
 /** Room for the multipart boundaries and the small fields next to the file. */
 const MULTIPART_OVERHEAD_BYTES = 64 * 1024;
 
@@ -36,3 +40,11 @@ export const imageBodyLimit = bodyLimit({
     throw new ApiError("FILE_TOO_LARGE");
   },
 });
+
+/** The checks every image upload gets, in this order: a real image (415), then not over 5 MB (413). */
+export async function assertImageFile(file: File): Promise<ImageMime> {
+  const mime = sniffImageMime(new Uint8Array(await file.slice(0, SNIFF_BYTES).arrayBuffer()));
+  if (!mime) throw new ApiError("UNSUPPORTED_FILE");
+  if (file.size > LIMITS.attachmentBytes) throw new ApiError("FILE_TOO_LARGE");
+  return mime;
+}
