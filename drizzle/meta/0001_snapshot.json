@@ -1,7 +1,7 @@
 {
   "version": "6",
   "dialect": "sqlite",
-  "id": "5897e549-5d3a-4c3e-8b6a-2a2059406357",
+  "id": "e13588cc-67d4-4a9b-980b-84967b8f9480",
   "prevId": "b000cd53-afc0-4fdf-9779-9a43f8182037",
   "tables": {
     "attachments": {
@@ -77,6 +77,14 @@
           "notNull": true,
           "autoincrement": false
         },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false,
+          "default": 0
+        },
         "deleted_at": {
           "name": "deleted_at",
           "type": "integer",
@@ -90,6 +98,14 @@
           "name": "attachments_task_idx",
           "columns": [
             "task_id"
+          ],
+          "isUnique": false
+        },
+        "attachments_user_updated_idx": {
+          "name": "attachments_user_updated_idx",
+          "columns": [
+            "user_id",
+            "updated_at"
           ],
           "isUnique": false
         }
@@ -122,30 +138,6 @@
           "onUpdate": "no action"
         }
       },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "checkConstraints": {}
-    },
-    "cron_runs": {
-      "name": "cron_runs",
-      "columns": {
-        "job": {
-          "name": "job",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true,
-          "autoincrement": false
-        },
-        "last_run_on": {
-          "name": "last_run_on",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true,
-          "autoincrement": false
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "checkConstraints": {}

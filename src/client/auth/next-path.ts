@@ -15,11 +15,19 @@ export function onboardingPathFor(path: string) {
   return `/onboarding/1?next=${encodeURIComponent(path)}`;
 }
 
+function hasControlCharacter(text: string) {
+  return [...text].some((character) => {
+    const code = character.charCodeAt(0);
+    return code <= 0x1f || code === 0x7f;
+  });
+}
+
 /**
  * `next` only when it is a path on this site. "//host" and "/\\host" are read
- * by browsers as another site, so they never count.
+ * by browsers as another site, and browsers drop tabs and newlines from URLs
+ * ("/\t/host" becomes "//host"), so none of these count.
  */
 export function safeNextPath(next: string | null) {
-  if (!next?.startsWith("/") || next.startsWith("//") || next.startsWith("/\\")) return null;
+  if (!next?.startsWith("/") || next.startsWith("//") || next.startsWith("/\\") || hasControlCharacter(next)) return null;
   return next;
 }

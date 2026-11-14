@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sum } from "drizzle-orm";
 import { Hono } from "hono";
 import { idParamSchema } from "../../shared/schemas/fields";
 import { createTaskSchema, type UpdateTaskInput, updateTaskSchema } from "../../shared/schemas/task";
@@ -6,12 +6,13 @@ import { createDb, type Db } from "../db/client";
 import { taskColumns } from "../db/columns";
 import { assertUsableProject, findUsableProject } from "../db/project-queries";
 import { findOwnTask, isSameDue, positionAtEndOfList, reminderFor } from "../db/task-queries";
-import { subtasks, tasks } from "../db/schema";
+import { attachments, subtasks, tasks } from "../db/schema";
 import { ApiError } from "../errors";
-import { assertRoomForActiveTasks } from "../limits";
+import { assertRoomForActiveTasks, hasRoomInStorage } from "../limits";
 import { requireSession } from "../middleware/require-session";
 import type { SessionEnv } from "../types";
 import { validate } from "../validate";
+import { taskAttachmentRoutes } from "./attachments";
 import { rescheduleOverdueRoutes } from "./reschedule-overdue";
 
 type Task = typeof tasks.$inferSelect;
@@ -40,6 +41,7 @@ async function updateTask(db: Db, userId: string, id: string, changes: Partial<T
 export const taskRoutes = new Hono<SessionEnv>()
   .use(requireSession)
   .route("/reschedule-overdue", rescheduleOverdueRoutes)
+  .route("/:id/attachments", taskAttachmentRoutes)
 
   // Create-or-update with the client's UUIDv7, so a retried create never duplicates.
   .put("/:id", validate("param", idParamSchema), validate("json", createTaskSchema), async (c) => {
@@ -96,8 +98,9 @@ export const taskRoutes = new Hono<SessionEnv>()
     return c.json(await updateTask(db, userId, id, changes), 200);
   })
 
-  // Soft delete, so Undo can restore. The subtasks get the same deleted_at,
-  // which is how restore knows which ones to bring back.
+  // Soft delete, so Undo can restore. The subtasks and images get the same deleted_at,
+  // which is how restore knows which ones to bring back. Image files stay in R2
+  // until the purge job removes them with the rows.
   .delete("/:id", validate("param", idParamSchema), async (c) => {
     const db = createDb(c.env.DB);
     const userId = c.get("userId");
@@ -106,11 +109,15 @@ export const taskRoutes = new Hono<SessionEnv>()
     if (task.deletedAt) return c.json(task, 200);
 
     const now = Date.now();
-    const [, deleted] = await db.batch([
+    const [, , deleted] = await db.batch([
       db
         .update(subtasks)
         .set({ deletedAt: now, updatedAt: now })
         .where(and(eq(subtasks.taskId, id), isNull(subtasks.deletedAt))),
+      db
+        .update(attachments)
+        .set({ deletedAt: now, updatedAt: now })
+        .where(and(eq(attachments.taskId, id), isNull(attachments.deletedAt))),
       db.update(tasks).set({ deletedAt: now, updatedAt: now }).where(eq(tasks.id, id)).returning(taskColumns),
     ]);
     return c.json(deleted[0], 200);
@@ -128,12 +135,25 @@ export const taskRoutes = new Hono<SessionEnv>()
     const projectGone = task.projectId && !(await findUsableProject(db, userId, task.projectId));
     const placement = projectGone ? { projectId: null, position: await positionAtEndOfList(db, userId, null) } : {};
 
+    // Images that no longer fit in the storage limit stay deleted (the purge job removes them).
+    // Their new updated_at sends them to sync again, so a device that showed them on Undo takes them off.
+    const deletedWithTask = and(eq(attachments.taskId, id), eq(attachments.deletedAt, task.deletedAt));
+    const [images] = await db
+      .select({ bytes: sum(attachments.bytes).mapWith(Number) })
+      .from(attachments)
+      .where(deletedWithTask);
+    const imagesFit = await hasRoomInStorage(db, userId, images?.bytes ?? 0);
+
     const now = Date.now();
-    const [, restored] = await db.batch([
+    const [, , restored] = await db.batch([
       db
         .update(subtasks)
         .set({ deletedAt: null, updatedAt: now })
         .where(and(eq(subtasks.taskId, id), eq(subtasks.deletedAt, task.deletedAt))),
+      db
+        .update(attachments)
+        .set(imagesFit ? { deletedAt: null, updatedAt: now } : { updatedAt: now })
+        .where(deletedWithTask),
       db
         .update(tasks)
         .set({ ...placement, deletedAt: null, updatedAt: now })

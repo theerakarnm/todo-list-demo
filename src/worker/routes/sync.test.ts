@@ -2,6 +2,7 @@ import { env } from "cloudflare:test";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { apiAs, bodyOf } from "../test/api";
 import { newId } from "../test/ids";
+import { attachmentForm, pngFile } from "../test/images";
 import { createTestUser } from "../test/users";
 
 type Row = { id: string; deletedAt: number | null; completedAt?: number | null; taskId?: string };
@@ -9,6 +10,7 @@ type Sync = {
   tasks: Row[];
   projects: Row[];
   subtasks: Row[];
+  attachments: Row[];
   settings: { timezone: string; weekStart: string };
   cursor: number;
 };
@@ -24,9 +26,15 @@ async function put(userId: string, kind: "tasks" | "projects" | "subtasks", body
 
 /** Makes everything the user has look old, so a delta only shows what changes next. */
 async function ageAllRows(userId: string) {
-  for (const table of ["tasks", "projects", "subtasks"]) {
+  for (const table of ["tasks", "projects", "subtasks", "attachments"]) {
     await env.DB.prepare(`UPDATE ${table} SET updated_at = 1000 WHERE user_id = ?`).bind(userId).run();
   }
+}
+
+async function attach(userId: string, taskId: string) {
+  const response = await apiAs(userId).postForm(`/api/tasks/${taskId}/attachments`, attachmentForm(pngFile()));
+  expect(response.status).toBe(201);
+  return (await bodyOf<Row>(response)).id;
 }
 
 async function sync(userId: string, since?: number) {
@@ -75,6 +83,36 @@ describe("GET /api/sync without since (full load)", () => {
     expect(body.tasks).toEqual([]);
     expect(body.projects).toEqual([]);
     expect(body.subtasks).toEqual([]);
+    expect(body.attachments).toEqual([]);
+  });
+
+  it("returns the image metadata of active tasks, without deleted images or completed tasks", async () => {
+    const userId = await createTestUser();
+    const activeId = await put(userId, "tasks", { title: "ทำอยู่" });
+    const completedId = await put(userId, "tasks", { title: "เสร็จแล้ว" });
+    const attachmentId = await attach(userId, activeId);
+    const deletedAttachmentId = await attach(userId, activeId);
+    await attach(userId, completedId);
+    await apiAs(userId).patch(`/api/tasks/${completedId}`, { completed: true });
+    await apiAs(userId).delete(`/api/attachments/${deletedAttachmentId}`);
+
+    const body = await sync(userId);
+
+    expect(body.attachments).toEqual([
+      {
+        id: attachmentId,
+        taskId: activeId,
+        r2Key: `u/${userId}/t/${activeId}/${attachmentId}`,
+        mime: "image/png",
+        bytes: 64,
+        width: null,
+        height: null,
+        position: expect.any(String),
+        createdAt: expect.any(Number),
+        updatedAt: expect.any(Number),
+        deletedAt: null,
+      },
+    ]);
   });
 });
 
@@ -114,6 +152,42 @@ describe("GET /api/sync?since", () => {
     const body = await sync(userId, 5000);
 
     expect(idsOf(body.subtasks)).toEqual([subtaskId]);
+  });
+
+  it("returns changed images, deleted ones as tombstones, and every image of a changed task", async () => {
+    const userId = await createTestUser();
+    const quietTaskId = await put(userId, "tasks", { title: "ไม่แตะ" });
+    const reopenedTaskId = await put(userId, "tasks", { title: "เคยเสร็จ" });
+    const untouchedId = await attach(userId, quietTaskId);
+    const movedId = await attach(userId, quietTaskId);
+    const deletedId = await attach(userId, quietTaskId);
+    const reopenedTaskImageId = await attach(userId, reopenedTaskId);
+    await apiAs(userId).patch(`/api/tasks/${reopenedTaskId}`, { completed: true });
+    await ageAllRows(userId);
+
+    await apiAs(userId).patch(`/api/attachments/${movedId}`, { position: "Zz" });
+    await apiAs(userId).delete(`/api/attachments/${deletedId}`);
+    await apiAs(userId).patch(`/api/tasks/${reopenedTaskId}`, { completed: false });
+    const body = await sync(userId, 5000);
+
+    expect(idsOf(body.attachments)).toEqual([deletedId, movedId, reopenedTaskImageId].sort());
+    expect(idsOf(body.attachments)).not.toContain(untouchedId);
+    expect(body.attachments.find((row) => row.id === deletedId)?.deletedAt).toEqual(expect.any(Number));
+  });
+
+  it("sends an image deleted and then restored as live again", async () => {
+    const userId = await createTestUser();
+    const taskId = await put(userId, "tasks", { title: "ใบเสร็จ" });
+    const imageId = await attach(userId, taskId);
+    await ageAllRows(userId);
+
+    await apiAs(userId).delete(`/api/attachments/${imageId}`);
+    const afterDelete = await sync(userId, 5000);
+    await apiAs(userId).post(`/api/attachments/${imageId}/restore`);
+    const afterRestore = await sync(userId, 5000);
+
+    expect(afterDelete.attachments).toEqual([expect.objectContaining({ id: imageId, deletedAt: expect.any(Number) })]);
+    expect(afterRestore.attachments).toEqual([expect.objectContaining({ id: imageId, deletedAt: null })]);
   });
 
   it("overlaps the cursor, so a write that lands just before it is never lost", async () => {

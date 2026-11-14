@@ -1,7 +1,7 @@
-import { and, count, eq, isNull } from "drizzle-orm";
+import { and, count, eq, isNull, sum } from "drizzle-orm";
 import { LIMITS } from "../shared/constants";
 import type { Db } from "./db/client";
-import { projects, subtasks, tasks } from "./db/schema";
+import { attachments, projects, subtasks, tasks } from "./db/schema";
 import { ApiError } from "./errors";
 
 // Every account limit lives here (ARCHITECTURE §4). Each check runs right
@@ -30,4 +30,25 @@ export async function assertRoomForSubtask(db: Db, taskId: string) {
     .from(subtasks)
     .where(and(eq(subtasks.taskId, taskId), isNull(subtasks.deletedAt)));
   if ((row?.total ?? 0) + 1 > LIMITS.subtasksPerTask) throw new ApiError("SUBTASK_LIMIT");
+}
+
+export async function assertRoomForAttachment(db: Db, taskId: string) {
+  const [row] = await db
+    .select({ total: count() })
+    .from(attachments)
+    .where(and(eq(attachments.taskId, taskId), isNull(attachments.deletedAt)));
+  if ((row?.total ?? 0) + 1 > LIMITS.attachmentsPerTask) throw new ApiError("ATTACHMENT_LIMIT");
+}
+
+/** The account's storage is the sum of its live attachments; profile photos do not count. */
+export async function hasRoomInStorage(db: Db, userId: string, addingBytes: number) {
+  const [row] = await db
+    .select({ used: sum(attachments.bytes).mapWith(Number) })
+    .from(attachments)
+    .where(and(eq(attachments.userId, userId), isNull(attachments.deletedAt)));
+  return (row?.used ?? 0) + addingBytes <= LIMITS.storageBytesPerUser;
+}
+
+export async function assertRoomInStorage(db: Db, userId: string, addingBytes: number) {
+  if (!(await hasRoomInStorage(db, userId, addingBytes))) throw new ApiError("STORAGE_LIMIT");
 }

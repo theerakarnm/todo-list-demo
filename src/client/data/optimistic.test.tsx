@@ -63,6 +63,20 @@ describe("useOptimisticMutation", () => {
     expect(tasksIn(queryClient).t2?.title).toBe("แก้แล้ว");
   });
 
+  it("shows every change made at once, not only the last one", async () => {
+    stubApi({ "PUT /api/tasks/:id": () => new Promise<Response>(() => {}) });
+    const { result, queryClient } = renderHookWithStore(useCreateTask, storeWith({}));
+
+    act(() => {
+      result.current({ title: "ซื้อนม", projectId: null, dueDate: null });
+      result.current({ title: "ซื้อไข่", projectId: null, dueDate: null });
+    });
+
+    await waitFor(() =>
+      expect(Object.values(tasksIn(queryClient)).map((task) => task.title)).toEqual(["ซื้อนม", "ซื้อไข่"]),
+    );
+  });
+
   it("leaves no ghost row when a create fails and a queued edit of it then fails too", async () => {
     let answerCreate: (response: Response) => void = () => {};
     stubApi({

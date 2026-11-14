@@ -5,7 +5,7 @@ import { useToast } from "../toast/ToastProvider";
 import { SYNC_QUERY_KEY } from "./sync-query";
 import { applyRows, type ChangedRows, type SyncStore } from "./sync-store";
 
-const TABLES = ["tasks", "projects", "subtasks"] as const;
+const TABLES = ["tasks", "projects", "subtasks", "attachments"] as const;
 type Table = (typeof TABLES)[number];
 /** A row a mutation changed: its value before (undefined = it created the row) and the value it wrote. */
 type RowChange = { table: Table; id: string; previous: unknown; written: unknown };
@@ -33,7 +33,13 @@ function changedRows(before: SyncStore, after: SyncStore): RowChange[] {
 function rollBack(queryClient: QueryClient, changes: RowChange[]) {
   queryClient.setQueryData<SyncStore>(SYNC_QUERY_KEY, (store) => {
     if (!store) return store;
-    const next = { ...store, tasks: { ...store.tasks }, projects: { ...store.projects }, subtasks: { ...store.subtasks } };
+    const next = {
+      ...store,
+      tasks: { ...store.tasks },
+      projects: { ...store.projects },
+      subtasks: { ...store.subtasks },
+      attachments: { ...store.attachments },
+    };
     for (const { table, id, previous, written } of changes) {
       const rows = next[table] as Record<string, unknown>;
       if (previous === undefined) delete rows[id];
@@ -52,7 +58,7 @@ type OptimisticMutation<Variables, Result> = {
   confirm?: (result: Result) => ChangedRows;
   onSuccess?: (result: Result, variables: Variables) => void;
   /** Runs after success or failure, e.g. to refresh the Logbook. */
-  onSettled?: () => void;
+  onSettled?: (variables: Variables) => void;
 };
 
 /**
@@ -68,11 +74,13 @@ export function useOptimisticMutation<Variables, Result>(mutation: OptimisticMut
     scope: WRITE_SCOPE,
     mutationFn: mutation.request,
     onMutate: async (variables: Variables) => {
-      const before = queryClient.getQueryData<SyncStore>(SYNC_QUERY_KEY);
       // Screens offer changes only once the store is loaded; the first load is never cancelled.
-      if (!before) return { changes: [] };
+      if (!queryClient.getQueryData<SyncStore>(SYNC_QUERY_KEY)) return { changes: [] };
       // A poll already on its way would bring back the old rows.
       await queryClient.cancelQueries({ queryKey: SYNC_QUERY_KEY });
+      // Read after the wait: changes made at the same time (several images) have landed by now.
+      const before = queryClient.getQueryData<SyncStore>(SYNC_QUERY_KEY);
+      if (!before) return { changes: [] };
       queryClient.setQueryData(SYNC_QUERY_KEY, mutation.apply(before, variables));
       // Compared with what the cache holds now: structural sharing copies changed rows.
       const after = queryClient.getQueryData<SyncStore>(SYNC_QUERY_KEY) ?? before;
@@ -87,6 +95,6 @@ export function useOptimisticMutation<Variables, Result>(mutation: OptimisticMut
       if (rows) queryClient.setQueryData<SyncStore>(SYNC_QUERY_KEY, (store) => store && applyRows(store, rows));
       mutation.onSuccess?.(result, variables);
     },
-    onSettled: mutation.onSettled,
+    onSettled: (_result, _error, variables) => mutation.onSettled?.(variables),
   });
 }

@@ -4,7 +4,7 @@
 APP_ENV=development
 # Better Auth: any long random string (e.g. `openssl rand -base64 32`).
 BETTER_AUTH_SECRET=
-# Public origin, e.g. https://jotlist.eukron.com. Leave empty to use the origin of each request.
+# Production sets this in wrangler.jsonc vars. Keep it empty locally: an empty value overrides it, so each request's origin is used.
 BETTER_AUTH_URL=
 LINE_LOGIN_CHANNEL_ID=
 LINE_LOGIN_CHANNEL_SECRET=

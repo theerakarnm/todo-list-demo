@@ -1,7 +1,4 @@
-/** Every R2 key of a user starts with this (see ARCHITECTURE.md §16). */
-export function userFilesPrefix(userId: string) {
-  return `u/${userId}/`;
-}
+import { userFilesPrefix } from "./file-keys";
 
 /** Deletes every R2 object under the user's prefix, one list page (up to 1,000 keys) at a time. */
 export async function deleteUserFiles(files: R2Bucket, userId: string) {

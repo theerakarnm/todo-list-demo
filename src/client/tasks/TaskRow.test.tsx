@@ -5,13 +5,19 @@ import "../i18n";
 import { aProject, aTask } from "../data/test-rows";
 import { TaskRow } from "./TaskRow";
 
-function renderRow(fields: Parameters<typeof aTask>[0], dateStyle: "full" | "time" = "full", path = "/") {
+function renderRow(
+  fields: Parameters<typeof aTask>[0],
+  dateStyle: "full" | "time" = "full",
+  path = "/",
+  imageCount?: number,
+) {
   render(
     <MemoryRouter initialEntries={[path]}>
       <TaskRow
         task={aTask(fields)}
         project={aProject({ id: "p1", name: "งาน" })}
         progress={{ done: 2, total: 5 }}
+        imageCount={imageCount}
         dateStyle={dateStyle}
         today="2026-11-14"
         onToggle={() => {}}
@@ -44,6 +50,19 @@ describe("TaskRow", () => {
     renderRow({ id: "t1", title: "จ่ายค่าไฟ" }, "full", "/app/logbook?project=p1");
 
     expect(screen.getByRole("link", { name: "จ่ายค่าไฟ" }).getAttribute("href")).toBe("/app/logbook?project=p1&task=t1");
+  });
+
+  it("shows 📎 and the number of images, named for screen readers", () => {
+    renderRow({ id: "t1" }, "full", "/", 3);
+
+    expect(screen.getByText("📎 3")).toBeTruthy();
+    expect(screen.getByText("รูปภาพ 3 รูป").className).toContain("sr-only");
+  });
+
+  it("shows no 📎 for a task without images", () => {
+    renderRow({ id: "t1" });
+
+    expect(screen.queryByText(/📎/)).toBeNull();
   });
 
   it("shows a muted P4 when there is no priority", () => {

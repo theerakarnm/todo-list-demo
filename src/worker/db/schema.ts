@@ -103,9 +103,13 @@ export const attachments = sqliteTable(
     height: integer("height"),
     position: text("position").notNull(),
     createdAt: epochMs("created_at").notNull(),
+    updatedAt: epochMs("updated_at").notNull().default(0),
     deletedAt: epochMs("deleted_at"),
   },
-  (table) => [index("attachments_task_idx").on(table.taskId)],
+  (table) => [
+    index("attachments_task_idx").on(table.taskId),
+    index("attachments_user_updated_idx").on(table.userId, table.updatedAt),
+  ],
 );
 
 export const pushSubscriptions = sqliteTable(

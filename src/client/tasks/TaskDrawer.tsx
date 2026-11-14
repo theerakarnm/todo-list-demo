@@ -6,11 +6,16 @@ import { Icon } from "../components/Icon";
 import { useDraft } from "../components/use-draft";
 import { useCompleteTask, useDeleteTask, useUncompleteTask, useUpdateTask } from "../data/task-mutations";
 import type { Task } from "../data/types";
+import { useUploadImages } from "../data/attachment-mutations";
+import { ImageGallery } from "../images/ImageGallery";
+import { useFileDrop } from "../images/use-file-drop";
 import { SubtaskList } from "./SubtaskList";
 import { TaskDetails } from "./TaskDetails";
 import { useOpenTask } from "./use-open-task";
 
-function TaskEditor({ task, onDeleted }: { task: Task; onDeleted: () => void }) {
+type TaskEditorProps = { task: Task; onDeleted: () => void; dropping: boolean };
+
+function TaskEditor({ task, onDeleted, dropping }: TaskEditorProps) {
   const { t } = useTranslation();
   const updateTask = useUpdateTask();
   const complete = useCompleteTask();
@@ -68,6 +73,8 @@ function TaskEditor({ task, onDeleted }: { task: Task; onDeleted: () => void }) 
         />
       </label>
 
+      <ImageGallery taskId={task.id} dropping={dropping} />
+
       <TaskDetails task={task} />
       <SubtaskList taskId={task.id} />
 
@@ -93,10 +100,19 @@ function TaskEditor({ task, onDeleted }: { task: Task; onDeleted: () => void }) 
 export function TaskDrawer() {
   const { t } = useTranslation();
   const { taskId, task, loaded, close } = useOpenTask();
+  const uploadImages = useUploadImages();
+  // Images can be dropped or pasted anywhere in the drawer.
+  const fileDrop = useFileDrop((files) => task && uploadImages(task.id, files));
   if (!taskId) return null;
 
   return (
-    <Dialog label={t("drawer.label")} onClose={close} className="task-drawer">
+    <Dialog
+      label={t("drawer.label")}
+      onClose={close}
+      className="task-drawer"
+      data-dropping={fileDrop.dropping}
+      {...fileDrop.handlers}
+    >
       <div className="sticky top-0 z-[1] flex items-center justify-between border-b-[1.5px] border-rule bg-bg py-1.5 pr-2 pl-5">
         <h2 className="mono m-0 font-semibold">{t("drawer.heading")}</h2>
         <form method="dialog">
@@ -105,7 +121,7 @@ export function TaskDrawer() {
           </button>
         </form>
       </div>
-      {task && <TaskEditor key={task.id} task={task} onDeleted={close} />}
+      {task && <TaskEditor key={task.id} task={task} onDeleted={close} dropping={fileDrop.dropping} />}
       {!task && loaded && <p className="muted p-5">{t("drawer.notFound")}</p>}
     </Dialog>
   );

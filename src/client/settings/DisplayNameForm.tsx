@@ -16,7 +16,7 @@ export function DisplayNameForm({ displayName }: { displayName: string }) {
   }
 
   return (
-    <form className="field mb-6" onSubmit={handleSubmit}>
+    <form className="form-field mb-6" onSubmit={handleSubmit}>
       <label className="mono" htmlFor="display-name">
         {t("settingsAccount.nameLabel")}
       </label>

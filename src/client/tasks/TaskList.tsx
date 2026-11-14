@@ -1,7 +1,7 @@
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useMemo } from "react";
 import { todayInTimeZone } from "../../shared/time-zone";
-import { subtaskProgress, todayFor } from "../data/selectors";
+import { imageCounts, subtaskProgress, todayFor } from "../data/selectors";
 import { useSyncStore } from "../data/sync-query";
 import { useCompleteTask, useUncompleteTask } from "../data/task-mutations";
 import type { Task } from "../data/types";
@@ -28,6 +28,7 @@ export function TaskList({ tasks, dateStyle, showProject = true, drag }: TaskLis
   const complete = useCompleteTask();
   const uncomplete = useUncompleteTask();
   const progress = useMemo(() => (store ? subtaskProgress(store) : new Map()), [store]);
+  const images = useMemo(() => (store ? imageCounts(store) : new Map<string, number>()), [store]);
   if (!store) return null;
 
   const today = todayFor(store, now);
@@ -40,6 +41,7 @@ export function TaskList({ tasks, dateStyle, showProject = true, drag }: TaskLis
           task={task}
           project={showProject && task.projectId ? store.projects[task.projectId] : undefined}
           progress={progress.get(task.id)}
+          imageCount={images.get(task.id)}
           dateStyle={dateStyle}
           today={today}
           completedOn={task.completedAt ? todayInTimeZone(task.completedAt, store.settings.timezone) : undefined}

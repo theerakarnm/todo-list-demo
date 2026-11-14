@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+  attachmentsOfTask,
   compareForAutoSort,
+  imageCounts,
   completedTasks,
   inboxTasks,
   projectTasks,
@@ -10,7 +12,7 @@ import {
   todayGroups,
   upcomingDays,
 } from "./selectors";
-import { aProject, aSubtask, aTask, storeWith } from "./test-rows";
+import { anAttachment, aProject, aSubtask, aTask, storeWith } from "./test-rows";
 import type { Task } from "./types";
 
 const ids = (tasks: Task[]) => tasks.map((task) => task.id);
@@ -198,6 +200,35 @@ describe("subtaskProgress", () => {
 
     expect(subtaskProgress(store).get("t1")).toEqual({ done: 1, total: 2 });
     expect(subtaskProgress(store).get("t3")).toBeUndefined();
+  });
+});
+
+describe("attachmentsOfTask", () => {
+  it("lists the task's images in gallery order", () => {
+    const store = storeWith({
+      attachments: [
+        anAttachment({ id: "second", taskId: "t1", position: "a1" }),
+        anAttachment({ id: "other-task", taskId: "t2", position: "a0" }),
+        anAttachment({ id: "first", taskId: "t1", position: "a0" }),
+      ],
+    });
+
+    expect(attachmentsOfTask(store, "t1").map((attachment) => attachment.id)).toEqual(["first", "second"]);
+  });
+});
+
+describe("imageCounts", () => {
+  it("counts each task's images; tasks without images are left out", () => {
+    const store = storeWith({
+      attachments: [
+        anAttachment({ id: "a1", taskId: "t1" }),
+        anAttachment({ id: "a2", taskId: "t1" }),
+        anAttachment({ id: "a3", taskId: "t2" }),
+      ],
+    });
+
+    expect(imageCounts(store).get("t1")).toBe(2);
+    expect(imageCounts(store).get("t3")).toBeUndefined();
   });
 });
 

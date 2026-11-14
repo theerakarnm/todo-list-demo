@@ -6,7 +6,9 @@
   "compatibility_flags": ["nodejs_compat"],
   // "development" in .dev.vars locally; anything else counts as production.
   "vars": {
-    "APP_ENV": "production"
+    "APP_ENV": "production",
+    // Public URL, not a secret; local .dev.vars overrides it.
+    "BETTER_AUTH_URL": "https://jotlist.eukron.com"
   },
   "assets": {
     "not_found_handling": "single-page-application",

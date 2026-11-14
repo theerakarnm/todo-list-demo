@@ -4,11 +4,13 @@ import { LIMITS, type Priority } from "../../shared/constants";
 import { parseQuickAdd } from "../../shared/parse-quick-add";
 import { todayInTimeZone } from "../../shared/time-zone";
 import { DialogFrame } from "../components/DialogFrame";
+import { useUploadImages } from "../data/attachment-mutations";
 import { useSyncStore } from "../data/sync-query";
 import { useCreateTask } from "../data/task-mutations";
 import { useNow } from "../data/use-now";
 import { BROWSER_TIME_ZONE } from "../i18n/browser-time-zone";
 import { QuickAddChips } from "./QuickAddChips";
+import { QuickAddImages, usePastedImages } from "./QuickAddImages";
 import type { QuickAddDefaults } from "./quick-add-context";
 
 /** What the user picked in a chip. It wins over the title; null on the date means "no date". */
@@ -22,6 +24,8 @@ export function QuickAddDialog({ defaults, onClose }: QuickAddDialogProps) {
   const store = useSyncStore();
   const now = useNow();
   const createTask = useCreateTask();
+  const uploadImages = useUploadImages();
+  const pasted = usePastedImages();
   const [text, setText] = useState("");
   const [choices, setChoices] = useState<ChipChoices>({});
 
@@ -39,7 +43,9 @@ export function QuickAddDialog({ defaults, onClose }: QuickAddDialogProps) {
   function save(event: FormEvent) {
     event.preventDefault();
     if (!task.title || !store) return;
-    createTask(task);
+    const taskId = createTask(task);
+    // Sent after the task: every write goes to the server in order.
+    if (pasted.files.length > 0) uploadImages(taskId, pasted.files);
     onClose();
   }
 
@@ -59,7 +65,9 @@ export function QuickAddDialog({ defaults, onClose }: QuickAddDialogProps) {
           autoComplete="off"
           value={text}
           onChange={(event) => setText(event.target.value)}
+          onPaste={pasted.onPaste}
         />
+        <QuickAddImages images={pasted.images} onRemove={pasted.remove} />
         <QuickAddChips
           today={todayInTimeZone(now, timeZone)}
           task={task}
