@@ -58,9 +58,6 @@
       "title": "Settings",
       "subtitle": "จัดการข้อมูลส่วนตัวและการทำงานของแอป"
     },
-    "landing": {
-      "title": "JotList"
-    },
     "login": {
       "title": "เข้าสู่ระบบ"
     },
@@ -262,5 +259,19 @@
     "contact": "ติดต่อ: {{email}}",
     "contactEmail": "contact@theerakarnm.dev",
     "copyright": "© 2026 jotlist - Eukron Team"
+  },
+  "onboarding": {
+    "setupTime": "setup - ~20 sec",
+    "progress": "ความคืบหน้า",
+    "step1": "step 01 / 02",
+    "step2": "step 02 / 02",
+    "nameCaption": "display name / theme",
+    "nameLabel": "ชื่อแสดงผล / display name",
+    "themeLegend": "ธีมสี / theme",
+    "continue": "Continue",
+    "projectsCaption": "starter projects",
+    "projectsHint": "เลือกได้หลายอัน เปลี่ยนหรือเพิ่มทีหลังได้",
+    "createWorkspace": "Create workspace",
+    "skip": "Skip"
   }
 }

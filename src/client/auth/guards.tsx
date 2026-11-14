@@ -13,6 +13,16 @@ export function SignedInOnly() {
   return <Outlet />;
 }
 
+/** Onboarding, shown once: signed-in users who have not finished it. */
+export function OnboardingOnly() {
+  const { data: me, isPending } = useMe();
+
+  if (isPending) return null;
+  if (!me) return <Navigate to={loginPathFor("/app")} replace />;
+  if (me.settings.onboardedAt !== null) return <Navigate to={startPath(me.settings.startPage)} replace />;
+  return <Outlet />;
+}
+
 /** Login and Signup: a signed-in user goes on to `?next=` or the start page. */
 export function SignedOutOnly() {
   const { data: me, isPending } = useMe();

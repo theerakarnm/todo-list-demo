@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 import type { RouteObject } from "react-router";
-import { SignedInOnly, SignedOutOnly, StartPageRedirect } from "./auth/guards";
+import { OnboardingOnly, SignedInOnly, SignedOutOnly, StartPageRedirect } from "./auth/guards";
 
 // Every screen is its own chunk, downloaded the first time it is visited.
 function lazyPage(load: () => Promise<{ default: ComponentType }>) {
@@ -24,8 +24,8 @@ const screens: RouteObject[] = [
   { path: "/forgot-password", lazy: lazyPage(() => import("./pages/ForgotPasswordPage")) },
   { path: "/reset-password", lazy: lazyPage(() => import("./pages/ResetPasswordPage")) },
   { path: "/verify-email", lazy: lazyPage(() => import("./pages/VerifyEmailPage")) },
-  { path: "/onboarding/1", lazy: lazyPage(() => import("./pages/OnboardingNamePage")) },
-  { path: "/onboarding/2", lazy: lazyPage(() => import("./pages/OnboardingProjectsPage")) },
+  guarded(OnboardingOnly, { path: "/onboarding/1", lazy: lazyPage(() => import("./pages/OnboardingNamePage")) }),
+  guarded(OnboardingOnly, { path: "/onboarding/2", lazy: lazyPage(() => import("./pages/OnboardingProjectsPage")) }),
   { path: "/privacy", lazy: lazyPage(() => import("./pages/PrivacyPage")) },
   { path: "/terms", lazy: lazyPage(() => import("./pages/TermsPage")) },
   guarded(SignedInOnly, {

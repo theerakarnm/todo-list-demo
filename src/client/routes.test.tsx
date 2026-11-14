@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { AppProviders } from "./AppProviders";
 import th from "./i18n/th.json";
 import { routes } from "./routes";
-import { signedOut } from "./test/fake-api";
+import { signedInAs, signedOut, testMe } from "./test/fake-api";
 import { stubSystemPrefersDark } from "./theme/test-utils";
 
 function renderAt(path: string) {
@@ -26,13 +26,21 @@ describe("routes", () => {
     ["/forgot-password", th.pages.forgotPassword.title],
     ["/reset-password", th.pages.resetPassword.title],
     ["/verify-email", th.pages.verifyEmail.title],
-    ["/onboarding/1", th.pages.onboardingName.title],
-    ["/onboarding/2", th.pages.onboardingProjects.title],
     ["/privacy", th.pages.privacy.title],
     ["/terms", th.pages.terms.title],
     ["/no-such-page", th.pages.notFound.title],
   ])("%s shows its page to a signed-out visitor", async (path, title) => {
     signedOut();
+    renderAt(path);
+
+    expect(await screen.findByRole("heading", { level: 1, name: title })).toBeTruthy();
+  });
+
+  it.each([
+    ["/onboarding/1", th.pages.onboardingName.title],
+    ["/onboarding/2", th.pages.onboardingProjects.title],
+  ])("%s shows its page to a new user", async (path, title) => {
+    signedInAs(testMe({ settings: { onboardedAt: null } }));
     renderAt(path);
 
     expect(await screen.findByRole("heading", { level: 1, name: title })).toBeTruthy();
