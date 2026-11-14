@@ -99,8 +99,7 @@ export const taskAttachmentRoutes = new Hono<SessionEnv>()
 export const attachmentRoutes = new Hono<SessionEnv>()
   .use(requireSession)
 
-  // No Undo for an image: the file goes right away. The row stays as a tombstone for sync.
-  // If the R2 delete fails, the purge job removes the file of the soft-deleted row later.
+  // Soft delete, so Undo can restore. The file stays in R2 until the purge job removes it with the row.
   .delete("/:id", validate("param", idParamSchema), async (c) => {
     const db = createDb(c.env.DB);
     const { id } = c.req.valid("param");
@@ -108,9 +107,7 @@ export const attachmentRoutes = new Hono<SessionEnv>()
     if (attachment.deletedAt) return c.json(attachment, 200);
 
     const now = Date.now();
-    const deleted = await updateAttachment(db, id, { deletedAt: now, updatedAt: now });
-    await c.env.FILES.delete(attachment.r2Key);
-    return c.json(deleted, 200);
+    return c.json(await updateAttachment(db, id, { deletedAt: now, updatedAt: now }), 200);
   })
 
   // Drag-to-reorder in the gallery: only this row gets a new position.

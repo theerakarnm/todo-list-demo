@@ -191,7 +191,7 @@ describe("POST /api/tasks/:id/attachments", () => {
 });
 
 describe("DELETE /api/attachments/:id", () => {
-  it("soft-deletes the row and removes the R2 object right away", async () => {
+  it("soft-deletes the row and keeps the R2 object, so Undo can bring the image back", async () => {
     const userId = await createTestUser();
     const attachment = await uploadPng(userId, await createTask(userId));
 
@@ -201,7 +201,7 @@ describe("DELETE /api/attachments/:id", () => {
     const deleted = await bodyOf<Attachment>(response);
     expect(deleted.deletedAt).toEqual(expect.any(Number));
     expect(deleted.updatedAt).toBe(deleted.deletedAt);
-    expect(await env.FILES.head(attachment.r2Key)).toBeNull();
+    expect(await env.FILES.head(attachment.r2Key)).not.toBeNull();
   });
 
   it("is idempotent: deleting again answers the same deleted row", async () => {
