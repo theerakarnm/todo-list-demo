@@ -67,6 +67,15 @@
     "signup": {
       "title": "สมัครใช้งาน"
     },
+    "forgotPassword": {
+      "title": "ลืมรหัสผ่าน"
+    },
+    "resetPassword": {
+      "title": "ตั้งรหัสผ่านใหม่"
+    },
+    "verifyEmail": {
+      "title": "ยืนยันอีเมล"
+    },
     "onboardingName": {
       "title": "ตั้งชื่อที่ใช้แสดง"
     },
