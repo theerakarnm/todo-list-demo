@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { E2E_PASSWORD, e2eEmail } from "./test-user";
 
+// Files run in name order: smoke.spec.ts goes first and onboards this run's user, so this one is named to come after it.
 // The browser push switch is left to the component tests: subscribing in a real
 // browser would register with a real push service. This test covers the daily digest.
 
@@ -13,21 +14,14 @@ test("turn on the daily digest, set a time and find both after a reload", async 
   await page.getByRole("button", { name: "Log in" }).click();
 
   // A new account goes through onboarding once; this test may run before or after the smoke test.
-  const settingsTab = page.getByRole("tab", { name: "Notifications" });
-  const continueButton = page.getByRole("button", { name: "Continue", exact: true });
-  await settingsTab.or(continueButton).waitFor();
-  if (await continueButton.isVisible()) {
-    await continueButton.click();
-    await page.getByRole("button", { name: "Skip" }).click();
-    await page.goto("/app/settings?tab=notifications");
-  }
+  await expect(page.getByRole("tab", { name: "Notifications" })).toHaveAttribute("aria-selected", "true");
 
   const digest = page.getByRole("checkbox", { name: "สรุปงานประจำวัน / daily digest" });
   const time = page.getByLabel("ส่งเวลา / time");
   await expect(digest).not.toBeChecked();
 
   const switchSaved = page.waitForResponse((response) => response.request().method() === "PATCH" && response.ok());
-  await digest.check();
+  await page.getByText("สรุปงานประจำวัน / daily digest").click();
   await switchSaved;
 
   const timeSaved = page.waitForResponse((response) => response.request().method() === "PATCH" && response.ok());
