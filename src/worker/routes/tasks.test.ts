@@ -4,6 +4,7 @@ import type { tasks } from "../db/schema";
 import { app } from "../app";
 import { apiAs, bodyOf } from "../test/api";
 import { newId } from "../test/ids";
+import { attachmentForm, pngFile } from "../test/images";
 import { insertProject, insertSubtask, seedTasks } from "../test/seed";
 import { createTestUser } from "../test/users";
 
@@ -227,6 +228,26 @@ describe("DELETE /api/tasks/:id and POST /api/tasks/:id/restore", () => {
     expect(restored.deletedAt).toBeNull();
     const restoredSubtask = await env.DB.prepare("SELECT deleted_at FROM subtasks WHERE id = ?").bind(subtaskId).first();
     expect(restoredSubtask?.deleted_at).toBeNull();
+  });
+
+  it("soft-deletes the task's images and keeps their files for Undo; restore brings back only those", async () => {
+    const userId = await createTestUser();
+    const task = await createTask(userId);
+    const upload = () => apiAs(userId).postForm(`/api/tasks/${task.id}/attachments`, attachmentForm(pngFile()));
+    const kept = await bodyOf<{ id: string; r2Key: string }>(await upload());
+    const deletedEarlier = await bodyOf<{ id: string }>(await upload());
+    await apiAs(userId).delete(`/api/attachments/${deletedEarlier.id}`);
+    const attachmentRow = (id: string) =>
+      env.DB.prepare("SELECT deleted_at, updated_at FROM attachments WHERE id = ?").bind(id).first<Record<string, number | null>>();
+    const earlierDeletedAt = (await attachmentRow(deletedEarlier.id))?.deleted_at;
+
+    const deleted = await bodyOf<Task>(await apiAs(userId).delete(`/api/tasks/${task.id}`));
+    expect(await attachmentRow(kept.id)).toEqual({ deleted_at: deleted.deletedAt, updated_at: deleted.deletedAt });
+    expect(await env.FILES.head(kept.r2Key)).not.toBeNull();
+
+    await apiAs(userId).post(`/api/tasks/${task.id}/restore`);
+    expect((await attachmentRow(kept.id))?.deleted_at).toBeNull();
+    expect((await attachmentRow(deletedEarlier.id))?.deleted_at).toBe(earlierDeletedAt);
   });
 
   it("brings a task back into the Inbox when its project was deleted meanwhile", async () => {

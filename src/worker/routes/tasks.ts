@@ -6,7 +6,7 @@ import { createDb, type Db } from "../db/client";
 import { taskColumns } from "../db/columns";
 import { assertUsableProject, findUsableProject } from "../db/project-queries";
 import { findOwnTask, isSameDue, positionAtEndOfList, reminderFor } from "../db/task-queries";
-import { subtasks, tasks } from "../db/schema";
+import { attachments, subtasks, tasks } from "../db/schema";
 import { ApiError } from "../errors";
 import { assertRoomForActiveTasks } from "../limits";
 import { requireSession } from "../middleware/require-session";
@@ -98,8 +98,9 @@ export const taskRoutes = new Hono<SessionEnv>()
     return c.json(await updateTask(db, userId, id, changes), 200);
   })
 
-  // Soft delete, so Undo can restore. The subtasks get the same deleted_at,
-  // which is how restore knows which ones to bring back.
+  // Soft delete, so Undo can restore. The subtasks and images get the same deleted_at,
+  // which is how restore knows which ones to bring back. Image files stay in R2
+  // until the purge job removes them with the rows.
   .delete("/:id", validate("param", idParamSchema), async (c) => {
     const db = createDb(c.env.DB);
     const userId = c.get("userId");
@@ -108,11 +109,15 @@ export const taskRoutes = new Hono<SessionEnv>()
     if (task.deletedAt) return c.json(task, 200);
 
     const now = Date.now();
-    const [, deleted] = await db.batch([
+    const [, , deleted] = await db.batch([
       db
         .update(subtasks)
         .set({ deletedAt: now, updatedAt: now })
         .where(and(eq(subtasks.taskId, id), isNull(subtasks.deletedAt))),
+      db
+        .update(attachments)
+        .set({ deletedAt: now, updatedAt: now })
+        .where(and(eq(attachments.taskId, id), isNull(attachments.deletedAt))),
       db.update(tasks).set({ deletedAt: now, updatedAt: now }).where(eq(tasks.id, id)).returning(taskColumns),
     ]);
     return c.json(deleted[0], 200);
@@ -131,11 +136,15 @@ export const taskRoutes = new Hono<SessionEnv>()
     const placement = projectGone ? { projectId: null, position: await positionAtEndOfList(db, userId, null) } : {};
 
     const now = Date.now();
-    const [, restored] = await db.batch([
+    const [, , restored] = await db.batch([
       db
         .update(subtasks)
         .set({ deletedAt: null, updatedAt: now })
         .where(and(eq(subtasks.taskId, id), eq(subtasks.deletedAt, task.deletedAt))),
+      db
+        .update(attachments)
+        .set({ deletedAt: null, updatedAt: now })
+        .where(and(eq(attachments.taskId, id), eq(attachments.deletedAt, task.deletedAt))),
       db
         .update(tasks)
         .set({ ...placement, deletedAt: null, updatedAt: now })
