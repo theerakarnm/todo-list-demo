@@ -3,9 +3,9 @@ import { generateKeyBetween } from "fractional-indexing";
 import { zonedDateTimeToUtcMs } from "../../shared/time-zone";
 import { ApiError } from "../errors";
 import type { Db } from "./client";
-import { subtaskColumns, taskColumns } from "./columns";
+import { attachmentColumns, subtaskColumns, taskColumns } from "./columns";
 import { getViewSettings } from "./settings-queries";
-import { subtasks, tasks } from "./schema";
+import { attachments, subtasks, tasks } from "./schema";
 
 /** The user's task with this id, deleted or not. 404 when it is missing or someone else's. */
 export async function findOwnTask(db: Db, userId: string, id: string) {
@@ -38,6 +38,20 @@ export function subtasksOfTasks(db: Db, userId: string, taskIds: string[]) {
         eq(subtasks.userId, userId),
         isNull(subtasks.deletedAt),
         inArray(subtasks.taskId, sql`(SELECT value FROM json_each(${JSON.stringify(taskIds)}))`),
+      ),
+    );
+}
+
+/** The live image metadata of these tasks of the user's (any number of ids, like subtasksOfTasks). */
+export function attachmentsOfTasks(db: Db, userId: string, taskIds: string[]) {
+  return db
+    .select(attachmentColumns)
+    .from(attachments)
+    .where(
+      and(
+        eq(attachments.userId, userId),
+        isNull(attachments.deletedAt),
+        inArray(attachments.taskId, sql`(SELECT value FROM json_each(${JSON.stringify(taskIds)}))`),
       ),
     );
 }

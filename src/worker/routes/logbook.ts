@@ -5,7 +5,7 @@ import { logbookQuerySchema } from "../../shared/schemas/queries";
 import { createDb } from "../db/client";
 import { taskColumns } from "../db/columns";
 import { tasks } from "../db/schema";
-import { subtasksOfTasks } from "../db/task-queries";
+import { attachmentsOfTasks, subtasksOfTasks } from "../db/task-queries";
 import { requireSession } from "../middleware/require-session";
 import type { SessionEnv } from "../types";
 import { validate } from "../validate";
@@ -21,7 +21,7 @@ export const logbookRoutes = new Hono<SessionEnv>()
   .use(requireSession)
 
   // Completed tasks, newest completion first, 50 a page, with their subtasks
-  // (the sync full load leaves completed tasks out). The id breaks ties,
+  // and image metadata (the sync full load leaves completed tasks out). The id breaks ties,
   // so tasks completed in the same millisecond are never skipped or repeated.
   .get("/", validate("query", logbookQuerySchema), async (c) => {
     const db = createDb(c.env.DB);
@@ -49,6 +49,10 @@ export const logbookRoutes = new Hono<SessionEnv>()
       rows.length > LIMITS.logbookPageSize && last?.completedAt
         ? { before: last.completedAt, beforeId: last.id }
         : null;
-    const subtaskRows = await subtasksOfTasks(db, c.get("userId"), pageRows.map((task) => task.id));
-    return c.json({ tasks: pageRows, subtasks: subtaskRows, next }, 200);
+    const pageTaskIds = pageRows.map((task) => task.id);
+    const [subtaskRows, attachmentRows] = await db.batch([
+      subtasksOfTasks(db, c.get("userId"), pageTaskIds),
+      attachmentsOfTasks(db, c.get("userId"), pageTaskIds),
+    ]);
+    return c.json({ tasks: pageRows, subtasks: subtaskRows, attachments: attachmentRows, next }, 200);
   });
