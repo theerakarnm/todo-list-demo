@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { LIMITS } from "../../shared/constants";
+import type { UpdateSettingsInput } from "../../shared/schemas/settings";
 import { user, userSettings } from "./schema";
 
 /** Until the browser sends its own (at onboarding). */
@@ -40,4 +41,11 @@ export async function createUserSettingsOnce(db: D1Database, userId: string) {
 export async function findUserSettings(db: D1Database, userId: string) {
   const [settings] = await drizzle(db).select(settingsColumns).from(userSettings).where(eq(userSettings.userId, userId));
   return settings ?? null;
+}
+
+export async function updateUserSettings(db: D1Database, userId: string, changes: UpdateSettingsInput) {
+  if (Object.keys(changes).length > 0) {
+    await drizzle(db).update(userSettings).set(changes).where(eq(userSettings.userId, userId));
+  }
+  return findUserSettings(db, userId);
 }
