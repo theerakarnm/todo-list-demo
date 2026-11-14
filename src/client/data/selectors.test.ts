@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   attachmentsOfTask,
   compareForAutoSort,
+  imageCounts,
   completedTasks,
   inboxTasks,
   projectTasks,
@@ -213,6 +214,21 @@ describe("attachmentsOfTask", () => {
     });
 
     expect(attachmentsOfTask(store, "t1").map((attachment) => attachment.id)).toEqual(["first", "second"]);
+  });
+});
+
+describe("imageCounts", () => {
+  it("counts each task's images; tasks without images are left out", () => {
+    const store = storeWith({
+      attachments: [
+        anAttachment({ id: "a1", taskId: "t1" }),
+        anAttachment({ id: "a2", taskId: "t1" }),
+        anAttachment({ id: "a3", taskId: "t2" }),
+      ],
+    });
+
+    expect(imageCounts(store).get("t1")).toBe(2);
+    expect(imageCounts(store).get("t3")).toBeUndefined();
   });
 });
 

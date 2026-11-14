@@ -490,6 +490,8 @@
     "overdueDate": "▲ {{date}}",
     "subtaskProgress": "{{done}}/{{total}}",
     "subtaskProgressLabel": "งานย่อยเสร็จ {{done}} จาก {{total}}",
+    "imageCount": "📎 {{count}}",
+    "imageCountLabel": "รูปภาพ {{count}} รูป",
     "addTask": "Add task",
     "addTaskPlaceholder": "พิมพ์ชื่องาน แล้วกด Enter",
     "addTaskHint": {

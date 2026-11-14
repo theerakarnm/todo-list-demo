@@ -14,6 +14,8 @@ type TaskRowProps = {
   /** Shown as a colour chip; left out on the project's own page. */
   project?: Project;
   progress?: { done: number; total: number };
+  /** How many images the task has; left out when none. */
+  imageCount?: number;
   /** "time" in lists grouped by day (Today, Upcoming), "full" elsewhere. */
   dateStyle: "full" | "time";
   today: string;
@@ -46,6 +48,7 @@ export function TaskRow({
   task,
   project,
   progress,
+  imageCount,
   dateStyle,
   today,
   completedOn,
@@ -85,6 +88,12 @@ export function TaskRow({
             <span className="task-progress mono" title={t("task.subtaskProgressLabel", progress)}>
               <Icon name="subtasks" size={12} />
               {t("task.subtaskProgress", progress)}
+            </span>
+          )}
+          {imageCount !== undefined && imageCount > 0 && (
+            <span className="task-progress mono">
+              <span aria-hidden="true">{t("task.imageCount", { count: imageCount })}</span>
+              <span className="sr-only">{t("task.imageCountLabel", { count: imageCount })}</span>
             </span>
           )}
           {project && (
