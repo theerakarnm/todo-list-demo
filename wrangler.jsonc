@@ -1,0 +1,58 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "jotlist",
+  "main": "src/worker/index.ts",
+  "compatibility_date": "2026-11-01",
+  "compatibility_flags": ["nodejs_compat"],
+  // "development" in .dev.vars locally; anything else counts as production.
+  "vars": {
+    "APP_ENV": "production",
+    // Public URL, not a secret; local .dev.vars overrides it.
+    "BETTER_AUTH_URL": "https://jotlist.eukron.com"
+  },
+  "assets": {
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "jotlist",
+      // Production D1 (created 2026-11-14). Local dev and tests ignore this value.
+      "database_id": "d4a29435-07e8-49bd-bcd7-d8e09aa0d5b2",
+      "migrations_dir": "drizzle"
+    }
+  ],
+  "r2_buckets": [
+    // Production bucket created 2026-11-14.
+    {
+      "binding": "FILES",
+      "bucket_name": "jotlist-files"
+    }
+  ],
+  // namespace_id must be unique within the Cloudflare account; 1001-1012 are used by other Workers.
+  "ratelimits": [
+    {
+      "name": "RATE_LIMIT_AUTH",
+      "namespace_id": "4201",
+      "simple": { "limit": 20, "period": 60 }
+    },
+    {
+      "name": "RATE_LIMIT_API",
+      "namespace_id": "4202",
+      "simple": { "limit": 120, "period": 60 }
+    }
+  ],
+  "triggers": {
+    "crons": ["* * * * *"]
+  },
+  "routes": [
+    {
+      "pattern": "jotlist.eukron.com",
+      "custom_domain": true
+    }
+  ],
+  "observability": {
+    "enabled": true
+  }
+}

@@ -1,0 +1,368 @@
+import { env } from "cloudflare:test";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { LIMITS } from "../../shared/constants";
+import { apiAs, bodyOf } from "../test/api";
+import { newId } from "../test/ids";
+import { attachmentForm, createTask, pngFile, renamedExeFile, seedAttachments } from "../test/images";
+import { createTestUser } from "../test/users";
+
+type Attachment = {
+  id: string;
+  taskId: string;
+  r2Key: string;
+  mime: string;
+  bytes: number;
+  width: number | null;
+  height: number | null;
+  position: string;
+  createdAt: number;
+  updatedAt: number;
+  deletedAt: number | null;
+  userId?: string;
+};
+type ApiError = { error: { code: string; message: string } };
+
+function upload(userId: string, taskId: string, form: FormData) {
+  return apiAs(userId).postForm(`/api/tasks/${taskId}/attachments`, form);
+}
+
+async function uploadPng(userId: string, taskId: string, fields: Record<string, string> = {}) {
+  const response = await upload(userId, taskId, attachmentForm(pngFile(), fields));
+  expect(response.status).toBe(201);
+  return bodyOf<Attachment>(response);
+}
+
+beforeEach(() => {
+  vi.spyOn(console, "warn").mockImplementation(() => {});
+});
+
+describe("POST /api/tasks/:id/attachments", () => {
+  it("stores the image in R2 under the user's prefix and answers 201 with the row", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+    const id = newId();
+    const before = Date.now();
+
+    const response = await upload(userId, taskId, attachmentForm(pngFile(300), { id, width: "640", height: "480" }));
+
+    expect(response.status).toBe(201);
+    const attachment = await bodyOf<Attachment>(response);
+    expect(attachment).toMatchObject({
+      id,
+      taskId,
+      r2Key: `u/${userId}/t/${taskId}/${id}`,
+      mime: "image/png",
+      bytes: 300,
+      width: 640,
+      height: 480,
+      deletedAt: null,
+    });
+    expect(attachment.createdAt).toBeGreaterThanOrEqual(before);
+    expect(attachment.updatedAt).toBe(attachment.createdAt);
+    expect(attachment.userId).toBeUndefined();
+    const object = await env.FILES.get(attachment.r2Key);
+    expect(object?.httpMetadata?.contentType).toBe("image/png");
+    expect((await object?.arrayBuffer())?.byteLength).toBe(300);
+  });
+
+  it("puts each new image after the last one of the task", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+
+    const first = await uploadPng(userId, taskId);
+    const second = await uploadPng(userId, taskId);
+
+    expect(second.position > first.position).toBe(true);
+  });
+
+  it("is idempotent: the same id again returns the stored row without a second object", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+    const first = await uploadPng(userId, taskId);
+
+    const response = await upload(userId, taskId, attachmentForm(pngFile(999), { id: first.id }));
+
+    expect(response.status).toBe(200);
+    expect(await bodyOf<Attachment>(response)).toEqual(first);
+    expect((await env.FILES.head(first.r2Key))?.size).toBe(64);
+    const rows = await env.DB.prepare("SELECT count(*) AS n FROM attachments WHERE id = ?").bind(first.id).first("n");
+    expect(rows).toBe(1);
+  });
+
+  it("answers 404 for another user's task, a deleted task, and another user's attachment id", async () => {
+    const owner = await createTestUser();
+    const intruder = await createTestUser();
+    const taskId = await createTask(owner);
+    const attachment = await uploadPng(owner, taskId);
+    const intruderTaskId = await createTask(intruder);
+
+    expect((await upload(intruder, taskId, attachmentForm(pngFile()))).status).toBe(404);
+    const reused = await upload(intruder, intruderTaskId, attachmentForm(pngFile(), { id: attachment.id }));
+    expect(reused.status).toBe(404);
+    await apiAs(owner).delete(`/api/tasks/${taskId}`);
+    const deleted = await upload(owner, taskId, attachmentForm(pngFile()));
+    expect(deleted.status).toBe(404);
+    expect((await bodyOf<ApiError>(deleted)).error.code).toBe("NOT_FOUND");
+  });
+
+  it("rejects a program renamed to .jpg with 415 UNSUPPORTED_FILE, storing nothing", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+
+    const response = await upload(userId, taskId, attachmentForm(renamedExeFile()));
+
+    expect(response.status).toBe(415);
+    expect((await bodyOf<ApiError>(response)).error.code).toBe("UNSUPPORTED_FILE");
+    expect((await env.FILES.list({ prefix: `u/${userId}/` })).objects).toEqual([]);
+  });
+
+  it("rejects an image over 5 MB with 413 FILE_TOO_LARGE in Thai", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+
+    const response = await upload(userId, taskId, attachmentForm(pngFile(LIMITS.attachmentBytes + 1)));
+
+    expect(response.status).toBe(413);
+    const body = await bodyOf<ApiError>(response);
+    expect(body.error.code).toBe("FILE_TOO_LARGE");
+    expect(body.error.message).toContain("5 MB");
+    expect((await env.FILES.list({ prefix: `u/${userId}/` })).objects).toEqual([]);
+  });
+
+  it("refuses a body far over the limit from its Content-Length, before reading it", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+
+    const response = await upload(userId, taskId, attachmentForm(pngFile(LIMITS.attachmentBytes * 2)));
+
+    expect(response.status).toBe(413);
+    expect((await bodyOf<ApiError>(response)).error.code).toBe("FILE_TOO_LARGE");
+  });
+
+  it("refuses an 11th image on a task with 409 ATTACHMENT_LIMIT, not counting deleted ones", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+    await seedAttachments(userId, taskId, 3, { deletedAt: Date.now() });
+    await seedAttachments(userId, taskId, LIMITS.attachmentsPerTask - 1);
+    await uploadPng(userId, taskId);
+
+    const response = await upload(userId, taskId, attachmentForm(pngFile()));
+
+    expect(response.status).toBe(409);
+    const body = await bodyOf<ApiError>(response);
+    expect(body.error.code).toBe("ATTACHMENT_LIMIT");
+    expect(body.error.message).toContain("10");
+  });
+
+  it("refuses an image that would take the account over 200 MB with 409 STORAGE_LIMIT", async () => {
+    const userId = await createTestUser();
+    const firstTaskId = await createTask(userId);
+    const secondTaskId = await createTask(userId);
+    await seedAttachments(userId, firstTaskId, 1, { bytes: LIMITS.storageBytesPerUser / 2 });
+    await seedAttachments(userId, secondTaskId, 1, { bytes: LIMITS.storageBytesPerUser / 2 - 100 });
+    await seedAttachments(userId, secondTaskId, 1, { bytes: LIMITS.storageBytesPerUser, deletedAt: Date.now() });
+    await uploadPng(userId, firstTaskId);
+
+    const response = await upload(userId, firstTaskId, attachmentForm(pngFile(64)));
+
+    expect(response.status).toBe(409);
+    const body = await bodyOf<ApiError>(response);
+    expect(body.error.code).toBe("STORAGE_LIMIT");
+    expect(body.error.message).toContain("200 MB");
+  });
+
+  it("takes an 11th image once one of the 10 is deleted", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+    await seedAttachments(userId, taskId, LIMITS.attachmentsPerTask - 1);
+    const tenth = await uploadPng(userId, taskId);
+    expect((await upload(userId, taskId, attachmentForm(pngFile()))).status).toBe(409);
+
+    await apiAs(userId).delete(`/api/attachments/${tenth.id}`);
+
+    expect((await upload(userId, taskId, attachmentForm(pngFile()))).status).toBe(201);
+  });
+
+  it("frees a deleted image's bytes for a new upload when the account is full", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+    await seedAttachments(userId, await createTask(userId), 1, { bytes: LIMITS.storageBytesPerUser - 64 });
+    const last = await uploadPng(userId, taskId);
+    expect((await upload(userId, taskId, attachmentForm(pngFile(64)))).status).toBe(409);
+
+    await apiAs(userId).delete(`/api/attachments/${last.id}`);
+
+    expect((await upload(userId, taskId, attachmentForm(pngFile(64)))).status).toBe(201);
+  });
+
+  it("does not count another user's images against the storage limit", async () => {
+    const userId = await createTestUser();
+    const otherUserId = await createTestUser();
+    await seedAttachments(otherUserId, await createTask(otherUserId), 1, { bytes: LIMITS.storageBytesPerUser });
+
+    await uploadPng(userId, await createTask(userId));
+  });
+
+  it("rejects an id that is not a UUIDv7 and a form without a file", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+    const withoutFile = new FormData();
+    withoutFile.set("id", newId());
+
+    expect((await upload(userId, taskId, attachmentForm(pngFile(), { id: crypto.randomUUID() }))).status).toBe(400);
+    expect((await upload(userId, taskId, withoutFile)).status).toBe(400);
+  });
+});
+
+describe("DELETE /api/attachments/:id", () => {
+  it("soft-deletes the row and keeps the R2 object, so Undo can bring the image back", async () => {
+    const userId = await createTestUser();
+    const attachment = await uploadPng(userId, await createTask(userId));
+
+    const response = await apiAs(userId).delete(`/api/attachments/${attachment.id}`);
+
+    expect(response.status).toBe(200);
+    const deleted = await bodyOf<Attachment>(response);
+    expect(deleted.deletedAt).toEqual(expect.any(Number));
+    expect(deleted.updatedAt).toBe(deleted.deletedAt);
+    expect(await env.FILES.head(attachment.r2Key)).not.toBeNull();
+  });
+
+  it("is idempotent: deleting again answers the same deleted row", async () => {
+    const userId = await createTestUser();
+    const attachment = await uploadPng(userId, await createTask(userId));
+    const first = await bodyOf<Attachment>(await apiAs(userId).delete(`/api/attachments/${attachment.id}`));
+
+    const again = await apiAs(userId).delete(`/api/attachments/${attachment.id}`);
+
+    expect(again.status).toBe(200);
+    expect(await bodyOf<Attachment>(again)).toEqual(first);
+  });
+
+  it("answers 404 for another user's attachment and leaves its file alone", async () => {
+    const owner = await createTestUser();
+    const intruder = await createTestUser();
+    const attachment = await uploadPng(owner, await createTask(owner));
+
+    const response = await apiAs(intruder).delete(`/api/attachments/${attachment.id}`);
+
+    expect(response.status).toBe(404);
+    expect(await env.FILES.head(attachment.r2Key)).not.toBeNull();
+    const row = await env.DB.prepare("SELECT deleted_at FROM attachments WHERE id = ?").bind(attachment.id).first();
+    expect(row?.deleted_at).toBeNull();
+  });
+});
+
+describe("POST /api/attachments/:id/restore", () => {
+  const restore = (userId: string, id: string) => apiAs(userId).post(`/api/attachments/${id}/restore`);
+
+  it("brings a deleted image back with a new updated_at, and its file is still served", async () => {
+    const userId = await createTestUser();
+    const attachment = await uploadPng(userId, await createTask(userId));
+    const deleted = await bodyOf<Attachment>(await apiAs(userId).delete(`/api/attachments/${attachment.id}`));
+
+    const response = await restore(userId, attachment.id);
+
+    expect(response.status).toBe(200);
+    const restored = await bodyOf<Attachment>(response);
+    expect(restored).toMatchObject({ id: attachment.id, position: attachment.position, deletedAt: null });
+    expect(restored.updatedAt).toBeGreaterThanOrEqual(deleted.updatedAt);
+    expect((await apiAs(userId).get(`/api/files/${attachment.r2Key}`)).status).toBe(200);
+  });
+
+  it("is idempotent: restoring a live image answers it unchanged", async () => {
+    const userId = await createTestUser();
+    const attachment = await uploadPng(userId, await createTask(userId));
+    await apiAs(userId).delete(`/api/attachments/${attachment.id}`);
+    const first = await bodyOf<Attachment>(await restore(userId, attachment.id));
+
+    const again = await restore(userId, attachment.id);
+
+    expect(again.status).toBe(200);
+    expect(await bodyOf<Attachment>(again)).toEqual(first);
+  });
+
+  it("answers 404 for another user's image and leaves it deleted", async () => {
+    const owner = await createTestUser();
+    const intruder = await createTestUser();
+    const attachment = await uploadPng(owner, await createTask(owner));
+    await apiAs(owner).delete(`/api/attachments/${attachment.id}`);
+
+    expect((await restore(intruder, attachment.id)).status).toBe(404);
+    const row = await env.DB.prepare("SELECT deleted_at FROM attachments WHERE id = ?").bind(attachment.id).first();
+    expect(row?.deleted_at).toEqual(expect.any(Number));
+  });
+
+  it("answers 404 when the image's task is deleted", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+    const attachment = await uploadPng(userId, taskId);
+    await apiAs(userId).delete(`/api/attachments/${attachment.id}`);
+    await apiAs(userId).delete(`/api/tasks/${taskId}`);
+
+    const response = await restore(userId, attachment.id);
+
+    expect(response.status).toBe(404);
+    expect((await bodyOf<ApiError>(response)).error.code).toBe("NOT_FOUND");
+  });
+
+  it("refuses with 409 ATTACHMENT_LIMIT when the task already has 10 images again", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+    const attachment = await uploadPng(userId, taskId);
+    await apiAs(userId).delete(`/api/attachments/${attachment.id}`);
+    await seedAttachments(userId, taskId, LIMITS.attachmentsPerTask);
+
+    const response = await restore(userId, attachment.id);
+
+    expect(response.status).toBe(409);
+    expect((await bodyOf<ApiError>(response)).error.code).toBe("ATTACHMENT_LIMIT");
+  });
+
+  it("refuses with 409 STORAGE_LIMIT when the image no longer fits in the 200 MB", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+    const attachment = await uploadPng(userId, taskId);
+    await apiAs(userId).delete(`/api/attachments/${attachment.id}`);
+    await seedAttachments(userId, await createTask(userId), 1, { bytes: LIMITS.storageBytesPerUser - attachment.bytes + 1 });
+
+    const response = await restore(userId, attachment.id);
+
+    expect(response.status).toBe(409);
+    expect((await bodyOf<ApiError>(response)).error.code).toBe("STORAGE_LIMIT");
+  });
+});
+
+describe("PATCH /api/attachments/:id", () => {
+  it("moves an image within the gallery and bumps updated_at", async () => {
+    const userId = await createTestUser();
+    const attachment = await uploadPng(userId, await createTask(userId));
+    await env.DB.prepare("UPDATE attachments SET updated_at = 1000 WHERE id = ?").bind(attachment.id).run();
+
+    const response = await apiAs(userId).patch(`/api/attachments/${attachment.id}`, { position: "Zz" });
+
+    expect(response.status).toBe(200);
+    const moved = await bodyOf<Attachment>(response);
+    expect(moved).toMatchObject({ id: attachment.id, position: "Zz" });
+    expect(moved.updatedAt).toBeGreaterThan(1000);
+  });
+
+  it("rejects a position that is not a fractional-index key", async () => {
+    const userId = await createTestUser();
+    const attachment = await uploadPng(userId, await createTask(userId));
+
+    const response = await apiAs(userId).patch(`/api/attachments/${attachment.id}`, { position: "not a key!" });
+
+    expect(response.status).toBe(400);
+  });
+
+  it("answers 404 for another user's attachment and for a deleted one", async () => {
+    const owner = await createTestUser();
+    const intruder = await createTestUser();
+    const attachment = await uploadPng(owner, await createTask(owner));
+
+    expect((await apiAs(intruder).patch(`/api/attachments/${attachment.id}`, { position: "a5" })).status).toBe(404);
+    await apiAs(owner).delete(`/api/attachments/${attachment.id}`);
+    expect((await apiAs(owner).patch(`/api/attachments/${attachment.id}`, { position: "a5" })).status).toBe(404);
+  });
+});

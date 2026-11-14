@@ -1,0 +1,379 @@
+/*
+ * Design-system primitives ported from the <style> block of the mockups
+ * (docs/design/today/Today.dc.html). Same sizes, borders and hover states,
+ * written with the semantic tokens so they work in both themes.
+ */
+@layer components {
+  .mono {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 12px;
+    line-height: 1.55;
+    font-weight: 400;
+  }
+
+  .display {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-stretch: 75%;
+    font-variation-settings: "wdth" 75;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .muted {
+    color: var(--fg-muted);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 22px;
+    border: var(--rule-thin) solid var(--fg);
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+    font-weight: 600;
+    font-size: 15px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .btn:hover {
+    background: var(--highlight);
+    color: var(--on-highlight);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--fg);
+  }
+
+  .btn-outline:hover {
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+  }
+
+  .kbd {
+    display: inline-block;
+    padding: 1px 7px;
+    border: var(--rule-thin) solid currentColor;
+    border-bottom-width: 4px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    flex: none;
+  }
+
+  /* The black and dark green swatches vanish on dark ink without an edge. */
+  [data-theme="dark"] .swatch,
+  .nav-item[aria-current="page"] .swatch {
+    outline: 1px solid var(--fg-muted);
+    outline-offset: -1px;
+  }
+
+  .icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex: none;
+    background: transparent;
+    border: var(--rule-thin) solid transparent;
+    color: var(--fg);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .icon-button:hover {
+    border-color: var(--fg);
+    color: var(--fg);
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: var(--rule-thin) solid transparent;
+    text-decoration: none;
+    color: var(--fg);
+    font-size: 15px;
+    font-weight: 500;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .nav-item:hover {
+    border-color: var(--fg);
+    color: var(--fg);
+  }
+
+  .nav-item[aria-current="page"] {
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+  }
+
+  .nav-item[aria-current="page"]:hover {
+    color: var(--inverse-fg);
+  }
+
+  .count-badge {
+    min-width: 26px;
+    padding: 1px 6px;
+    border: var(--rule-thin) solid currentColor;
+    text-align: center;
+    font-size: 12px;
+  }
+
+  .section-label {
+    padding: 0 12px;
+    margin-top: 6px;
+    color: var(--fg-muted);
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    flex: none;
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+    overflow: hidden;
+  }
+
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* The photo in Settings → Account (80 px in the mockup). */
+  .avatar-large {
+    width: 80px;
+    height: 80px;
+    font-size: 34px;
+  }
+
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: var(--rule-thin) solid var(--fg);
+    color: var(--fg-muted);
+    text-decoration: none;
+    font-size: 15px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .search-row:hover {
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+  }
+
+  /* Segmented radio choice (.opt in the Settings mockup). */
+  .segment-option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 18px;
+    border: var(--rule-thin) solid var(--fg);
+    margin-right: -1.5px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    background: transparent;
+  }
+
+  .segment-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .segment-option:has(input:checked) {
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+  }
+
+  .segment-option:has(input:focus-visible) {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
+  }
+
+  .segment-option:hover {
+    background: var(--highlight);
+    color: var(--on-highlight);
+  }
+
+  /* Mobile bottom bar (no mockup): same ink language, 56px tall targets. */
+  .bottom-bar-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-width: 0;
+    min-height: 56px;
+    padding: 6px 2px;
+    border: 0;
+    background: transparent;
+    color: var(--fg);
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .bottom-bar-item:hover {
+    color: var(--fg);
+    background: transparent;
+  }
+
+  .bottom-bar-item[aria-current="page"] {
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+  }
+
+  .bottom-bar-item[aria-current="page"]:hover {
+    color: var(--inverse-fg);
+  }
+
+  /* Add stands apart from the current-page fill: orange, like the mockup's button hover. */
+  .bottom-bar-add,
+  .bottom-bar-add:hover {
+    background: var(--highlight);
+    color: var(--on-highlight);
+  }
+
+  /* Mobile drawer: a modal <dialog> sliding in from the left. */
+  .drawer {
+    margin: 0;
+    width: min(320px, calc(100vw - 48px));
+    max-width: none;
+    height: 100dvh;
+    max-height: none;
+    padding: 0;
+    border: 0;
+    border-right: var(--rule-thin) solid var(--rule-color);
+    background: var(--bg);
+    color: var(--fg);
+    transition: translate var(--dur-ink-flip) var(--ease-out);
+  }
+
+  .drawer::backdrop {
+    background: var(--overlay);
+  }
+
+  @starting-style {
+    .drawer[open] {
+      translate: -100% 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .drawer {
+      transition: none;
+    }
+  }
+
+  /* Undo toast (no mockup): an ink slip, bottom centre, above the mobile bottom bar. */
+  .toast-region {
+    position: fixed;
+    z-index: 50;
+    left: 16px;
+    right: 16px;
+    bottom: calc(60px + env(safe-area-inset-bottom) + 12px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  @media (min-width: 64rem) {
+    .toast-region {
+      bottom: 24px;
+    }
+  }
+
+  .toast-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: min(440px, 100%);
+    min-height: 52px;
+    padding: 4px 4px 4px 16px;
+    border: var(--rule-thin) solid var(--rule-color);
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .toast-error {
+    background: var(--highlight);
+    color: var(--on-highlight);
+    border-color: var(--ink-black);
+  }
+
+  .toast-undo {
+    min-height: 36px;
+    padding: 0 12px;
+    border: var(--rule-thin) solid currentColor;
+    background: transparent;
+    color: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .toast-undo:hover {
+    border-color: var(--highlight);
+    background: var(--highlight);
+    color: var(--on-highlight);
+  }
+
+  .toast .toast-close,
+  .toast .toast-close:hover {
+    width: 40px;
+    height: 40px;
+    color: inherit;
+  }
+
+  .toast .toast-close:hover {
+    border-color: currentColor;
+  }
+}

@@ -1,0 +1,638 @@
+{
+  "app": {
+    "name": "JotList",
+    "wordmark": "jotlist"
+  },
+  "nav": {
+    "sidebar": "Sidebar",
+    "settings": "Settings",
+    "search": "ค้นหา",
+    "searchShortcut": "Ctrl K",
+    "addTask": "Add Task",
+    "addTaskShortcut": "Q",
+    "smartViews": "Smart views",
+    "inbox": "Inbox",
+    "today": "Today",
+    "upcoming": "Upcoming",
+    "completed": "Completed",
+    "projects": "Projects",
+    "noProjects": "ยังไม่มีโปรเจกต์",
+    "newProject": "New Project",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "openMenu": "เปิดเมนู",
+    "closeMenu": "ปิดเมนู",
+    "menu": "เมนู"
+  },
+  "bottomBar": {
+    "label": "เมนูหลัก",
+    "today": "วันนี้",
+    "inbox": "กล่องรับงาน",
+    "upcoming": "กำลังมา",
+    "search": "ค้นหา",
+    "add": "เพิ่มงาน"
+  },
+  "pages": {
+    "today": {
+      "eyebrow": "01 - วันนี้ / today - {{date}}",
+      "title": "Today",
+      "left": "เหลือ / left",
+      "leftLabel": "เหลือ {{count}} งาน",
+      "overdue": "▲ เลยกำหนด / overdue - {{count}}",
+      "group": "วันนี้ / today - {{count}}",
+      "reschedule": "Reschedule",
+      "rescheduleLabel": "ย้ายงานที่เลยกำหนดทั้งหมดมาเป็นวันนี้",
+      "emptyTitle": "เคลียร์ครบแล้ว พักได้เลย",
+      "emptyNote": "all clear - nothing due today"
+    },
+    "inbox": {
+      "eyebrow": "02 - กล่องรับงาน / inbox",
+      "title": "Inbox",
+      "subtitle": "ที่พักไอเดียและธุระที่นึกออกทันที ยังไม่ต้องเลือกโปรเจกต์หรือวันที่",
+      "group": "ยังไม่จัด / unsorted - {{count}}"
+    },
+    "upcoming": {
+      "eyebrow": "03 - กำลังมา / upcoming",
+      "title": "Upcoming",
+      "range": "ช่วงเวลา / range",
+      "rangeOption": "{{count}} วัน",
+      "load": "load / ภาระงาน",
+      "loadLabel": "ความหนาแน่นของงานรายวัน",
+      "tomorrow": "พรุ่งนี้",
+      "taskCount": "{{count}} งาน",
+      "addTask": "Add task",
+      "addTaskLabel": "เพิ่มงานวัน{{date}}",
+      "free": "ว่าง / free"
+    },
+    "project": {
+      "eyebrow": "04 - โปรเจกต์ / project",
+      "title": "Project",
+      "nameLabel": "ชื่อโปรเจกต์",
+      "renameHint": "click title to rename",
+      "menu": "เมนูโปรเจกต์",
+      "delete": "ลบโปรเจกต์ ({{count}} งาน)",
+      "open": "เปิดอยู่ / open - {{count}}",
+      "showCompleted": "แสดงที่เสร็จแล้ว / show completed",
+      "completed": "เสร็จแล้ว / completed - {{count}}",
+      "seeAll": "ดูทั้งหมด / see all",
+      "notFound": "ไม่พบโปรเจกต์นี้",
+      "notFoundNote": "โปรเจกต์อาจถูกลบไปแล้ว",
+      "backToToday": "กลับไปหน้า Today",
+      "confirmTitle": "ลบโปรเจกต์?",
+      "confirmBody": "โปรเจกต์ \"{{name}}\" และงานในโปรเจกต์ {{count}} งานจะถูกลบ กด Undo ได้ภายใน 5 วินาที",
+      "confirmDelete": "ลบโปรเจกต์",
+      "cancel": "Cancel",
+      "changeColor": "เปลี่ยนสี / color"
+    },
+    "completed": {
+      "eyebrow": "05 - เสร็จแล้ว / completed",
+      "title": "Completed",
+      "subtitle": "งานที่ทำเสร็จแล้ว ใหม่สุดก่อน ติ๊กออกเพื่อนำงานกลับมา",
+      "group": "เสร็จแล้ว / completed - {{count}}",
+      "inProject": "โปรเจกต์: {{name}}",
+      "showAll": "ดูทุกโปรเจกต์ / all projects",
+      "loadMore": "โหลดเพิ่ม / load more",
+      "empty": "ยังไม่มีงานที่ทำเสร็จ"
+    },
+    "settings": {
+      "eyebrow": "06 - ตั้งค่า / settings",
+      "title": "Settings",
+      "subtitle": "จัดการข้อมูลส่วนตัวและการทำงานของแอป"
+    },
+    "login": {
+      "title": "เข้าสู่ระบบ"
+    },
+    "signup": {
+      "title": "สมัครใช้งาน"
+    },
+    "forgotPassword": {
+      "title": "ลืมรหัสผ่าน"
+    },
+    "resetPassword": {
+      "title": "ตั้งรหัสผ่านใหม่"
+    },
+    "verifyEmail": {
+      "title": "ยืนยันอีเมล"
+    },
+    "onboardingName": {
+      "title": "ตั้งชื่อที่ใช้แสดง"
+    },
+    "onboardingProjects": {
+      "title": "เริ่มด้วยหมวดหมู่ไหน?"
+    },
+    "privacy": {
+      "title": "Privacy Policy"
+    },
+    "terms": {
+      "title": "Terms of Service"
+    },
+    "notFound": {
+      "title": "ไม่พบหน้านี้",
+      "description": "ลิงก์อาจไม่ถูกต้อง หรือหน้านี้ถูกย้ายไปแล้ว",
+      "backHome": "กลับหน้าแรก"
+    },
+    "comingSoon": "หน้านี้กำลังสร้าง"
+  },
+  "dialogs": {
+    "close": "ปิด",
+    "closeLabel": "ปิด"
+  },
+  "theme": {
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "errors": {
+    "generic": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
+    "network": "เชื่อมต่อไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ต",
+    "api": {
+      "VALIDATION_ERROR": "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง",
+      "UNAUTHORIZED": "กรุณาเข้าสู่ระบบก่อน",
+      "FORBIDDEN": "คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้",
+      "NOT_FOUND": "ไม่พบข้อมูลที่ต้องการ อาจถูกลบไปแล้ว",
+      "RATE_LIMITED": "ส่งคำขอถี่เกินไป กรุณารอสักครู่แล้วลองใหม่",
+      "TURNSTILE_FAILED": "ยืนยันว่าไม่ใช่บอทไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+      "INVALID_CREDENTIALS": "อีเมลหรือรหัสผ่านไม่ถูกต้อง ลองอีกครั้งหรือรีเซ็ตรหัสผ่าน",
+      "WRONG_PASSWORD": "รหัสผ่านปัจจุบันไม่ถูกต้อง",
+      "EMAIL_NOT_VERIFIED": "กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ เราส่งลิงก์ยืนยันไปที่อีเมลของคุณแล้ว",
+      "EMAIL_TAKEN": "อีเมลนี้ถูกใช้งานแล้ว · เข้าสู่ระบบแทน",
+      "EMAIL_TAKEN_LINE": "อีเมลนี้มีบัญชีที่ใช้ LINE อยู่แล้ว · เข้าสู่ระบบด้วย LINE หรือใช้ \"ลืมรหัสผ่าน\" เพื่อตั้งรหัสผ่าน",
+      "INVALID_TOKEN": "ลิงก์นี้หมดอายุหรือถูกใช้ไปแล้ว กรุณาขอลิงก์ใหม่",
+      "TASK_LIMIT": "มีงานที่ยังไม่เสร็จครบ {{limit}} งานแล้ว กรุณาปิดหรือลบงานเก่าก่อน",
+      "PROJECT_LIMIT": "มีโปรเจกต์ครบ {{limit}} โปรเจกต์แล้ว",
+      "SUBTASK_LIMIT": "งานนี้มีงานย่อยครบ {{limit}} รายการแล้ว",
+      "ATTACHMENT_LIMIT": "แนบรูปได้สูงสุด {{limit}} รูปต่องาน",
+      "STORAGE_LIMIT": "พื้นที่เก็บรูปเต็มแล้ว บัญชีละไม่เกิน {{limit}} MB",
+      "FILE_TOO_LARGE": "ไฟล์ใหญ่เกินไป รูปละไม่เกิน {{limit}} MB",
+      "UNSUPPORTED_FILE": "รองรับเฉพาะไฟล์รูป JPEG, PNG, WebP หรือ HEIC",
+      "INTERNAL_ERROR": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง"
+    }
+  },
+  "auth": {
+    "or": "or / หรือ",
+    "continueWithLine": "Continue with LINE",
+    "emailLabel": "อีเมล / email",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "รหัสผ่าน / password",
+    "showPassword": "แสดง",
+    "hidePassword": "ซ่อน",
+    "showPasswordLabel": "แสดงรหัสผ่าน",
+    "hidePasswordLabel": "ซ่อนรหัสผ่าน",
+    "panel": {
+      "plate": "pl.03 - violet",
+      "number": "06",
+      "headline": "งานวันนี้ แค่นี้พอ",
+      "caption": "due today. nothing else."
+    },
+    "login": {
+      "eyebrow": "04 - วิธีเข้า / access",
+      "subtitle": "กลับมาจดงานต่อ",
+      "forgotPassword": "Forgot password?",
+      "submit": "Log in",
+      "noAccount": "ยังไม่มีบัญชี?",
+      "signUp": "สมัครใช้งาน"
+    },
+    "lineErrors": {
+      "cancelled": "ยกเลิกการเข้าสู่ระบบด้วย LINE แล้ว ลองอีกครั้งได้เลย",
+      "failed": "เข้าสู่ระบบด้วย LINE ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"
+    },
+    "passwordHint": "อย่างน้อย 8 ตัวอักษร / min 8 chars",
+    "turnstileLabel": "ยืนยันว่าไม่ใช่บอท",
+    "signup": {
+      "eyebrow": "05 - วิธีเข้า / access",
+      "subtitle": "สมัครด้วย LINE หรืออีเมล · ใช้เวลาไม่ถึงนาที",
+      "submit": "Create account",
+      "haveAccount": "มีบัญชีอยู่แล้ว?",
+      "logIn": "เข้าสู่ระบบ",
+      "emailTaken": "อีเมลนี้ถูกใช้งานแล้ว · <login>เข้าสู่ระบบแทน</login>",
+      "emailTakenLine": "อีเมลนี้มีบัญชีที่ใช้ LINE อยู่แล้ว · <line>เข้าสู่ระบบด้วย LINE</line> หรือใช้ <forgot>ลืมรหัสผ่าน</forgot> เพื่อตั้งรหัสผ่าน",
+      "checkEmailTitle": "เช็กอีเมลของคุณ",
+      "checkEmailBody": "เราส่งลิงก์ยืนยันไปที่ {{email}} แล้ว กดลิงก์ในอีเมลเพื่อเปิดใช้บัญชี",
+      "checkEmailHint": "ไม่เห็นอีเมล? ลองดูในโฟลเดอร์สแปม"
+    },
+    "backToLogin": "กลับไปหน้าเข้าสู่ระบบ",
+    "forgotPassword": {
+      "subtitle": "ใส่อีเมลของบัญชี เราจะส่งลิงก์ตั้งรหัสผ่านใหม่ให้",
+      "submit": "Send reset link",
+      "sentTitle": "เช็กอีเมลของคุณ",
+      "sentBody": "ถ้ามีบัญชีที่ใช้ {{email}} เราส่งลิงก์ตั้งรหัสผ่านใหม่ไปให้แล้ว ลิงก์ใช้ได้ 1 ชั่วโมง"
+    },
+    "resetPassword": {
+      "subtitle": "ตั้งรหัสผ่านใหม่สำหรับบัญชีของคุณ",
+      "newPasswordLabel": "รหัสผ่านใหม่ / new password",
+      "submit": "Set new password",
+      "doneTitle": "ตั้งรหัสผ่านใหม่แล้ว",
+      "doneBody": "เข้าสู่ระบบด้วยรหัสผ่านใหม่ได้เลย",
+      "logIn": "เข้าสู่ระบบ",
+      "invalidLink": "ลิงก์นี้หมดอายุหรือถูกใช้ไปแล้ว",
+      "requestNewLink": "ขอลิงก์ใหม่"
+    },
+    "verifyEmail": {
+      "doneTitle": "ยืนยันอีเมลเรียบร้อย",
+      "doneBody": "บัญชีของคุณพร้อมใช้งานแล้ว",
+      "continue": "Continue",
+      "expiredTitle": "ลิงก์ยืนยันหมดอายุหรือถูกใช้ไปแล้ว",
+      "expiredBody": "เข้าสู่ระบบด้วยอีเมลและรหัสผ่าน เราจะส่งลิงก์ยืนยันใหม่ให้ทางอีเมล",
+      "logIn": "เข้าสู่ระบบ"
+    },
+    "recoveryEyebrow": "04 - วิธีเข้า / access"
+  },
+  "landing": {
+    "nav": {
+      "logIn": "Log in",
+      "getStarted": "Get Started Free"
+    },
+    "hero": {
+      "eyebrow": "JOB 001 - ตัวจัดการงาน / task manager",
+      "line1": "จดไว",
+      "line2": "จัดง่าย",
+      "line3": "โฟกัส",
+      "highlight": "วันนี้",
+      "tagline": "Capture fast. Sort later. Do today.",
+      "body": "พิมพ์ข้อความเดียวก็จดงานได้ทันที เปิดแอปมาก็เห็นแค่สิ่งที่ต้องทำวันนี้ ไม่ต้องจัดหมวดหมู่ก่อนเริ่มงาน",
+      "getStarted": "Get Started Free",
+      "howItWorks": "ดูวิธีใช้ / how it works",
+      "signUpWith": "สมัครด้วย LINE หรืออีเมล / line or email",
+      "gripperEdge": "▲ gripper edge",
+      "plates": "pl.01 blu - pl.02 org"
+    },
+    "preview": {
+      "label": "ตัวอย่างหน้าจอ Today ของแอป",
+      "windowTitle": "jotlist / today",
+      "inbox": "Inbox",
+      "inboxCount": "4",
+      "today": "Today",
+      "todayCount": "6",
+      "upcoming": "Upcoming",
+      "completed": "Completed",
+      "projects": "Projects",
+      "projectWork": "งาน",
+      "projectPersonal": "ส่วนตัว",
+      "projectGoals": "เป้าหมายปีนี้",
+      "date": "เสาร์ 14 พ.ย.",
+      "left": "06",
+      "task1": "ส่งใบเสนอราคาให้ลูกค้า",
+      "task2": "ตอบอีเมลฝ่ายบัญชี",
+      "task3": "ซื้อของเข้าบ้าน",
+      "task4": "สรุปประชุมทีม",
+      "addTask": "+ Add task"
+    },
+    "features": {
+      "eyebrow": "02 - สิ่งที่ได้ / what you get",
+      "title": "ทุกอย่างที่ต้องใช้ ไม่มีอะไรเกินจำเป็น",
+      "capture": {
+        "number": "01",
+        "key": "Q",
+        "title": "จดทันที",
+        "caption": "quick capture",
+        "body": "กด Q จากหน้าไหนก็ได้ พิมพ์ชื่องาน แล้วกด Enter งานเข้า Inbox ทันที ค่อยจัดทีหลัง"
+      },
+      "today": {
+        "number": "02",
+        "badge": "06 left",
+        "title": "โฟกัสวันนี้",
+        "caption": "today focus",
+        "body": "เปิดแอปมาเห็นเฉพาะงานที่ต้องทำวันนี้ งานค้างรวมไว้ให้เลื่อนมาวันนี้ได้ในคลิกเดียว"
+      },
+      "search": {
+        "number": "03",
+        "key": "Ctrl K",
+        "title": "ค้นหาไว",
+        "caption": "find anything",
+        "body": "กด Ctrl/Cmd + K เพื่อค้นหางานและโปรเจกต์ แล้วกระโดดไปหางานนั้นได้เลย"
+      },
+      "sync": {
+        "number": "04",
+        "title": "ซิงก์ทุกอุปกรณ์",
+        "caption": "cross-device sync",
+        "body": "จดบนมือถือ เปิดต่อบนคอมได้ทันที งานเหมือนกันทุกเครื่อง"
+      }
+    },
+    "start": {
+      "eyebrow": "03 - เริ่มเลย / start",
+      "title": "เริ่มจดงานแรกของคุณวันนี้",
+      "tagline": "Start free. Add your first task in 10 seconds.",
+      "getStarted": "Get Started Free"
+    }
+  },
+  "footer": {
+    "label": "Footer",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "contact": "ติดต่อ: {{email}}",
+    "contactEmail": "contact@theerakarnm.dev",
+    "copyright": "© 2026 jotlist - Eukron Team"
+  },
+  "onboarding": {
+    "setupTime": "setup - ~20 sec",
+    "progress": "ความคืบหน้า",
+    "step1": "step 01 / 02",
+    "step2": "step 02 / 02",
+    "nameCaption": "display name / theme",
+    "nameLabel": "ชื่อแสดงผล / display name",
+    "themeLegend": "ธีมสี / theme",
+    "continue": "Continue",
+    "projectsCaption": "starter projects",
+    "starterProjects": {
+      "work": "งาน",
+      "personal": "ส่วนตัว",
+      "yearGoals": "เป้าหมายปีนี้",
+      "learning": "เรียนรู้",
+      "family": "ครอบครัว",
+      "finance": "การเงิน"
+    },
+    "projectsHint": "เลือกได้หลายอัน เปลี่ยนหรือเพิ่มทีหลังได้",
+    "createWorkspace": "Create workspace",
+    "skip": "Skip"
+  },
+  "settingsTabs": {
+    "label": "Settings",
+    "account": "Account",
+    "general": "General",
+    "notifications": "Notifications"
+  },
+  "notifications": {
+    "browserLabel": "แจ้งเตือนบนเบราว์เซอร์",
+    "browserHint": "เบราว์เซอร์จะขออนุญาตครั้งแรกที่เปิดใช้",
+    "digestLabel": "สรุปงานประจำวัน / daily digest",
+    "digestTimeLabel": "ส่งเวลา / time",
+    "denied": "เบราว์เซอร์ปิดกั้นการแจ้งเตือนของ JotList อยู่ ไปที่การตั้งค่าของเว็บไซต์ในเบราว์เซอร์ เปลี่ยนเป็นอนุญาต แล้วลองใหม่",
+    "needsHomeScreen": "iPhone และ iPad รับการแจ้งเตือนได้เมื่อเปิด JotList จากไอคอนบนหน้าจอโฮมเท่านั้น ให้เพิ่ม JotList ลงหน้าจอโฮมก่อน (ต้องใช้ iOS 16.4 ขึ้นไป) แล้วเปิดแอปจากไอคอนนั้น",
+    "unsupported": "เบราว์เซอร์นี้ยังไม่รองรับการแจ้งเตือน ลองใช้ Chrome, Edge, Firefox หรือ Safari เวอร์ชันล่าสุด",
+    "enableFailed": "เปิดการแจ้งเตือนไม่สำเร็จ ลองใหม่อีกครั้ง",
+    "disableFailed": "ปิดการแจ้งเตือนไม่สำเร็จ ลองใหม่อีกครั้ง",
+    "genericBody": "มีการแจ้งเตือนใหม่"
+  },
+  "settingsAccount": {
+    "photoLabel": "รูปโปรไฟล์ / photo",
+    "photoAlt": "รูปโปรไฟล์ของคุณ",
+    "changePhoto": "เปลี่ยนรูป",
+    "removePhoto": "ลบรูป",
+    "nameLabel": "ชื่อ / name",
+    "save": "บันทึก",
+    "saved": "บันทึกแล้ว",
+    "emailLabel": "อีเมล / email",
+    "noEmail": "ไม่มีอีเมล · เข้าสู่ระบบด้วย LINE",
+    "passwordLabel": "รหัสผ่าน / password",
+    "changePassword": "เปลี่ยนรหัสผ่าน",
+    "currentPassword": "รหัสผ่านปัจจุบัน / current password",
+    "newPassword": "รหัสผ่านใหม่ / new password",
+    "savePassword": "บันทึกรหัสผ่าน",
+    "cancel": "ยกเลิก",
+    "passwordChanged": "เปลี่ยนรหัสผ่านแล้ว",
+    "deleteTitle": "▲ ลบบัญชี / delete account",
+    "deleteBody": "ลบบัญชีและงานทั้งหมดอย่างถาวร กู้คืนไม่ได้",
+    "deleteButton": "ลบบัญชี",
+    "deleteConfirmTitle": "ลบบัญชีถาวร?",
+    "deleteConfirmBody": "งาน โปรเจกต์ รูปภาพ และการตั้งค่าทั้งหมดจะถูกลบทันที แล้วออกจากระบบ กู้คืนไม่ได้",
+    "deleteConfirm": "ลบบัญชีถาวร"
+  },
+  "settingsGeneral": {
+    "themeLegend": "ธีม / theme",
+    "startPageLegend": "หน้าเริ่มต้น / start page",
+    "startPage": {
+      "today": "Today",
+      "inbox": "Inbox"
+    },
+    "weekStartLegend": "สัปดาห์เริ่มวัน / week starts on",
+    "weekStart": {
+      "sun": "วันอาทิตย์",
+      "mon": "วันจันทร์"
+    },
+    "timezoneLabel": "เขตเวลา / timezone"
+  },
+  "legal": {
+    "backHome": "← กลับหน้าแรก",
+    "updated": "ปรับปรุงล่าสุด 14 พ.ย. 2026",
+    "privacy": {
+      "eyebrow": "legal - ความเป็นส่วนตัว / privacy",
+      "intro": "JotList เก็บข้อมูลเท่าที่จำเป็นให้แอปทำงานได้ หน้านี้อธิบายว่าเก็บอะไร ใช้ทำอะไร และลบอย่างไร",
+      "sections": [
+        {
+          "heading": "ข้อมูลที่เราเก็บ",
+          "paragraphs": [
+            "อีเมล และชื่อที่ใช้แสดง (ถ้าเข้าสู่ระบบด้วย LINE จะมีรูปโปรไฟล์ LINE ด้วย)",
+            "งาน โปรเจกต์ งานย่อย และโน้ตที่คุณจด",
+            "รูปภาพที่แนบกับงาน และรูปโปรไฟล์ที่อัปโหลด",
+            "ข้อมูลสำหรับส่งการแจ้งเตือน (push subscription) ของเบราว์เซอร์ที่คุณเปิดการแจ้งเตือน",
+            "การตั้งค่าแอป เช่น ธีม หน้าเริ่มต้น และเขตเวลา"
+          ]
+        },
+        {
+          "heading": "เราใช้ข้อมูลทำอะไร",
+          "paragraphs": [
+            "ใช้เพื่อให้แอปทำงานเท่านั้น: เก็บและซิงก์งานระหว่างอุปกรณ์ ส่งการแจ้งเตือนตามเวลาที่ตั้ง และส่งอีเมลยืนยันตัวตนหรือตั้งรหัสผ่านใหม่",
+            "เราไม่ขายข้อมูล ไม่แสดงโฆษณา และไม่ใช้คุกกี้ติดตาม มีแค่คุกกี้สำหรับการเข้าสู่ระบบ"
+          ]
+        },
+        {
+          "heading": "ผู้ประมวลผลข้อมูล",
+          "paragraphs": [
+            "Cloudflare: ให้บริการแอป ฐานข้อมูล ที่เก็บรูปภาพ และ Turnstile สำหรับกันบอท",
+            "Resend: ส่งอีเมลยืนยันอีเมลและอีเมลตั้งรหัสผ่านใหม่",
+            "LINE: เมื่อคุณเลือกเข้าสู่ระบบด้วย LINE เราได้รับชื่อ รูปโปรไฟล์ และอีเมล (ถ้าคุณอนุญาต)"
+          ]
+        },
+        {
+          "heading": "การลบบัญชี",
+          "paragraphs": [
+            "ไปที่ Settings → Account → ลบบัญชี ข้อมูลทั้งหมดของคุณ รวมถึงรูปภาพ จะถูกลบทันทีและกู้คืนไม่ได้"
+          ]
+        },
+        {
+          "heading": "ติดต่อ",
+          "paragraphs": [
+            "มีคำถามเรื่องข้อมูลส่วนตัว ส่งอีเมลมาที่ {{email}}"
+          ]
+        }
+      ]
+    },
+    "terms": {
+      "eyebrow": "legal - ข้อตกลง / terms",
+      "intro": "เมื่อสมัครหรือใช้ JotList ถือว่าคุณยอมรับข้อตกลงสั้น ๆ ด้านล่างนี้",
+      "sections": [
+        {
+          "heading": "การใช้งาน",
+          "paragraphs": [
+            "JotList ใช้งานได้ฟรี หนึ่งบัญชีสำหรับหนึ่งคน คุณต้องดูแลรหัสผ่านของตัวเองให้ปลอดภัย"
+          ]
+        },
+        {
+          "heading": "สิ่งที่ห้ามทำ",
+          "paragraphs": [
+            "ห้ามใช้แอปทำสิ่งผิดกฎหมาย ห้ามอัปโหลดเนื้อหาที่ละเมิดผู้อื่น และห้ามพยายามโจมตีระบบหรือส่งคำขอจำนวนมากผิดปกติ"
+          ]
+        },
+        {
+          "heading": "ข้อมูลของคุณ",
+          "paragraphs": [
+            "งานและรูปภาพเป็นของคุณ คุณลบบัญชีและข้อมูลทั้งหมดได้ทุกเมื่อจาก Settings → Account"
+          ]
+        },
+        {
+          "heading": "ขีดจำกัด",
+          "paragraphs": [
+            "งานที่ยังไม่เสร็จได้สูงสุด {{maxTasks}} งานต่อบัญชี และพื้นที่เก็บรูป {{storage}} ต่อบัญชี"
+          ]
+        },
+        {
+          "heading": "การให้บริการ",
+          "paragraphs": [
+            "เราให้บริการตามสภาพที่เป็นอยู่ (as is) และพยายามให้ระบบทำงานได้ดีที่สุด แต่ไม่รับประกันว่าจะไม่มีข้อผิดพลาด เราอาจปรับปรุงแอปหรือข้อตกลงนี้ และจะแจ้งในหน้านี้"
+          ]
+        },
+        {
+          "heading": "ติดต่อ",
+          "paragraphs": [
+            "มีคำถามเรื่องข้อตกลง ส่งอีเมลมาที่ {{email}}"
+          ]
+        }
+      ]
+    }
+  },
+  "toast": {
+    "region": "การแจ้งเตือน",
+    "undo": "Undo",
+    "dismiss": "ปิดการแจ้งเตือน",
+    "completed": "ทำเสร็จแล้ว: {{title}}",
+    "deleted": "ลบงานแล้ว: {{title}}",
+    "imageDeleted": "ลบรูปแล้ว",
+    "rescheduled": "ย้าย {{count}} งานมาเป็นวันนี้แล้ว",
+    "projectDeleted": "ลบโปรเจกต์ {{name}} แล้ว"
+  },
+  "task": {
+    "complete": "ทำเครื่องหมายว่าเสร็จ: {{title}}",
+    "uncomplete": "ทำเครื่องหมายว่ายังไม่เสร็จ: {{title}}",
+    "today": "วันนี้",
+    "tomorrow": "พรุ่งนี้",
+    "overdueDate": "▲ {{date}}",
+    "subtaskProgress": "{{done}}/{{total}}",
+    "subtaskProgressLabel": "งานย่อยเสร็จ {{done}} จาก {{total}}",
+    "imageCount": "📎 {{count}}",
+    "imageCountLabel": "รูปภาพ {{count}} รูป",
+    "addTask": "Add task",
+    "addTaskPlaceholder": "พิมพ์ชื่องาน แล้วกด Enter",
+    "addTaskHint": {
+      "today": "due: today",
+      "inbox": "to: inbox",
+      "project": "to: {{name}}"
+    }
+  },
+  "projectColors": {
+    "blue": "สีน้ำเงิน",
+    "orange": "สีส้ม",
+    "violet": "สีม่วง",
+    "green": "สีเขียวเข้ม",
+    "black": "สีดำ"
+  },
+  "newProject": {
+    "title": "new project",
+    "name": "ชื่อโปรเจกต์ / name",
+    "namePlaceholder": "เช่น งาน, ส่วนตัว",
+    "cancel": "Cancel",
+    "create": "Create project",
+    "color": "สี / color"
+  },
+  "drawer": {
+    "label": "รายละเอียดงาน",
+    "heading": "งาน / task",
+    "close": "ปิดรายละเอียดงาน",
+    "title": "ชื่องาน",
+    "notes": "บันทึก / notes",
+    "notesPlaceholder": "รายละเอียดเพิ่มเติม",
+    "project": "โปรเจกต์ / project",
+    "inbox": "Inbox",
+    "dueDate": "วันที่ / due date",
+    "dueTime": "เวลา / time",
+    "clearDate": "ล้างวันที่",
+    "priority": "ความสำคัญ / priority",
+    "subtasks": "งานย่อย / subtasks - {{done}}/{{total}}",
+    "subtaskTitle": "ชื่องานย่อย",
+    "completeSubtask": "ทำเครื่องหมายว่าเสร็จ: {{title}}",
+    "uncompleteSubtask": "ทำเครื่องหมายว่ายังไม่เสร็จ: {{title}}",
+    "deleteSubtask": "ลบงานย่อย: {{title}}",
+    "addSubtask": "เพิ่มงานย่อย / add subtask",
+    "addSubtaskPlaceholder": "พิมพ์งานย่อย แล้วกด Enter",
+    "delete": "ลบงาน / delete task",
+    "notFound": "ไม่พบงานนี้ อาจถูกลบไปแล้ว"
+  },
+  "images": {
+    "heading": "รูปภาพ / images - {{count}}/{{limit}}",
+    "add": "เพิ่มรูป / add image",
+    "addHint": "drop / paste",
+    "image": "รูปที่ {{number}}",
+    "delete": "ลบรูปที่ {{number}}",
+    "open": "ดูรูปที่ {{number}}",
+    "viewer": "ดูรูปภาพ",
+    "viewerCount": "{{number}} / {{total}}",
+    "previous": "รูปก่อนหน้า",
+    "next": "รูปถัดไป",
+    "closeViewer": "ปิดการดูรูป",
+    "drop": "วางที่นี่ เพื่อแนบรูป / drop to attach",
+    "uploading": "กำลังอัปโหลดรูปที่ {{number}}",
+    "noPreview": "แสดงตัวอย่างไม่ได้"
+  },
+  "dates": {
+    "weekdayShort": [
+      "อา",
+      "จ",
+      "อ",
+      "พ",
+      "พฤ",
+      "ศ",
+      "ส"
+    ]
+  },
+  "priorities": {
+    "high": "P1 - สำคัญมาก",
+    "medium": "P2 - สำคัญ",
+    "low": "P3 - ไม่เร่ง",
+    "none": "P4 - ไม่ระบุ"
+  },
+  "search": {
+    "placeholder": "ค้นหางานหรือโปรเจกต์",
+    "results": "ผลการค้นหา",
+    "tasks": "tasks - {{count}}",
+    "projects": "projects - {{count}}",
+    "taskMeta": "{{place}} - {{date}}",
+    "projectTaskCount": "{{count}} งาน",
+    "completed": "เสร็จแล้ว / done",
+    "noResults": "ไม่พบงานหรือโปรเจกต์ที่ตรงกับ \"{{query}}\"",
+    "hintMove": "up / down - เลื่อน",
+    "hintOpen": "enter - เปิด",
+    "hintClose": "esc - ปิด",
+    "escKey": "Esc",
+    "enterKey": "Enter"
+  },
+  "quickAdd": {
+    "title": "quick add",
+    "titleField": "งานใหม่ / new task",
+    "placeholder": "เช่น โทรหาแม่ พรุ่งนี้ บ่ายสอง p1",
+    "chooseProject": "เลือกโปรเจกต์",
+    "chooseDate": "เลือกวันที่",
+    "choosePriority": "เลือกความสำคัญ",
+    "noDate": "ไม่มีวันที่",
+    "clearDate": "ล้างวันที่",
+    "cancel": "Cancel",
+    "add": "Add task",
+    "enterKey": "Enter",
+    "images": "รูปที่จะแนบ",
+    "image": "รูปที่ {{number}}",
+    "removeImage": "เอารูปที่ {{number}} ออก"
+  },
+  "dnd": {
+    "handle": "ลากเพื่อย้าย: {{name}}",
+    "roleDescription": "ย้ายได้",
+    "instructions": "กด Space เพื่อหยิบ ใช้ปุ่มลูกศรเพื่อย้าย กด Space อีกครั้งเพื่อวาง หรือกด Esc เพื่อยกเลิก",
+    "picked": "หยิบ {{name}} แล้ว",
+    "over": "{{name}} อยู่เหนือ {{target}}",
+    "notOver": "{{name}} ไม่ได้อยู่เหนือที่วาง",
+    "dropped": "วาง {{name}} ที่ {{target}} แล้ว",
+    "droppedNowhere": "วาง {{name}} โดยไม่ได้ย้าย",
+    "cancelled": "ยกเลิกการย้าย {{name}}",
+    "targetTask": "ตำแหน่งของ {{title}}",
+    "targetProject": "โปรเจกต์ {{name}}",
+    "targetDay": "วัน{{date}}",
+    "dropToReschedule": "วางที่นี่ เพื่อย้ายมาเป็น{{date}} / drop to reschedule"
+  }
+}

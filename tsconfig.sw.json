@@ -1,0 +1,10 @@
+{
+  // The service worker runs in a worker scope: WebWorker lib instead of DOM.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "WebWorker"],
+    "types": ["vite-plugin-pwa/client"],
+    "outDir": ".tsbuild/sw"
+  },
+  "include": ["src/client/sw.ts", "src/client/push/push-message.ts", "src/client/i18n/th.json"]
+}
