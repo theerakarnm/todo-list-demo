@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { todayInTimeZone, zonedDateTimeToUtcMs } from "./time-zone";
+import { addDays, todayInTimeZone, zonedDateTimeToUtcMs } from "./time-zone";
 
 describe("todayInTimeZone", () => {
   it("gives the local calendar date as YYYY-MM-DD", () => {
@@ -24,5 +24,14 @@ describe("zonedDateTimeToUtcMs", () => {
 
   it("handles a time that crosses into the previous UTC day", () => {
     expect(zonedDateTimeToUtcMs("2026-11-15", "05:00", "Asia/Bangkok")).toBe(Date.UTC(2026, 10, 14, 22, 0));
+  });
+});
+
+describe("addDays", () => {
+  it("moves a local date by whole days, across months and years", () => {
+    expect(addDays("2026-11-14", 1)).toBe("2026-11-15");
+    expect(addDays("2026-11-30", 1)).toBe("2026-12-01");
+    expect(addDays("2026-12-31", 1)).toBe("2027-01-01");
+    expect(addDays("2026-03-01", -1)).toBe("2026-02-28");
   });
 });

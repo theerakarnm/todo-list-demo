@@ -14,3 +14,27 @@ export function formatShortThaiDate(date: Date, timeZone?: string) {
   const weekday = part("weekday").replace(/^วัน/, "");
   return `${weekday} ${part("day")} ${part("month")}`;
 }
+
+/** A local date ("2026-11-15") as a Date at noon UTC, so formatting it in UTC gives that same calendar day. */
+function localDateAsUtcNoon(localDate: string) {
+  return new Date(`${localDate}T12:00:00Z`);
+}
+
+/** "อาทิตย์ 15 พ.ย." for a due date. */
+export function formatLocalDate(localDate: string) {
+  return formatShortThaiDate(localDateAsUtcNoon(localDate), "UTC");
+}
+
+/** "13 พ.ย." for the date on a task row. */
+export function formatDayMonth(localDate: string) {
+  return new Intl.DateTimeFormat("th-TH", { day: "numeric", month: "short", timeZone: "UTC" }).format(
+    localDateAsUtcNoon(localDate),
+  );
+}
+
+/** "อา 15" under each column of the Upcoming load bar. Intl writes "อา."; the mockup has no dot. */
+export function formatLoadBarDay(localDate: string) {
+  const date = localDateAsUtcNoon(localDate);
+  const weekday = new Intl.DateTimeFormat("th-TH", { weekday: "short", timeZone: "UTC" }).format(date);
+  return `${weekday.replace(/\.$/, "")} ${date.getUTCDate()}`;
+}

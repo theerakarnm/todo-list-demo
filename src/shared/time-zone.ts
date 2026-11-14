@@ -43,3 +43,9 @@ export function zonedDateTimeToUtcMs(localDate: string, localTime: string, timeZ
   const guess = wallClockAsUtc - offsetAt(wallClockAsUtc, timeZone);
   return wallClockAsUtc - offsetAt(guess, timeZone);
 }
+
+/** The local date `days` after `localDate` ("2026-11-14" + 1 = "2026-11-15"). Negative goes back. */
+export function addDays(localDate: string, days: number) {
+  const [year, month, day] = localDate.split("-").map(Number);
+  return new Date(Date.UTC(year ?? 0, (month ?? 1) - 1, (day ?? 1) + days)).toISOString().slice(0, 10);
+}
