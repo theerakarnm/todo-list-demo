@@ -3,6 +3,7 @@ import { handleError, handleNotFound } from "./errors";
 import { requestId } from "./middleware/request-id";
 import { securityHeaders } from "./middleware/security-headers";
 import { healthRoutes } from "./routes/health";
+import { logbookRoutes } from "./routes/logbook";
 import { projectRoutes } from "./routes/projects";
 import { subtaskRoutes } from "./routes/subtasks";
 import { syncRoutes } from "./routes/sync";
@@ -17,7 +18,8 @@ export const app = new Hono<AppEnv>()
   .route("/api/tasks", taskRoutes)
   .route("/api/projects", projectRoutes)
   .route("/api/subtasks", subtaskRoutes)
-  .route("/api/sync", syncRoutes);
+  .route("/api/sync", syncRoutes)
+  .route("/api/logbook", logbookRoutes);
 
 app.notFound(handleNotFound);
 app.onError(handleError);
