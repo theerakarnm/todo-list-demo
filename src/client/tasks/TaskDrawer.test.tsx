@@ -160,6 +160,64 @@ describe("TaskDrawer images: reorder", () => {
   });
 });
 
+describe("TaskDrawer images: viewer", () => {
+  const three = () =>
+    renderDrawer(["a1", "a2", "a3"].map((id, index) => anAttachment({ id, taskId: "t1", position: `a${index}` })));
+  const viewer = () => within(screen.getByRole("dialog", { name: th.images.viewer }));
+  const shownImage = () => viewer().getByRole("img").getAttribute("src");
+
+  it("opens the clicked image full screen and moves with the arrow keys and buttons", () => {
+    const { drawer } = three();
+
+    fireEvent.click(drawer.getByRole("button", { name: "ดูรูปที่ 2" }));
+    expect(shownImage()).toBe("/api/files/u/user-1/t/t1/a2");
+    expect(viewer().getByText("2 / 3")).toBeTruthy();
+
+    fireEvent.keyDown(screen.getByRole("dialog", { name: th.images.viewer }), { key: "ArrowRight" });
+    expect(viewer().getByText("3 / 3")).toBeTruthy();
+    expect(viewer().getByRole("button", { name: th.images.next }).hasAttribute("disabled")).toBe(true);
+
+    fireEvent.click(viewer().getByRole("button", { name: th.images.previous }));
+    fireEvent.keyDown(screen.getByRole("dialog", { name: th.images.viewer }), { key: "ArrowLeft" });
+    expect(shownImage()).toBe("/api/files/u/user-1/t/t1/a1");
+  });
+
+  it("moves with a swipe on touch screens", () => {
+    const { drawer } = three();
+    fireEvent.click(drawer.getByRole("button", { name: "ดูรูปที่ 1" }));
+    const swipe = (fromX: number, toX: number) => {
+      fireEvent.pointerDown(viewer().getByRole("img"), { clientX: fromX, clientY: 200 });
+      fireEvent.pointerUp(viewer().getByRole("img"), { clientX: toX, clientY: 210 });
+    };
+
+    swipe(300, 120);
+    expect(viewer().getByText("2 / 3")).toBeTruthy();
+
+    swipe(100, 280);
+    expect(viewer().getByText("1 / 3")).toBeTruthy();
+  });
+
+  it("Esc closes only the viewer; the drawer stays open", async () => {
+    const { drawer, router } = three();
+    fireEvent.click(drawer.getByRole("button", { name: "ดูรูปที่ 1" }));
+
+    fireEvent.keyDown(screen.getByRole("dialog", { name: th.images.viewer }), { key: "Escape" });
+
+    expect(screen.queryByRole("dialog", { name: th.images.viewer })).toBeNull();
+    expect(screen.getByRole("dialog", { name: th.drawer.label })).toBeTruthy();
+    expect(router.state.location.search).toBe("?task=t1");
+  });
+
+  it("closes with its close button", () => {
+    const { drawer } = three();
+    fireEvent.click(drawer.getByRole("button", { name: "ดูรูปที่ 3" }));
+
+    fireEvent.click(viewer().getByRole("button", { name: th.images.closeViewer }));
+
+    expect(screen.queryByRole("dialog", { name: th.images.viewer })).toBeNull();
+  });
+});
+
 describe("TaskDrawer images: delete", () => {
   afterEach(() => vi.unstubAllGlobals());
 

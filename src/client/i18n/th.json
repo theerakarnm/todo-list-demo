@@ -542,6 +542,12 @@
     "addHint": "drop / paste",
     "image": "รูปที่ {{number}}",
     "delete": "ลบรูปที่ {{number}}",
+    "open": "ดูรูปที่ {{number}}",
+    "viewer": "ดูรูปภาพ",
+    "viewerCount": "{{number}} / {{total}}",
+    "previous": "รูปก่อนหน้า",
+    "next": "รูปถัดไป",
+    "closeViewer": "ปิดการดูรูป",
     "drop": "วางที่นี่ เพื่อแนบรูป / drop to attach",
     "uploading": "กำลังอัปโหลดรูปที่ {{number}}",
     "noPreview": "แสดงตัวอย่างไม่ได้"

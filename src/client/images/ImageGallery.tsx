@@ -1,5 +1,5 @@
 import { rectSortingStrategy } from "@dnd-kit/sortable";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LIMITS } from "../../shared/constants";
 import { Icon } from "../components/Icon";
@@ -8,6 +8,7 @@ import { attachmentsOfTask } from "../data/selectors";
 import { useSyncStore } from "../data/sync-query";
 import { SortableArea } from "../dnd/SortableArea";
 import { ImageTile } from "./ImageTile";
+import { ImageViewer } from "./ImageViewer";
 
 /** Also .heic: some systems give HEIC photos no image/ type, so image/* alone would hide them. */
 const ACCEPTED_FILES = "image/*,.heic,.heif";
@@ -25,6 +26,7 @@ export function ImageGallery({ taskId, dropping }: ImageGalleryProps) {
   const uploadImages = useUploadImages();
   const moveImage = useMoveImage();
   const fileInput = useRef<HTMLInputElement>(null);
+  const [viewing, setViewing] = useState<number | null>(null);
   const attachments = store ? attachmentsOfTask(store, taskId) : [];
 
   return (
@@ -41,7 +43,12 @@ export function ImageGallery({ taskId, dropping }: ImageGalleryProps) {
         >
           <ul className="image-grid">
             {attachments.map((attachment, index) => (
-              <ImageTile key={attachment.id} attachment={attachment} number={index + 1} />
+              <ImageTile
+                key={attachment.id}
+                attachment={attachment}
+                number={index + 1}
+                onOpen={() => setViewing(index)}
+              />
             ))}
           </ul>
         </SortableArea>
@@ -70,6 +77,9 @@ export function ImageGallery({ taskId, dropping }: ImageGalleryProps) {
           event.target.value = "";
         }}
       />
+      {viewing !== null && attachments.length > 0 && (
+        <ImageViewer images={attachments} startIndex={viewing} onClose={() => setViewing(null)} />
+      )}
     </section>
   );
 }

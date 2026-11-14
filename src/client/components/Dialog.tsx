@@ -29,7 +29,8 @@ export function Dialog({ label, onClose, className, children, ...rest }: DialogP
       aria-label={label}
       aria-modal="true"
       className={className}
-      onClose={onClose}
+      // React passes a nested dialog's close event up to this one too: only our own counts.
+      onClose={(event) => event.target === event.currentTarget && onClose()}
       onClick={(event) => {
         // The dialog element itself is only hit through its backdrop; content sits in a child.
         if (event.target === event.currentTarget) event.currentTarget.close();

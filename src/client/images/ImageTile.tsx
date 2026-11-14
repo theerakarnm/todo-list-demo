@@ -9,10 +9,10 @@ import type { Attachment } from "../data/types";
 import { DragHandle } from "../dnd/DragHandle";
 import { fileUrl } from "./file-url";
 
-type ImageTileProps = { attachment: Attachment; number: number };
+type ImageTileProps = { attachment: Attachment; number: number; onOpen: () => void };
 
 /** One square thumbnail. While it uploads, the local preview shows with its progress. */
-export function ImageTile({ attachment, number }: ImageTileProps) {
+export function ImageTile({ attachment, number, onOpen }: ImageTileProps) {
   const { t } = useTranslation();
   const upload = useLocalUpload(attachment.id);
   const deleteImage = useDeleteImage();
@@ -28,16 +28,18 @@ export function ImageTile({ attachment, number }: ImageTileProps) {
       className="image-tile"
       data-dragging={sortable.isDragging}
     >
-      {broken ? (
-        <span className="image-broken mono">{t("images.noPreview")}</span>
-      ) : (
-        <img
-          src={upload?.previewUrl ?? fileUrl(attachment.r2Key)}
-          alt={name}
-          decoding="async"
-          onError={() => setBroken(true)}
-        />
-      )}
+      <button type="button" className="image-open" aria-label={t("images.open", { number })} onClick={onOpen}>
+        {broken ? (
+          <span className="image-broken mono">{t("images.noPreview")}</span>
+        ) : (
+          <img
+            src={upload?.previewUrl ?? fileUrl(attachment.r2Key)}
+            alt={name}
+            decoding="async"
+            onError={() => setBroken(true)}
+          />
+        )}
+      </button>
       <DragHandle
         name={name}
         handleRef={sortable.setActivatorNodeRef}
