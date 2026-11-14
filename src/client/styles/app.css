@@ -55,6 +55,8 @@
     background: var(--bg);
     color: var(--fg);
     font-family: var(--font-body);
+    /* The mockups keep the browser default line height (Tailwind's preflight sets 1.5). */
+    line-height: normal;
   }
 
   ::selection {

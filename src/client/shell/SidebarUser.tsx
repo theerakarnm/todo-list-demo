@@ -1,0 +1,28 @@
+import { useTranslation } from "react-i18next";
+import { Link } from "react-router";
+import { Icon } from "../components/Icon";
+import { PLACEHOLDER_USER } from "./placeholder-user";
+
+/** Avatar, name and email, plus the Settings button (top of the sidebar). */
+export function SidebarUser({ collapsed }: { collapsed: boolean }) {
+  const { t } = useTranslation();
+  const { name, email } = PLACEHOLDER_USER;
+  const initial = [...name][0];
+
+  return (
+    <div className={collapsed ? "flex flex-col items-center gap-2.5" : "flex items-center gap-2.5"}>
+      <div className="flex min-w-0 flex-1 items-center gap-2.5">
+        <span className="avatar" aria-hidden="true">
+          {initial}
+        </span>
+        <span className={collapsed ? "sr-only" : "min-w-0"}>
+          <span className="block truncate text-[15px] font-bold">{name}</span>
+          <span className="mono muted block truncate text-[11px] normal-case">{email}</span>
+        </span>
+      </div>
+      <Link to="/app/settings" className="icon-button" aria-label={t("nav.settings")}>
+        <Icon name="settings" />
+      </Link>
+    </div>
+  );
+}

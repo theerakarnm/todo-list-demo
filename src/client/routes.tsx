@@ -6,7 +6,12 @@ function lazyPage(load: () => Promise<{ default: ComponentType }>) {
   return async () => ({ Component: (await load()).default });
 }
 
-export const routes: RouteObject[] = [
+// Shown while the first screen's chunk loads: just the page background.
+function BlankPage() {
+  return null;
+}
+
+const screens: RouteObject[] = [
   { path: "/", lazy: lazyPage(() => import("./pages/LandingPage")) },
   { path: "/login", lazy: lazyPage(() => import("./pages/LoginPage")) },
   { path: "/signup", lazy: lazyPage(() => import("./pages/SignupPage")) },
@@ -30,3 +35,5 @@ export const routes: RouteObject[] = [
   },
   { path: "*", lazy: lazyPage(() => import("./pages/NotFoundPage")) },
 ];
+
+export const routes: RouteObject[] = [{ HydrateFallback: BlankPage, children: screens }];
