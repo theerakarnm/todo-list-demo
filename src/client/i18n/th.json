@@ -162,8 +162,8 @@
       "PROJECT_LIMIT": "มีโปรเจกต์ครบ {{limit}} โปรเจกต์แล้ว",
       "SUBTASK_LIMIT": "งานนี้มีงานย่อยครบ {{limit}} รายการแล้ว",
       "ATTACHMENT_LIMIT": "แนบรูปได้สูงสุด {{limit}} รูปต่องาน",
-      "STORAGE_LIMIT": "พื้นที่เก็บรูปเต็มแล้ว",
-      "FILE_TOO_LARGE": "ไฟล์ใหญ่เกินไป",
+      "STORAGE_LIMIT": "พื้นที่เก็บรูปเต็มแล้ว บัญชีละไม่เกิน {{limit}} MB",
+      "FILE_TOO_LARGE": "ไฟล์ใหญ่เกินไป รูปละไม่เกิน {{limit}} MB",
       "UNSUPPORTED_FILE": "รองรับเฉพาะไฟล์รูป JPEG, PNG, WebP หรือ HEIC",
       "INTERNAL_ERROR": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง"
     }

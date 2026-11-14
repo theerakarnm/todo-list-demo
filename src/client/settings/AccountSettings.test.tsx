@@ -75,7 +75,7 @@ describe("Settings → Account: profile photo", () => {
 
     fireEvent.change(screen.getByLabelText(t.changePhoto), { target: { files: [aFile("me.jpg", "image/jpeg")] } });
 
-    expect(await screen.findByText(th.errors.api.FILE_TOO_LARGE)).toBeTruthy();
+    expect(await screen.findByText("ไฟล์ใหญ่เกินไป รูปละไม่เกิน 5 MB")).toBeTruthy();
     expect(photo()).toBeUndefined();
   });
 

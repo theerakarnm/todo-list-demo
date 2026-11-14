@@ -68,7 +68,7 @@ describe("useUploadImages", () => {
 
     act(() => result.current("t1", [aFile("receipt.jpg", "image/jpeg")]));
 
-    expect(await screen.findByText(th.errors.api.STORAGE_LIMIT)).toBeTruthy();
+    expect(await screen.findByText("พื้นที่เก็บรูปเต็มแล้ว บัญชีละไม่เกิน 200 MB")).toBeTruthy();
     expect(imagesIn(queryClient)).toEqual([]);
     expect(images.revokeObjectURL).toHaveBeenCalledWith("blob:preview-1");
   });
@@ -185,7 +185,7 @@ describe("useDeleteImage", () => {
     act(() => result.current(image));
     fireEvent.click(await screen.findByRole("button", { name: th.toast.undo }));
 
-    expect(await screen.findByText(th.errors.api.STORAGE_LIMIT)).toBeTruthy();
+    expect(await screen.findByText("พื้นที่เก็บรูปเต็มแล้ว บัญชีละไม่เกิน 200 MB")).toBeTruthy();
     expect(imagesIn(queryClient)).toEqual([]);
   });
 

@@ -5,13 +5,16 @@ import { ImageFileError } from "../images/image-file-error";
 import { ApiRequestError } from "./request-error";
 
 const formatCount = (count: number) => count.toLocaleString("en-US");
+const MEGABYTE = 1024 * 1024;
 
-/** The number shown in each limit message. */
+/** The number shown in each limit message (sizes in MB). */
 const LIMIT_FOR: Partial<Record<ErrorCode, number>> = {
   TASK_LIMIT: LIMITS.activeTasksPerUser,
   PROJECT_LIMIT: LIMITS.projectsPerUser,
   SUBTASK_LIMIT: LIMITS.subtasksPerTask,
   ATTACHMENT_LIMIT: LIMITS.attachmentsPerTask,
+  STORAGE_LIMIT: LIMITS.storageBytesPerUser / MEGABYTE,
+  FILE_TOO_LARGE: LIMITS.attachmentBytes / MEGABYTE,
 };
 
 /** The Thai text for an error code, with the limit filled in. */
