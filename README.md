@@ -52,6 +52,7 @@ bun run test               # Vitest: worker + client projects
 ```
 
 `bun test` runs Bun's own runner, which only prints a hint; use `bun run test` for the real suites.
+The `worker` test project runs in the Workers runtime through `@cloudflare/vitest-plugin`, the renamed successor of `@cloudflare/vitest-pool-workers` (the old name is deprecated).
 After changing `src/worker/db/schema.ts`, run `bun run db:generate` to write a new SQL migration into `drizzle/`.
 After changing `wrangler.jsonc`, run `bun run cf-typegen` to refresh `worker-configuration.d.ts`.
 After changing `public/favicon.svg`, run `bun run icons:generate` to redraw the PWA and iOS icons.
