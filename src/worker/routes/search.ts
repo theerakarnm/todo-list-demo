@@ -7,9 +7,8 @@ import { createDb } from "../db/client";
 import { projectColumns, taskColumns } from "../db/columns";
 import { projects, tasks } from "../db/schema";
 import { subtasksOfTasks } from "../db/task-queries";
-import { apiRateLimit } from "../middleware/api-rate-limit";
-import { currentUser } from "../middleware/current-user";
-import type { AppEnv } from "../types";
+import { requireSession } from "../middleware/require-session";
+import type { SessionEnv } from "../types";
 import { validate } from "../validate";
 
 /**
@@ -22,8 +21,8 @@ function contains(column: SQLiteColumn, query: string): SQL {
   return sql`${column} LIKE ${`%${escaped}%`} ESCAPE '\\'`;
 }
 
-export const searchRoutes = new Hono<AppEnv>()
-  .use(currentUser, apiRateLimit)
+export const searchRoutes = new Hono<SessionEnv>()
+  .use(requireSession)
 
   // Active and completed tasks (title or notes) plus projects (name). Active tasks first.
   // The tasks' subtasks come too: a completed task is not in the client's store yet.

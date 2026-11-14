@@ -9,9 +9,8 @@ import { findOwnTask, isSameDue, positionAtEndOfList, reminderFor } from "../db/
 import { subtasks, tasks } from "../db/schema";
 import { ApiError } from "../errors";
 import { assertRoomForActiveTasks } from "../limits";
-import { apiRateLimit } from "../middleware/api-rate-limit";
-import { currentUser } from "../middleware/current-user";
-import type { AppEnv } from "../types";
+import { requireSession } from "../middleware/require-session";
+import type { SessionEnv } from "../types";
 import { validate } from "../validate";
 import { rescheduleOverdueRoutes } from "./reschedule-overdue";
 
@@ -38,8 +37,8 @@ async function updateTask(db: Db, userId: string, id: string, changes: Partial<T
   return updated;
 }
 
-export const taskRoutes = new Hono<AppEnv>()
-  .use(currentUser, apiRateLimit)
+export const taskRoutes = new Hono<SessionEnv>()
+  .use(requireSession)
   .route("/reschedule-overdue", rescheduleOverdueRoutes)
 
   // Create-or-update with the client's UUIDv7, so a retried create never duplicates.

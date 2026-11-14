@@ -6,9 +6,8 @@ import { createDb } from "../db/client";
 import { taskColumns } from "../db/columns";
 import { tasks } from "../db/schema";
 import { subtasksOfTasks } from "../db/task-queries";
-import { apiRateLimit } from "../middleware/api-rate-limit";
-import { currentUser } from "../middleware/current-user";
-import type { AppEnv } from "../types";
+import { requireSession } from "../middleware/require-session";
+import type { SessionEnv } from "../types";
 import { validate } from "../validate";
 
 /** Tasks after the previous page's last one, in (completed_at, id) newest-first order. */
@@ -18,8 +17,8 @@ function afterCursor(before?: number, beforeId?: string) {
   return or(lt(tasks.completedAt, before), and(eq(tasks.completedAt, before), lt(tasks.id, beforeId)));
 }
 
-export const logbookRoutes = new Hono<AppEnv>()
-  .use(currentUser, apiRateLimit)
+export const logbookRoutes = new Hono<SessionEnv>()
+  .use(requireSession)
 
   // Completed tasks, newest completion first, 50 a page, with their subtasks
   // (the sync full load leaves completed tasks out). The id breaks ties,

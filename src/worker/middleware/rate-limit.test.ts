@@ -68,6 +68,18 @@ describe("API rate limit (120 requests/min per user)", () => {
     expect(limiter.limit).toHaveBeenCalledWith({ key: user.id });
   });
 
+  it("counts a data route request once", async () => {
+    const browser = await signUpVerifiedUser(internet);
+    const limiter = fakeRateLimit(true);
+    const counted = testBrowser({ bindings: { ...testEnv, RATE_LIMIT_API: limiter } });
+    for (const [name, value] of browser.cookies) counted.cookies.set(name, value);
+
+    const response = await counted.request("/api/tasks/reschedule-overdue", { method: "POST" });
+
+    expect(response.status).toBe(200);
+    expect(limiter.limit).toHaveBeenCalledTimes(1);
+  });
+
   it("does not count requests without a session", async () => {
     const limiter = fakeRateLimit(true);
 

@@ -1,13 +1,14 @@
 import { exports } from "cloudflare:workers";
+import { sessionCookieOf } from "./users";
 
 type Method = "GET" | "PUT" | "PATCH" | "DELETE" | "POST";
 
-/** Calls the real Worker as `userId` (through the dev-only x-dev-user-id header). */
+/** Calls the real Worker as `userId`, with the session cookie createTestUser made for them. */
 export function apiAs(userId: string) {
   const send = (method: Method, path: string, body?: unknown) =>
     exports.default.fetch(`https://jotlist.test${path}`, {
       method,
-      headers: { "x-dev-user-id": userId, "Content-Type": "application/json" },
+      headers: { Cookie: sessionCookieOf(userId), "Content-Type": "application/json" },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
 

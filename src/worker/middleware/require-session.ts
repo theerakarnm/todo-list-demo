@@ -5,7 +5,8 @@ import type { SessionEnv } from "../types";
 import { enforceApiRateLimit } from "./rate-limit";
 
 /**
- * Lets only signed-in users through and puts them on `c.var.user` / `c.var.session`.
+ * Lets only signed-in users through and puts them on `c.var.user`, `c.var.userId` and `c.var.session`.
+ * Every route under /api except auth, health and config sits behind it.
  * Every request it lets through counts against the user's API rate limit.
  */
 export const requireSession = createMiddleware<SessionEnv>(async (c, next) => {
@@ -14,6 +15,7 @@ export const requireSession = createMiddleware<SessionEnv>(async (c, next) => {
   await enforceApiRateLimit(c.env, signedIn.user.id);
 
   c.set("user", signedIn.user);
+  c.set("userId", signedIn.user.id);
   c.set("session", signedIn.session);
   await next();
 });
