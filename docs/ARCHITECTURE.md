@@ -176,4 +176,5 @@ Realtime sync (Durable Object + hibernating WebSocket per user), email reminders
 - Where: a gallery under the notes in TaskDrawer (file picker, drag-and-drop, paste); click opens a full-screen viewer; task rows show 📎 + count. Images can also be pasted into Quick Add and upload right after the task is created.
   Uploads go through the same ordered write queue as every other change, so an image pasted into Quick Add always reaches the server after its task.
   Deleting an image is a soft delete with the 5-second Undo; a deleted image does not count toward the limits.
+- Restoring a task (or a project) re-checks the 200 MB: if its images no longer fit, it comes back without them, and they stay deleted until the purge.
 - Deleting a task soft-deletes its attachments. The R2 object of a deleted image stays until `purgeDeletedAttachments` (run by the 7-day purge cron) removes it with the row. Deleting the account deletes every R2 object under `u/<user_id>/` immediately.
