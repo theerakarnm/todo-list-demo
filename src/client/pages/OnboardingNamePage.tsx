@@ -1,6 +1,6 @@
 import type { FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { LIMITS } from "../../shared/constants";
 import { useMe } from "../auth/use-me";
 import { ArrowRight } from "../landing/ArrowRight";
@@ -11,12 +11,13 @@ import { ThemeCards } from "../onboarding/ThemeCards";
 export default function OnboardingNamePage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { search } = useLocation();
   const { data: me } = useMe();
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const displayName = String(new FormData(event.currentTarget).get("displayName")).trim();
-    navigate("/onboarding/2", { state: { displayName } });
+    navigate({ pathname: "/onboarding/2", search }, { state: { displayName } });
   }
 
   return (

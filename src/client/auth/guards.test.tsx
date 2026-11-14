@@ -61,6 +61,22 @@ describe("signed-in users", () => {
 
     expect(router.state.location.pathname).toBe("/onboarding/1");
   });
+
+  it("who have not finished onboarding keep the page they wanted in ?next=", async () => {
+    signedInAs(testMe({ settings: { onboardedAt: null } }));
+
+    const router = await openPage("/app/projects/abc?view=list");
+
+    expect(currentPath(router)).toBe(`/onboarding/1?next=${encodeURIComponent("/app/projects/abc?view=list")}`);
+  });
+
+  it("sent from Login to onboarding still end up on the page in ?next=", async () => {
+    signedInAs(testMe({ settings: { onboardedAt: null } }));
+
+    const router = await openPage(`/login?next=${encodeURIComponent("/app/upcoming")}`);
+
+    expect(currentPath(router)).toBe(`/onboarding/1?next=${encodeURIComponent("/app/upcoming")}`);
+  });
 });
 
 describe("the sidebar", () => {

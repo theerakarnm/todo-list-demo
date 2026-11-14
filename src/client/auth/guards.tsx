@@ -1,6 +1,6 @@
 import { Navigate, Outlet, useLocation, useSearchParams } from "react-router";
 import { useThemeFromSettings } from "../settings/use-theme-from-settings";
-import { loginPathFor, safeNextPath, startPath } from "./next-path";
+import { loginPathFor, onboardingPathFor, safeNextPath, startPath } from "./next-path";
 import { useMe } from "./use-me";
 
 /** Signed-in, onboarded users only: the app itself (/app/*). */
@@ -11,17 +11,20 @@ export function SignedInOnly() {
 
   if (isPending) return null;
   if (!me) return <Navigate to={loginPathFor(location.pathname + location.search)} replace />;
-  if (me.settings.onboardedAt === null) return <Navigate to="/onboarding/1" replace />;
+  if (me.settings.onboardedAt === null) return <Navigate to={onboardingPathFor(location.pathname + location.search)} replace />;
   return <Outlet />;
 }
 
-/** Onboarding, shown once: signed-in users who have not finished it. */
+/** Onboarding, shown once: signed-in users who have not finished it. Finishing goes on to `?next=`. */
 export function OnboardingOnly() {
   const { data: me, isPending } = useMe();
+  const [searchParams] = useSearchParams();
 
   if (isPending) return null;
   if (!me) return <Navigate to={loginPathFor("/app")} replace />;
-  if (me.settings.onboardedAt !== null) return <Navigate to={startPath(me.settings.startPage)} replace />;
+  if (me.settings.onboardedAt !== null) {
+    return <Navigate to={safeNextPath(searchParams.get("next")) ?? startPath(me.settings.startPage)} replace />;
+  }
   return <Outlet />;
 }
 

@@ -112,6 +112,50 @@ describe("onboarding step 2", () => {
   });
 });
 
+describe("onboarding keeps the page the user wanted", () => {
+  async function openStepOneWith(next: string) {
+    signedInAs(newUser);
+    const router = await openPage(`/onboarding/1?next=${encodeURIComponent(next)}`);
+    click(th.onboarding.continue);
+    await screen.findByRole("heading", { level: 1, name: th.pages.onboardingProjects.title });
+    return router;
+  }
+
+  it("carries ?next= from step 1 to step 2 and goes there when finished", async () => {
+    answer("POST /api/onboarding/complete", { body: { settings: {} } });
+    const router = await openStepOneWith("/app/upcoming");
+    expect(router.state.location.search).toBe(`?next=${encodeURIComponent("/app/upcoming")}`);
+    signedInAs(testMe());
+
+    click(th.onboarding.createWorkspace);
+
+    await screen.findByRole("heading", { level: 1, name: th.pages.upcoming.title });
+    expect(router.state.location.pathname).toBe("/app/upcoming");
+  });
+
+  it("goes there after Skip too", async () => {
+    answer("POST /api/onboarding/complete", { body: { settings: {} } });
+    const router = await openStepOneWith("/app/upcoming");
+    signedInAs(testMe());
+
+    click(th.onboarding.skip);
+
+    await screen.findByRole("heading", { level: 1, name: th.pages.upcoming.title });
+    expect(router.state.location.pathname).toBe("/app/upcoming");
+  });
+
+  it.each(["//evil.example", "https://evil.example", "/\\evil.example"])("ignores the unsafe next %s", async (next) => {
+    answer("POST /api/onboarding/complete", { body: { settings: {} } });
+    const router = await openStepOneWith(next);
+    signedInAs(testMe({ settings: { startPage: "inbox" } }));
+
+    click(th.onboarding.skip);
+
+    await screen.findByRole("heading", { level: 1, name: th.pages.inbox.title });
+    expect(router.state.location.pathname).toBe("/app/inbox");
+  });
+});
+
 describe("onboarding is shown once", () => {
   it("sends an onboarded user to the start page", async () => {
     signedInAs(testMe({ settings: { startPage: "inbox" } }));

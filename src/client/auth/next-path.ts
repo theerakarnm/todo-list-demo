@@ -10,6 +10,11 @@ export function loginPathFor(path: string) {
   return `/login?next=${encodeURIComponent(path)}`;
 }
 
+/** Onboarding address that goes on to `path` when it is done. */
+export function onboardingPathFor(path: string) {
+  return `/onboarding/1?next=${encodeURIComponent(path)}`;
+}
+
 /**
  * `next` only when it is a path on this site. "//host" and "/\\host" are read
  * by browsers as another site, so they never count.
