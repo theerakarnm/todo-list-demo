@@ -163,7 +163,7 @@ Realtime sync (Durable Object + hibernating WebSocket per user), email reminders
 - **Settings:** email is read-only; "change password" hidden for LINE-only accounts; profile photo upload (R2), else LINE picture, else initial letter. Sidebar shows the user's email under the name (no "Personal" workspace label). **(owner)**
 - **Upcoming:** range 7 / 14 / 30 days (last choice remembered on the device), daily load bar, drag a task onto another day to reschedule, "Add task" per day opens Quick Add with that date. **(owner)**
 - **Ordering:** drag-to-reorder only in Inbox and project lists. Today and Upcoming sort automatically: due time (no time last), then priority, then `created_at`. "Reschedule" on the overdue group moves all overdue tasks to today, with Undo. **(owner)**
-- **Onboarding** after first sign-in: step 1 display name + theme, step 2 starter projects (pre-ticked: งาน, ส่วนตัว, เป้าหมายปีนี้); Skip creates nothing. Sets `onboarded_at`. **(default)**
+- **Onboarding** after first sign-in: step 1 display name + theme, step 2 starter projects (pre-ticked: งาน, ส่วนตัว, เป้าหมายปีนี้; unticked: เรียนรู้, ครอบครัว, การเงิน); Skip creates nothing. Sets `onboarded_at`. **(default)**
 - **Footer:** Privacy Policy, Terms of Service, contact `contact@theerakarnm.dev`, `© 2026 jotlist - Eukron Team`. **(owner)**
 
 ## 16. Images (task attachments and profile photos) **(owner: R2; limits are defaults)**
