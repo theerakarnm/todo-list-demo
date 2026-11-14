@@ -7,7 +7,7 @@ import { useDeleteImage } from "../data/attachment-mutations";
 import { useLocalUpload } from "../data/local-uploads";
 import type { Attachment } from "../data/types";
 import { DragHandle } from "../dnd/DragHandle";
-import { fileUrl } from "./file-url";
+import { useImageSource } from "./use-image-source";
 
 type ImageTileProps = { attachment: Attachment; number: number; onOpen: () => void };
 
@@ -15,6 +15,7 @@ type ImageTileProps = { attachment: Attachment; number: number; onOpen: () => vo
 export function ImageTile({ attachment, number, onOpen }: ImageTileProps) {
   const { t } = useTranslation();
   const upload = useLocalUpload(attachment.id);
+  const src = useImageSource(attachment);
   const deleteImage = useDeleteImage();
   const [broken, setBroken] = useState(false);
   const sortable = useSortable({ id: attachment.id, attributes: { roleDescription: t("dnd.roleDescription") } });
@@ -33,7 +34,7 @@ export function ImageTile({ attachment, number, onOpen }: ImageTileProps) {
           <span className="image-broken mono">{t("images.noPreview")}</span>
         ) : (
           <img
-            src={upload?.previewUrl ?? fileUrl(attachment.r2Key)}
+            src={src}
             alt={name}
             decoding="async"
             onError={() => setBroken(true)}

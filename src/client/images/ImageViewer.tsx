@@ -3,20 +3,19 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { Dialog } from "../components/Dialog";
 import { Icon } from "../components/Icon";
-import { useLocalUpload } from "../data/local-uploads";
 import type { Attachment } from "../data/types";
-import { fileUrl } from "./file-url";
+import { useImageSource } from "./use-image-source";
 
 /** A sideways finger move longer than this (px) goes to the next or previous image. */
 const SWIPE_DISTANCE = 50;
 
 function ViewedImage({ attachment, number }: { attachment: Attachment; number: number }) {
   const { t } = useTranslation();
-  const upload = useLocalUpload(attachment.id);
+  const src = useImageSource(attachment);
   return (
     <img
       className="image-viewer-image"
-      src={upload?.previewUrl ?? fileUrl(attachment.r2Key)}
+      src={src}
       alt={t("images.image", { number })}
       draggable={false}
     />
