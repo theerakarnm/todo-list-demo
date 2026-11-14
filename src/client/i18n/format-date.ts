@@ -1,3 +1,5 @@
+import th from "./th.json";
+
 /**
  * Short Thai date used in headers and task rows, e.g. "เสาร์ 14 พ.ย.".
  * Intl gives "วันเสาร์ที่ 14 พ.ย."; the mockups drop the "วัน" and "ที่".
@@ -32,9 +34,11 @@ export function formatDayMonth(localDate: string) {
   );
 }
 
-/** "อา 15" under each column of the Upcoming load bar. Intl writes "อา."; the mockup has no dot. */
+/**
+ * "อา 15" under each column of the Upcoming load bar. The short weekday names come
+ * from th.json: browsers disagree on Intl's short Thai weekday ("อา." or "อาทิตย์").
+ */
 export function formatLoadBarDay(localDate: string) {
   const date = localDateAsUtcNoon(localDate);
-  const weekday = new Intl.DateTimeFormat("th-TH", { weekday: "short", timeZone: "UTC" }).format(date);
-  return `${weekday.replace(/\.$/, "")} ${date.getUTCDate()}`;
+  return `${th.dates.weekdayShort[date.getUTCDay()]} ${date.getUTCDate()}`;
 }

@@ -228,5 +228,16 @@
     "addSubtaskPlaceholder": "พิมพ์งานย่อย แล้วกด Enter",
     "delete": "ลบงาน / delete task",
     "notFound": "ไม่พบงานนี้ อาจถูกลบไปแล้ว"
+  },
+  "dates": {
+    "weekdayShort": [
+      "อา",
+      "จ",
+      "อ",
+      "พ",
+      "พฤ",
+      "ศ",
+      "ส"
+    ]
   }
 }
