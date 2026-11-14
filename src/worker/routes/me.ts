@@ -6,8 +6,9 @@ import { findUserSettings } from "../db/user-settings";
 import { ApiError } from "../errors";
 import { requireSession } from "../middleware/require-session";
 import type { SessionEnv } from "../types";
+import { avatarRoutes } from "./avatar";
 
-/** The signed-in user and their settings: what the client needs on first load. */
+/** The signed-in user and their settings: what the client needs on first load. Also the profile photo routes. */
 export const meRoutes = new Hono<SessionEnv>().use(requireSession).get("/", async (c) => {
   const { id, name, email, image } = c.var.user;
   const [providers, settings] = await Promise.all([
@@ -27,4 +28,4 @@ export const meRoutes = new Hono<SessionEnv>().use(requireSession).get("/", asyn
     },
     settings,
   });
-});
+}).route("/avatar", avatarRoutes);

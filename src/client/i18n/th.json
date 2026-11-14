@@ -162,8 +162,8 @@
       "PROJECT_LIMIT": "มีโปรเจกต์ครบ {{limit}} โปรเจกต์แล้ว",
       "SUBTASK_LIMIT": "งานนี้มีงานย่อยครบ {{limit}} รายการแล้ว",
       "ATTACHMENT_LIMIT": "แนบรูปได้สูงสุด {{limit}} รูปต่องาน",
-      "STORAGE_LIMIT": "พื้นที่เก็บรูปเต็มแล้ว",
-      "FILE_TOO_LARGE": "ไฟล์ใหญ่เกินไป",
+      "STORAGE_LIMIT": "พื้นที่เก็บรูปเต็มแล้ว บัญชีละไม่เกิน {{limit}} MB",
+      "FILE_TOO_LARGE": "ไฟล์ใหญ่เกินไป รูปละไม่เกิน {{limit}} MB",
       "UNSUPPORTED_FILE": "รองรับเฉพาะไฟล์รูป JPEG, PNG, WebP หรือ HEIC",
       "INTERNAL_ERROR": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง"
     }
@@ -351,6 +351,10 @@
     "general": "General"
   },
   "settingsAccount": {
+    "photoLabel": "รูปโปรไฟล์ / photo",
+    "photoAlt": "รูปโปรไฟล์ของคุณ",
+    "changePhoto": "เปลี่ยนรูป",
+    "removePhoto": "ลบรูป",
     "nameLabel": "ชื่อ / name",
     "save": "บันทึก",
     "saved": "บันทึกแล้ว",
@@ -479,6 +483,7 @@
     "dismiss": "ปิดการแจ้งเตือน",
     "completed": "ทำเสร็จแล้ว: {{title}}",
     "deleted": "ลบงานแล้ว: {{title}}",
+    "imageDeleted": "ลบรูปแล้ว",
     "rescheduled": "ย้าย {{count}} งานมาเป็นวันนี้แล้ว",
     "projectDeleted": "ลบโปรเจกต์ {{name}} แล้ว"
   },
@@ -490,6 +495,8 @@
     "overdueDate": "▲ {{date}}",
     "subtaskProgress": "{{done}}/{{total}}",
     "subtaskProgressLabel": "งานย่อยเสร็จ {{done}} จาก {{total}}",
+    "imageCount": "📎 {{count}}",
+    "imageCountLabel": "รูปภาพ {{count}} รูป",
     "addTask": "Add task",
     "addTaskPlaceholder": "พิมพ์ชื่องาน แล้วกด Enter",
     "addTaskHint": {
@@ -536,6 +543,22 @@
     "delete": "ลบงาน / delete task",
     "notFound": "ไม่พบงานนี้ อาจถูกลบไปแล้ว"
   },
+  "images": {
+    "heading": "รูปภาพ / images - {{count}}/{{limit}}",
+    "add": "เพิ่มรูป / add image",
+    "addHint": "drop / paste",
+    "image": "รูปที่ {{number}}",
+    "delete": "ลบรูปที่ {{number}}",
+    "open": "ดูรูปที่ {{number}}",
+    "viewer": "ดูรูปภาพ",
+    "viewerCount": "{{number}} / {{total}}",
+    "previous": "รูปก่อนหน้า",
+    "next": "รูปถัดไป",
+    "closeViewer": "ปิดการดูรูป",
+    "drop": "วางที่นี่ เพื่อแนบรูป / drop to attach",
+    "uploading": "กำลังอัปโหลดรูปที่ {{number}}",
+    "noPreview": "แสดงตัวอย่างไม่ได้"
+  },
   "dates": {
     "weekdayShort": [
       "อา",
@@ -579,7 +602,10 @@
     "clearDate": "ล้างวันที่",
     "cancel": "Cancel",
     "add": "Add task",
-    "enterKey": "Enter"
+    "enterKey": "Enter",
+    "images": "รูปที่จะแนบ",
+    "image": "รูปที่ {{number}}",
+    "removeImage": "เอารูปที่ {{number}} ออก"
   },
   "dnd": {
     "handle": "ลากเพื่อย้าย: {{name}}",

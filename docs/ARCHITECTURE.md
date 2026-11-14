@@ -64,7 +64,8 @@ Better Auth owns `user`, `session`, `account`, `verification`. App tables:
 
 **subtasks** — `id`, `task_id`, `user_id`, `title` (≤ 500), `completed_at`, `position`, `created_at`, `updated_at`, `deleted_at`. A separate table, so "one level only" is enforced by the schema: a subtask has no children.
 
-**attachments** — `id`, `task_id`, `user_id`, `r2_key`, `mime`, `bytes`, `width`, `height`, `position`, `created_at`, `deleted_at`. See §16.
+**attachments** — `id`, `task_id`, `user_id`, `r2_key`, `mime`, `bytes`, `width`, `height`, `position`, `created_at`, `updated_at`, `deleted_at`. See §16.
+`updated_at` (and the index `attachments(user_id, updated_at)`) was added in migration 0001 so sync deltas and reorder work like the other tables **(default)**.
 
 **push_subscriptions** — `id`, `user_id`, `endpoint` (unique), `p256dh`, `auth`, `created_at`.
 
@@ -81,13 +82,13 @@ Indexes: `tasks(user_id, updated_at)`, `tasks(user_id, completed_at)`, `tasks(re
 JSON over HTTPS under `/api`, all Zod-validated, all queries scoped by the session's `user_id` (never trust a `user_id` from the client).
 
 - `/api/auth/*` — Better Auth handler.
-- `GET /api/sync?since=<ms>` — every task, project and subtask of the user with `updated_at > since`, **including soft-deleted rows** (tombstones), plus a new `cursor`. `since` omitted = full load of active data + projects. Logbook items are not part of the full load.
-  - Response: `{ tasks, projects, subtasks, settings: { timezone, weekStart }, cursor }`. A changed task also brings all its subtasks, so a task that comes back (un-completed) arrives whole.
+- `GET /api/sync?since=<ms>` — every task, project, subtask and attachment (metadata only) of the user with `updated_at > since`, **including soft-deleted rows** (tombstones), plus a new `cursor`. `since` omitted = full load of active data + projects. Logbook items are not part of the full load.
+  - Response: `{ tasks, projects, subtasks, attachments, settings: { timezone, weekStart }, cursor }`. A changed task also brings all its subtasks and attachments, so a task that comes back (un-completed) arrives whole.
   - `cursor` is the request start time minus 30 s. A write takes its `updated_at` before it reaches D1, so it can land just after the read with an older timestamp; the overlap makes the next poll pick it up. Rows sent twice are harmless.
-- `GET /api/logbook?before=<completed_at>&beforeId=<id>` — completed tasks, 50 per page, newest first. Response `{ tasks, subtasks, next }` (the subtasks of the page's tasks, which the sync full load leaves out); `next` holds the `before`/`beforeId` of the following page (or `null`), and the id breaks ties between tasks completed in the same millisecond. An optional `projectId` keeps one project's tasks (the project page's completed section).
+- `GET /api/logbook?before=<completed_at>&beforeId=<id>` — completed tasks, 50 per page, newest first. Response `{ tasks, subtasks, attachments, next }` (the subtasks and attachments of the page's tasks, which the sync full load leaves out); `next` holds the `before`/`beforeId` of the following page (or `null`), and the id breaks ties between tasks completed in the same millisecond. An optional `projectId` keeps one project's tasks (the project page's completed section).
 - `GET /api/search?q=` — `LIKE '%q%'` on title and notes, scoped by `user_id`, max 50 results, active + completed. **No FTS5**: SQLite FTS5 cannot segment Thai, so it would miss words in the middle of a Thai sentence **(owner)**.
 - `PUT /api/tasks/:id` (create-or-update, idempotent), `PATCH /api/tasks/:id`, `DELETE /api/tasks/:id` (soft), `POST /api/tasks/:id/restore`. Same shape for `projects` and `subtasks`.
-- `POST /api/tasks/:id/attachments` (multipart), `GET /api/files/:key` (owner-checked stream from R2, `Cache-Control: private`), `DELETE /api/attachments/:id`; `PUT /api/me/avatar`, `DELETE /api/me/avatar`.
+- `POST /api/tasks/:id/attachments` (multipart), `GET /api/files/:key` (owner-checked stream from R2, `Cache-Control: private`), `DELETE /api/attachments/:id` (soft, keeps the R2 object), `POST /api/attachments/:id/restore` (checks the per-task and storage limits again), `PATCH /api/attachments/:id` (`{ position }`, gallery reorder); `PUT /api/me/avatar`, `DELETE /api/me/avatar`.
 - `POST /api/tasks/reschedule-overdue` (moves every overdue active task to today in the user's time zone; returns `{ today, tasks: [{ id, dueDate }] }` with the previous dates). Undo sends that `tasks` list to `POST /api/tasks/reschedule-overdue/undo`, one request however many tasks moved.
 - `POST /api/push/subscribe`, `DELETE /api/push/subscribe`.
 - `PATCH /api/settings`, `DELETE /api/account` (hard-deletes the user and every row they own).
@@ -163,12 +164,17 @@ Realtime sync (Durable Object + hibernating WebSocket per user), email reminders
 - **Settings:** email is read-only; "change password" hidden for LINE-only accounts; profile photo upload (R2), else LINE picture, else initial letter. Sidebar shows the user's email under the name (no "Personal" workspace label). **(owner)**
 - **Upcoming:** range 7 / 14 / 30 days (last choice remembered on the device), daily load bar, drag a task onto another day to reschedule, "Add task" per day opens Quick Add with that date. **(owner)**
 - **Ordering:** drag-to-reorder only in Inbox and project lists. Today and Upcoming sort automatically: due time (no time last), then priority, then `created_at`. "Reschedule" on the overdue group moves all overdue tasks to today, with Undo. **(owner)**
-- **Onboarding** after first sign-in: step 1 display name + theme, step 2 starter projects (pre-ticked: งาน, ส่วนตัว, เป้าหมายปีนี้); Skip creates nothing. Sets `onboarded_at`. **(default)**
+- **Onboarding** after first sign-in: step 1 display name + theme, step 2 starter projects (pre-ticked: งาน, ส่วนตัว, เป้าหมายปีนี้; unticked: เรียนรู้, ครอบครัว, การเงิน); Skip creates nothing. Sets `onboarded_at`. **(default)**
 - **Footer:** Privacy Policy, Terms of Service, contact `contact@theerakarnm.dev`, `© 2026 jotlist - Eukron Team`. **(owner)**
 
 ## 16. Images (task attachments and profile photos) **(owner: R2; limits are defaults)**
 - Images only: jpeg, png, webp, heic/heif (checked by magic bytes, not just extension). The client downscales to max 2048 px on the long side and re-encodes to WebP before upload (HEIC: browsers that cannot decode it upload the original).
+  Safari cannot encode WebP (its canvas gives PNG), so Safari uploads JPEG at the same size and quality instead **(default)**.
+  Profile photos are the centre square, at most 512 px (a smaller photo is not upscaled) **(default)**.
 - Limits: 5 MB per file after processing, 10 images per task, 200 MB per account (sum of `bytes`). Over a limit → `413`/`409` with a Thai message.
 - R2 bucket is private. Keys: `u/<user_id>/t/<task_id>/<attachment_id>` and `u/<user_id>/avatar/<uuid>`. Files are only served through `GET /api/files/:key` after checking the key's owner.
 - Where: a gallery under the notes in TaskDrawer (file picker, drag-and-drop, paste); click opens a full-screen viewer; task rows show 📎 + count. Images can also be pasted into Quick Add and upload right after the task is created.
-- Deleting a task soft-deletes its attachments; the 7-day purge cron deletes the R2 objects too. Deleting the account deletes every R2 object under `u/<user_id>/` immediately.
+  Uploads go through the same ordered write queue as every other change, so an image pasted into Quick Add always reaches the server after its task.
+  Deleting an image is a soft delete with the 5-second Undo; a deleted image does not count toward the limits.
+- Restoring a task (or a project) re-checks the 200 MB: if its images no longer fit, it comes back without them, and they stay deleted until the purge.
+- Deleting a task soft-deletes its attachments. The R2 object of a deleted image stays until `purgeDeletedAttachments` (run by the 7-day purge cron) removes it with the row. Deleting the account deletes every R2 object under `u/<user_id>/` immediately.

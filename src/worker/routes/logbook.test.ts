@@ -2,6 +2,7 @@ import { env } from "cloudflare:test";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { apiAs, bodyOf } from "../test/api";
 import { newId } from "../test/ids";
+import { attachmentForm, pngFile } from "../test/images";
 import { createTestUser } from "../test/users";
 
 type Page = {
@@ -104,5 +105,21 @@ describe("GET /api/logbook", () => {
 
     const body = await bodyOf<Page & { subtasks: { id: string; taskId: string }[] }>(response);
     expect(body.subtasks.map((subtask) => subtask.id)).toEqual([subtaskId]);
+  });
+
+  it("brings the image metadata of the tasks on the page, without deleted images", async () => {
+    const userId = await createTestUser();
+    const taskId = newId();
+    await apiAs(userId).put(`/api/tasks/${taskId}`, { title: "เสร็จ", position: "a0" });
+    const upload = () => apiAs(userId).postForm(`/api/tasks/${taskId}/attachments`, attachmentForm(pngFile()));
+    const kept = await bodyOf<{ id: string }>(await upload());
+    const deleted = await bodyOf<{ id: string }>(await upload());
+    await apiAs(userId).delete(`/api/attachments/${deleted.id}`);
+    await apiAs(userId).patch(`/api/tasks/${taskId}`, { completed: true });
+
+    const response = await apiAs(userId).get("/api/logbook");
+
+    const body = await bodyOf<Page & { attachments: { id: string }[] }>(response);
+    expect(body.attachments.map((attachment) => attachment.id)).toEqual([kept.id]);
   });
 });

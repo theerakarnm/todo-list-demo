@@ -1,6 +1,8 @@
 import { env } from "cloudflare:test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type FakeInternet, fakeInternet } from "../test/fake-internet";
+import { newId } from "../test/ids";
+import { attachmentForm, pngFile } from "../test/images";
 import { signUpVerifiedUser } from "../test/sign-up-user";
 import { type TestBrowser, testBrowser } from "../test/test-browser";
 
@@ -95,6 +97,26 @@ describe("DELETE /api/account", () => {
       headers: { Cookie: `${sessionCookie?.[0]}=${sessionCookie?.[1]}` },
     });
     expect(replay.status).toBe(401);
+  });
+
+  it("deletes uploaded images and the profile photo right away", async () => {
+    const browser = await signUpVerifiedUser(internet);
+    const userId = await userIdOf(browser);
+    const taskId = newId();
+    await browser.sendJson("PUT", `/api/tasks/${taskId}`, { title: "ใบเสร็จ", position: "a0" });
+    const upload = await browser.request(`/api/tasks/${taskId}/attachments`, {
+      method: "POST",
+      body: attachmentForm(pngFile()),
+    });
+    const avatarForm = new FormData();
+    avatarForm.set("file", pngFile());
+    const avatar = await browser.request("/api/me/avatar", { method: "PUT", body: avatarForm });
+    expect([upload.status, avatar.status]).toEqual([201, 200]);
+    expect(await fileCount(userId)).toBe(2);
+
+    await browser.request("/api/account", { method: "DELETE" });
+
+    expect(await fileCount(userId)).toBe(0);
   });
 
   it("deletes more files than one R2 list page holds", async () => {

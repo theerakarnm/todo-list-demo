@@ -7,11 +7,11 @@ import { useToast } from "../toast/ToastProvider";
 import { LOGBOOK_QUERY_KEY } from "./logbook-query";
 import { useOptimisticMutation } from "./optimistic";
 import { positionAtEnd } from "./positions";
-import { inboxTasks, projectTasks, subtasksOf } from "./selectors";
+import { attachmentsOfTask, inboxTasks, projectTasks, subtasksOf } from "./selectors";
 import { putRows, removeRows } from "./store-updates";
 import { SYNC_QUERY_KEY } from "./sync-query";
 import type { SyncStore } from "./sync-store";
-import type { Subtask, Task } from "./types";
+import type { Attachment, Subtask, Task } from "./types";
 import { uuidv7 } from "./uuidv7";
 
 /**
@@ -41,6 +41,7 @@ type NewTask = {
   priority?: Priority;
 };
 
+/** Adds a task at once and saves it in the background; returns the new task's id. */
 export function useCreateTask() {
   const snapshot = useStoreSnapshot();
   const create = useOptimisticMutation({
@@ -82,6 +83,7 @@ export function useCreateTask() {
       deletedAt: null,
     };
     create.mutate(task);
+    return task.id;
   };
 }
 
@@ -141,9 +143,9 @@ export function useUncompleteTask() {
   return (task: Task) => setCompleted.mutate({ task, completed: false });
 }
 
-type DeletedTask = { task: Task; subtasks: Subtask[] };
+type DeletedTask = { task: Task; subtasks: Subtask[]; attachments: Attachment[] };
 
-/** Deletes a task (and its subtasks) and offers Undo, which restores both. */
+/** Deletes a task (with its subtasks and images) and offers Undo, which restores them all. */
 export function useDeleteTask() {
   const queryClient = useQueryClient();
   const snapshot = useStoreSnapshot();
@@ -154,20 +156,28 @@ export function useDeleteTask() {
 
   const remove = useOptimisticMutation({
     request: ({ task }: DeletedTask) => request(api.api.tasks[":id"].$delete({ param: { id: task.id } })),
-    apply: (store, { task, subtasks }) =>
-      removeRows(store, { tasks: [task.id], subtasks: subtasks.map((subtask) => subtask.id) }),
+    apply: (store, { task, subtasks, attachments }) =>
+      removeRows(store, {
+        tasks: [task.id],
+        subtasks: subtasks.map((subtask) => subtask.id),
+        attachments: attachments.map((attachment) => attachment.id),
+      }),
     onSettled: refreshLogbook,
   });
   const restore = useOptimisticMutation({
     request: ({ task }: DeletedTask) => request(api.api.tasks[":id"].restore.$post({ param: { id: task.id } })),
-    apply: (store, { task, subtasks }) => putRows(store, { tasks: [task], subtasks }),
+    apply: (store, { task, subtasks, attachments }) => putRows(store, { tasks: [task], subtasks, attachments }),
     confirm: (task) => ({ tasks: [task] }),
     onSettled: refreshLogbook,
   });
 
   return (task: Task) => {
     const store = snapshot();
-    const deleted = { task, subtasks: store ? subtasksOf(store, task.id) : [] };
+    const deleted = {
+      task,
+      subtasks: store ? subtasksOf(store, task.id) : [],
+      attachments: store ? attachmentsOfTask(store, task.id) : [],
+    };
     remove.mutate(deleted);
     showToast({ message: t("toast.deleted", { title: task.title }), onUndo: () => restore.mutate(deleted) });
   };

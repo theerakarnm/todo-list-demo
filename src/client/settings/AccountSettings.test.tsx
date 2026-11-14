@@ -1,5 +1,5 @@
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import th from "../i18n/th.json";
 import {
   answer,
@@ -11,6 +11,7 @@ import {
   signedOut,
   testMe,
 } from "../test/fake-api";
+import { aFile, stubBrowserImages } from "../test/fake-images";
 import { findPageAlert, openPage } from "../test/render-app";
 
 const t = th.settingsAccount;
@@ -22,6 +23,88 @@ function sidebar() {
 function click(name: string, scope: Pick<typeof screen, "getByRole"> = screen) {
   act(() => scope.getByRole("button", { name }).click());
 }
+
+describe("Settings → Account: profile photo", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  const photo = () => screen.queryByRole("img", { name: t.photoAlt })?.getAttribute("src");
+  const sidebarPhoto = () => screen.getByRole("complementary", { name: th.nav.sidebar }).querySelector(".avatar img");
+
+  it("shows the initial when there is no photo, and no remove button", async () => {
+    await openPage("/app/settings");
+
+    expect(photo()).toBeUndefined();
+    expect(screen.getAllByText("น").length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: t.removePhoto })).toBeNull();
+  });
+
+  it("shows the LINE picture when no photo was uploaded", async () => {
+    signedInAs(testMe({ user: { image: "https://profile.line-scdn.net/narin" } }));
+    await openPage("/app/settings");
+
+    expect(photo()).toBe("https://profile.line-scdn.net/narin");
+    expect(sidebarPhoto()?.getAttribute("src")).toBe("https://profile.line-scdn.net/narin");
+  });
+
+  it("uploads a new photo, square-cropped as WebP, showing it at once", async () => {
+    stubBrowserImages({ width: 1200, height: 800 });
+    const save = answerLater("PUT /api/me/avatar");
+    await openPage("/app/settings");
+
+    fireEvent.change(screen.getByLabelText(t.changePhoto), { target: { files: [aFile("me.jpg", "image/jpeg")] } });
+
+    expect(await screen.findByRole("img", { name: t.photoAlt })).toBeTruthy();
+    expect(photo()).toBe("blob:preview-1");
+    expect(sidebarPhoto()?.getAttribute("src")).toBe("blob:preview-1");
+    const sent = await vi.waitFor(async () => {
+      const request = requestsTo("PUT /api/me/avatar")[0];
+      if (!request) throw new Error("not sent yet");
+      return request.clone().formData();
+    });
+    expect((sent.get("file") as Blob).type).toBe("image/webp");
+
+    save.reply({ avatarKey: "u/user-1/avatar/new" });
+    await waitFor(() => expect(photo()).toBe("/api/files/u/user-1/avatar/new"));
+    expect(screen.getByRole("button", { name: t.removePhoto })).toBeTruthy();
+  });
+
+  it("goes back to what was shown and explains when the upload fails", async () => {
+    stubBrowserImages();
+    answer("PUT /api/me/avatar", apiError(413, "FILE_TOO_LARGE"));
+    await openPage("/app/settings");
+
+    fireEvent.change(screen.getByLabelText(t.changePhoto), { target: { files: [aFile("me.jpg", "image/jpeg")] } });
+
+    expect(await screen.findByText("ไฟล์ใหญ่เกินไป รูปละไม่เกิน 5 MB")).toBeTruthy();
+    expect(photo()).toBeUndefined();
+  });
+
+  it("removes the uploaded photo, falling back to the LINE picture", async () => {
+    answer("DELETE /api/me/avatar", { avatarKey: null });
+    signedInAs(
+      testMe({ user: { image: "https://profile.line-scdn.net/narin" }, settings: { avatarKey: "u/user-1/avatar/old" } }),
+    );
+    await openPage("/app/settings");
+    expect(photo()).toBe("/api/files/u/user-1/avatar/old");
+
+    click(t.removePhoto);
+
+    await waitFor(() => expect(photo()).toBe("https://profile.line-scdn.net/narin"));
+    expect(screen.queryByRole("button", { name: t.removePhoto })).toBeNull();
+    await waitFor(() => expect(requestsTo("DELETE /api/me/avatar")).toHaveLength(1));
+  });
+
+  it("puts the photo back and explains when removing it fails", async () => {
+    answer("DELETE /api/me/avatar", apiError(500, "INTERNAL_ERROR"));
+    signedInAs(testMe({ settings: { avatarKey: "u/user-1/avatar/old" } }));
+    await openPage("/app/settings");
+
+    click(t.removePhoto);
+
+    expect(await screen.findByText(th.errors.api.INTERNAL_ERROR)).toBeTruthy();
+    expect(photo()).toBe("/api/files/u/user-1/avatar/old");
+  });
+});
 
 describe("Settings → Account: display name", () => {
   it("shows the new name at once and saves it", async () => {

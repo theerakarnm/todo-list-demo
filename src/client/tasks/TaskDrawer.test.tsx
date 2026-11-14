@@ -1,17 +1,20 @@
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { aProject, aSubtask, aTask, storeWith } from "../data/test-rows";
+import { anAttachment, aProject, aSubtask, aTask, storeWith } from "../data/test-rows";
 import th from "../i18n/th.json";
-import { echoCreatedRow, stubApi } from "../test/fake-api";
+import { answerLater, echoCreatedRow, requestsTo, stubApi } from "../test/fake-api";
+import { aFile, stubBrowserImages } from "../test/fake-images";
 import { renderWithStore } from "../test/render";
+import type { Attachment } from "../data/types";
 import { TaskDrawer } from "./TaskDrawer";
 import { TaskList } from "./TaskList";
 
-function renderDrawer() {
+function renderDrawer(attachments: Attachment[] = []) {
   const store = storeWith({
     projects: [aProject({ id: "p1", name: "งาน" })],
     tasks: [aTask({ id: "t1", title: "ส่งใบเสนอราคาให้ลูกค้า", dueDate: "2026-11-14" })],
     subtasks: [aSubtask({ id: "s1", taskId: "t1", title: "ทำตัวเลข" })],
+    attachments,
   });
   const result = renderWithStore(<TaskDrawer />, store, "/app/today?task=t1");
   return { ...result, drawer: within(screen.getByRole("dialog", { name: th.drawer.label })) };
@@ -106,3 +109,211 @@ describe("TaskDrawer", () => {
     expect(router.state.location.search).toBe("");
   });
 });
+
+const imageSources = (scope: ReturnType<typeof within>) =>
+  scope.queryAllByRole("img").map((image: HTMLElement) => image.getAttribute("src"));
+
+describe("TaskDrawer images", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("shows the task's images in gallery order under the notes", () => {
+    const { drawer } = renderDrawer([
+      anAttachment({ id: "a2", taskId: "t1", position: "a1" }),
+      anAttachment({ id: "a1", taskId: "t1", position: "a0" }),
+    ]);
+
+    expect(drawer.getByText("รูปภาพ / images - 2/10")).toBeTruthy();
+    expect(imageSources(drawer)).toEqual(["/api/files/u/user-1/t/t1/a1", "/api/files/u/user-1/t/t1/a2"]);
+  });
+
+  it("adds images from the file picker and shows the progress until each is stored", async () => {
+    stubBrowserImages();
+    const upload = answerLater("POST /api/tasks/:id/attachments");
+    const { drawer } = renderDrawer();
+
+    fireEvent.change(drawer.getByLabelText(th.images.add), {
+      target: { files: [aFile("receipt.jpg", "image/jpeg")] },
+    });
+
+    const progress = await drawer.findByRole("progressbar", { name: "กำลังอัปโหลดรูปที่ 1" });
+    expect(progress.getAttribute("aria-valuenow")).toBe("0");
+    expect(imageSources(drawer)).toEqual(["blob:preview-1"]);
+    expect(drawer.getByText("รูปภาพ / images - 1/10")).toBeTruthy();
+
+    const id = (await vi.waitFor(async () => {
+      const form = await stubbedUploadForm();
+      return form.get("id");
+    })) as string;
+    upload.reply(Response.json(anAttachment({ id, taskId: "t1", updatedAt: 9 }), { status: 201 }));
+
+    await waitFor(() => expect(imageSources(drawer)).toEqual([`/api/files/u/user-1/t/t1/${id}`]));
+    expect(drawer.queryByRole("progressbar")).toBeNull();
+  });
+});
+
+describe("TaskDrawer images: reorder", () => {
+  it("gives each image a grip to drag it, with a Thai name for the screen reader", () => {
+    const { drawer } = renderDrawer([anAttachment({ id: "a1", taskId: "t1" })]);
+
+    const grip = drawer.getByRole("button", { name: "ลากเพื่อย้าย: รูปที่ 1" });
+    expect(grip.getAttribute("aria-roledescription")).toBe(th.dnd.roleDescription);
+  });
+});
+
+describe("TaskDrawer images: viewer", () => {
+  const three = () =>
+    renderDrawer(["a1", "a2", "a3"].map((id, index) => anAttachment({ id, taskId: "t1", position: `a${index}` })));
+  const viewer = () => within(screen.getByRole("dialog", { name: th.images.viewer }));
+  const shownImage = () => viewer().getByRole("img").getAttribute("src");
+
+  it("opens the clicked image full screen and moves with the arrow keys and buttons", () => {
+    const { drawer } = three();
+
+    fireEvent.click(drawer.getByRole("button", { name: "ดูรูปที่ 2" }));
+    expect(shownImage()).toBe("/api/files/u/user-1/t/t1/a2");
+    expect(viewer().getByText("2 / 3")).toBeTruthy();
+
+    fireEvent.keyDown(screen.getByRole("dialog", { name: th.images.viewer }), { key: "ArrowRight" });
+    expect(viewer().getByText("3 / 3")).toBeTruthy();
+    expect(viewer().getByRole("button", { name: th.images.next }).hasAttribute("disabled")).toBe(true);
+
+    fireEvent.click(viewer().getByRole("button", { name: th.images.previous }));
+    fireEvent.keyDown(screen.getByRole("dialog", { name: th.images.viewer }), { key: "ArrowLeft" });
+    expect(shownImage()).toBe("/api/files/u/user-1/t/t1/a1");
+  });
+
+  it("moves with a swipe on touch screens", () => {
+    const { drawer } = three();
+    fireEvent.click(drawer.getByRole("button", { name: "ดูรูปที่ 1" }));
+    const swipe = (fromX: number, toX: number) => {
+      fireEvent.pointerDown(viewer().getByRole("img"), { clientX: fromX, clientY: 200 });
+      fireEvent.pointerUp(viewer().getByRole("img"), { clientX: toX, clientY: 210 });
+    };
+
+    swipe(300, 120);
+    expect(viewer().getByText("2 / 3")).toBeTruthy();
+
+    swipe(100, 280);
+    expect(viewer().getByText("1 / 3")).toBeTruthy();
+  });
+
+  it("Esc closes only the viewer; the drawer stays open", async () => {
+    const { drawer, router } = three();
+    fireEvent.click(drawer.getByRole("button", { name: "ดูรูปที่ 1" }));
+
+    fireEvent.keyDown(screen.getByRole("dialog", { name: th.images.viewer }), { key: "Escape" });
+
+    expect(screen.queryByRole("dialog", { name: th.images.viewer })).toBeNull();
+    expect(screen.getByRole("dialog", { name: th.drawer.label })).toBeTruthy();
+    expect(router.state.location.search).toBe("?task=t1");
+  });
+
+  it("closes with its close button", () => {
+    const { drawer } = three();
+    fireEvent.click(drawer.getByRole("button", { name: "ดูรูปที่ 3" }));
+
+    fireEvent.click(viewer().getByRole("button", { name: th.images.closeViewer }));
+
+    expect(screen.queryByRole("dialog", { name: th.images.viewer })).toBeNull();
+  });
+});
+
+describe("TaskDrawer images: delete", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("deletes an image with its own button", async () => {
+    const calls = stubApi({
+      "DELETE /api/attachments/:id": anAttachment({ id: "a1", taskId: "t1", deletedAt: 5, updatedAt: 5 }),
+    });
+    const { drawer } = renderDrawer([
+      anAttachment({ id: "a1", taskId: "t1", position: "a0" }),
+      anAttachment({ id: "a2", taskId: "t1", position: "a1" }),
+    ]);
+
+    fireEvent.click(drawer.getByRole("button", { name: "ลบรูปที่ 1" }));
+
+    await waitFor(() => expect(imageSources(drawer)).toEqual(["/api/files/u/user-1/t/t1/a2"]));
+    expect(drawer.getByText("รูปภาพ / images - 1/10")).toBeTruthy();
+    await waitFor(() => expect(calls.map((call) => call.path)).toEqual(["/api/attachments/a1"]));
+  });
+
+  it("brings a deleted image back with Undo in the toast", async () => {
+    const calls = stubApi({
+      "DELETE /api/attachments/:id": anAttachment({ id: "a1", taskId: "t1", deletedAt: 5, updatedAt: 5 }),
+      "POST /api/attachments/:id/restore": anAttachment({ id: "a1", taskId: "t1", updatedAt: 6 }),
+    });
+    const { drawer } = renderDrawer([anAttachment({ id: "a1", taskId: "t1" })]);
+
+    fireEvent.click(drawer.getByRole("button", { name: "ลบรูปที่ 1" }));
+    await waitFor(() => expect(imageSources(drawer)).toEqual([]));
+    const toast = within(screen.getByRole("status", { name: th.toast.region }));
+    expect(toast.getByText(th.toast.imageDeleted)).toBeTruthy();
+    fireEvent.click(toast.getByRole("button", { name: th.toast.undo }));
+
+    await waitFor(() => expect(imageSources(drawer)).toEqual(["/api/files/u/user-1/t/t1/a1"]));
+    expect(drawer.getByText("รูปภาพ / images - 1/10")).toBeTruthy();
+    await waitFor(() =>
+      expect(calls.map((call) => `${call.method} ${call.path}`)).toEqual([
+        "DELETE /api/attachments/a1",
+        "POST /api/attachments/a1/restore",
+      ]),
+    );
+  });
+});
+
+describe("TaskDrawer images: drop and paste", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("shows where to drop while files are dragged over the drawer, and uploads what is dropped", async () => {
+    stubBrowserImages();
+    answerLater("POST /api/tasks/:id/attachments");
+    const { drawer } = renderDrawer();
+    const dialog = screen.getByRole("dialog");
+    const dataTransfer = { types: ["Files"], files: [aFile("whiteboard.png", "image/png")], dropEffect: "none" };
+
+    fireEvent.dragEnter(drawer.getByRole("textbox", { name: th.drawer.notes }), { dataTransfer });
+    expect(drawer.getByText(th.images.drop)).toBeTruthy();
+    fireEvent.drop(dialog, { dataTransfer });
+
+    expect(drawer.queryByText(th.images.drop)).toBeNull();
+    expect(await drawer.findByRole("progressbar", { name: "กำลังอัปโหลดรูปที่ 1" })).toBeTruthy();
+  });
+
+  it("ignores a drag that carries no files, like selected text", () => {
+    renderDrawer();
+
+    fireEvent.dragEnter(screen.getByRole("dialog"), { dataTransfer: { types: ["text/plain"], files: [] } });
+
+    expect(screen.queryByText(th.images.drop)).toBeNull();
+  });
+
+  it("uploads an image pasted anywhere in the drawer, even into the notes", async () => {
+    stubBrowserImages();
+    answerLater("POST /api/tasks/:id/attachments");
+    const { drawer } = renderDrawer();
+
+    const pasted = fireEvent.paste(drawer.getByRole("textbox", { name: th.drawer.notes }), {
+      clipboardData: { types: ["Files"], files: [aFile("screenshot.png", "image/png")] },
+    });
+
+    expect(pasted).toBe(false);
+    expect(await drawer.findByRole("progressbar", { name: "กำลังอัปโหลดรูปที่ 1" })).toBeTruthy();
+  });
+
+  it("leaves a text paste to the field being typed in", () => {
+    renderDrawer();
+
+    const pasted = fireEvent.paste(screen.getByRole("textbox", { name: th.drawer.notes }), {
+      clipboardData: { types: ["text/plain"], files: [] },
+    });
+
+    expect(pasted).toBe(true);
+    expect(screen.queryByRole("progressbar")).toBeNull();
+  });
+});
+
+async function stubbedUploadForm() {
+  const request = requestsTo("POST /api/tasks/t1/attachments")[0];
+  if (!request) throw new Error("not sent yet");
+  return request.clone().formData();
+}

@@ -36,8 +36,17 @@ describe("D1 migrations", () => {
         "tasks_pending_reminder_idx",
         "projects_user_updated_idx",
         "subtasks_task_idx",
+        "attachments_user_updated_idx",
       ]),
     );
+  });
+
+  it("give attachments a required updated_at for sync deltas", async () => {
+    const { results } = await env.DB.prepare("SELECT name, \"notnull\" FROM pragma_table_info('attachments')").all<{
+      name: string;
+      notnull: number;
+    }>();
+    expect(results).toContainEqual({ name: "updated_at", notnull: 1 });
   });
 
   it("make the reminder index partial, so sent reminders drop out of it", async () => {

@@ -82,4 +82,38 @@
     outline: 2px solid var(--highlight);
     outline-offset: 2px;
   }
+
+  /* Images pasted into Quick Add, waiting for the task to be saved. */
+  .quick-add-images {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .quick-add-image {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    border: var(--rule-thin) solid var(--rule-color);
+  }
+
+  .quick-add-image img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .quick-add-image .icon-button {
+    position: absolute;
+    top: -1.5px;
+    right: -1.5px;
+    width: 24px;
+    height: 24px;
+    border-color: var(--rule-color);
+    background: var(--bg);
+  }
 }

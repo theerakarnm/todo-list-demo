@@ -6,7 +6,7 @@ import { renderHookWithStore } from "../test/render";
 import { SYNC_QUERY_KEY } from "./sync-query";
 import type { SyncStore } from "./sync-store";
 import { useCompleteTask, useCreateTask, useDeleteTask, useRescheduleOverdue } from "./task-mutations";
-import { aSubtask, aTask, storeWith } from "./test-rows";
+import { anAttachment, aSubtask, aTask, storeWith } from "./test-rows";
 
 const storeIn = (queryClient: { getQueryData: (key: typeof SYNC_QUERY_KEY) => unknown }) =>
   queryClient.getQueryData(SYNC_QUERY_KEY) as SyncStore;
@@ -36,7 +36,7 @@ describe("task mutations", () => {
     expect(storeIn(queryClient).tasks.t1?.completedAt).toBeNull();
   });
 
-  it("delete: removes the task and its subtasks, and Undo restores both", async () => {
+  it("delete: removes the task, its subtasks and images, and Undo restores them all", async () => {
     const calls = stubApi({
       "DELETE /api/tasks/:id": () => aTask({ id: "t1", deletedAt: 5, updatedAt: 5 }),
       "POST /api/tasks/:id/restore": () => aTask({ id: "t1", updatedAt: 6 }),
@@ -44,18 +44,24 @@ describe("task mutations", () => {
     const task = aTask({ id: "t1" });
     const { result, queryClient } = renderHookWithStore(
       useDeleteTask,
-      storeWith({ tasks: [task], subtasks: [aSubtask({ id: "s1", taskId: "t1" })] }),
+      storeWith({
+        tasks: [task],
+        subtasks: [aSubtask({ id: "s1", taskId: "t1" })],
+        attachments: [anAttachment({ id: "a1", taskId: "t1" })],
+      }),
     );
 
     act(() => result.current(task));
     await waitFor(() => expect(storeIn(queryClient).tasks.t1).toBeUndefined());
     expect(storeIn(queryClient).subtasks.s1).toBeUndefined();
+    expect(storeIn(queryClient).attachments.a1).toBeUndefined();
 
     clickUndo();
     await waitFor(() => expect(calls.map((call) => `${call.method} ${call.path}`)).toHaveLength(2));
     expect(calls[1]?.path).toBe("/api/tasks/t1/restore");
     expect(storeIn(queryClient).tasks.t1).toBeDefined();
     expect(storeIn(queryClient).subtasks.s1).toBeDefined();
+    expect(storeIn(queryClient).attachments.a1).toBeDefined();
   });
 
   it("reschedule overdue: moves them to today, and Undo sends back the server's list", async () => {

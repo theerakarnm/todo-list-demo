@@ -18,6 +18,8 @@ const ICON_PATHS = {
   trash: "M3 4.5 H13 M6 4.5 V2.5 H10 V4.5 M4.5 4.5 V14 H11.5 V4.5 M7 7 V11.5 M9 7 V11.5",
   more: "M3 8 H3.01 M8 8 H8.01 M13 8 H13.01",
   chevronDown: "M3.5 6 L8 10.5 L12.5 6",
+  chevronLeft: "M10 3.5 L5.5 8 L10 12.5",
+  chevronRight: "M6 3.5 L10.5 8 L6 12.5",
 } as const;
 
 export type IconName = keyof typeof ICON_PATHS;

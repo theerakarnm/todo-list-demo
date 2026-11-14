@@ -42,7 +42,7 @@ export function GeneralSettings({ settings }: { settings: Me["settings"] }) {
         value={settings.weekStart}
         onChange={(weekStart) => save({ weekStart })}
       />
-      <div className="field">
+      <div className="form-field">
         <label className="mono" htmlFor="timezone">
           {t("settingsGeneral.timezoneLabel")}
         </label>

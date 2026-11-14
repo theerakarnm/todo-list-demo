@@ -1,25 +1,16 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { idParamSchema } from "../../shared/schemas/fields";
 import { createSubtaskSchema, updateSubtaskSchema } from "../../shared/schemas/subtask";
 import { createDb, type Db } from "../db/client";
 import { subtaskColumns } from "../db/columns";
-import { subtasks, tasks } from "../db/schema";
+import { subtasks } from "../db/schema";
+import { assertUsableTask } from "../db/task-queries";
 import { ApiError } from "../errors";
 import { assertRoomForSubtask } from "../limits";
 import { requireSession } from "../middleware/require-session";
 import type { SessionEnv } from "../types";
 import { validate } from "../validate";
-
-/** Subtasks live under a task that is the user's and not deleted. Otherwise 404. */
-async function assertUsableTask(db: Db, userId: string, taskId: string) {
-  const task = await db
-    .select({ id: tasks.id })
-    .from(tasks)
-    .where(and(eq(tasks.id, taskId), eq(tasks.userId, userId), isNull(tasks.deletedAt)))
-    .get();
-  if (!task) throw new ApiError("NOT_FOUND");
-}
 
 async function findOwnSubtask(db: Db, userId: string, id: string) {
   const subtask = await db

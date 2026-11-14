@@ -1,13 +1,13 @@
-import { and, count, eq, inArray, isNull } from "drizzle-orm";
+import { and, count, eq, inArray, isNull, sum } from "drizzle-orm";
 import { Hono } from "hono";
 import { idParamSchema } from "../../shared/schemas/fields";
 import { createProjectSchema, updateProjectSchema } from "../../shared/schemas/project";
 import { createDb } from "../db/client";
 import { projectColumns } from "../db/columns";
 import { findOwnProject } from "../db/project-queries";
-import { projects, subtasks, tasks } from "../db/schema";
+import { attachments, projects, subtasks, tasks } from "../db/schema";
 import { ApiError } from "../errors";
-import { assertRoomForActiveTasks, assertRoomForProject } from "../limits";
+import { assertRoomForActiveTasks, assertRoomForProject, hasRoomInStorage } from "../limits";
 import { requireSession } from "../middleware/require-session";
 import type { SessionEnv } from "../types";
 import { validate } from "../validate";
@@ -61,8 +61,8 @@ export const projectRoutes = new Hono<SessionEnv>()
     return c.json(updated, 200);
   })
 
-  // Soft-deletes the project, its tasks and their subtasks with one deleted_at,
-  // so restore can bring back exactly those rows.
+  // Soft-deletes the project, its tasks and their subtasks and images with one deleted_at,
+  // so restore can bring back exactly those rows. Image files stay in R2 until the purge job.
   .delete("/:id", validate("param", idParamSchema), async (c) => {
     const db = createDb(c.env.DB);
     const userId = c.get("userId");
@@ -75,11 +75,15 @@ export const projectRoutes = new Hono<SessionEnv>()
     const liveTasks = and(eq(tasks.userId, userId), eq(tasks.projectId, id), isNull(tasks.deletedAt));
     const liveTaskIds = db.select({ id: tasks.id }).from(tasks).where(liveTasks);
 
-    const [, , deleted] = await db.batch([
+    const [, , , deleted] = await db.batch([
       db
         .update(subtasks)
         .set(tombstone)
         .where(and(inArray(subtasks.taskId, liveTaskIds), isNull(subtasks.deletedAt))),
+      db
+        .update(attachments)
+        .set(tombstone)
+        .where(and(inArray(attachments.taskId, liveTaskIds), isNull(attachments.deletedAt))),
       db.update(tasks).set(tombstone).where(liveTasks),
       db.update(projects).set(tombstone).where(eq(projects.id, id)).returning(projectColumns),
     ]);
@@ -105,15 +109,30 @@ export const projectRoutes = new Hono<SessionEnv>()
     await assertRoomForProject(db, userId);
     await assertRoomForActiveTasks(db, userId, comingBack?.active ?? 0);
 
+    const taskIds = db.select({ id: tasks.id }).from(tasks).where(deletedWithProject);
+    // As for a task: images that no longer fit in the storage limit stay deleted, with a new updated_at for sync.
+    const imagesDeletedWithProject = and(
+      inArray(attachments.taskId, taskIds),
+      eq(attachments.deletedAt, project.deletedAt),
+    );
+    const [images] = await db
+      .select({ bytes: sum(attachments.bytes).mapWith(Number) })
+      .from(attachments)
+      .where(imagesDeletedWithProject);
+    const imagesFit = await hasRoomInStorage(db, userId, images?.bytes ?? 0);
+
     const now = Date.now();
     const alive = { deletedAt: null, updatedAt: now };
-    const taskIds = db.select({ id: tasks.id }).from(tasks).where(deletedWithProject);
 
-    const [, , restored] = await db.batch([
+    const [, , , restored] = await db.batch([
       db
         .update(subtasks)
         .set(alive)
         .where(and(inArray(subtasks.taskId, taskIds), eq(subtasks.deletedAt, project.deletedAt))),
+      db
+        .update(attachments)
+        .set(imagesFit ? alive : { updatedAt: now })
+        .where(imagesDeletedWithProject),
       db.update(tasks).set(alive).where(deletedWithProject),
       db.update(projects).set(alive).where(eq(projects.id, id)).returning(projectColumns),
     ]);

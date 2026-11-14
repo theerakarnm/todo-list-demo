@@ -19,7 +19,7 @@ export function EmailField({ id, label, invalid, describedBy, className, childre
   const { t } = useTranslation();
 
   return (
-    <div className={`field ${className ?? ""}`}>
+    <div className={`form-field ${className ?? ""}`}>
       <label className="mono" htmlFor={id}>
         {label}
       </label>
@@ -57,7 +57,7 @@ export function PasswordField({
   const isNew = autoComplete === "new-password";
 
   return (
-    <div className={`field ${className ?? ""}`}>
+    <div className={`form-field ${className ?? ""}`}>
       <label className="mono" htmlFor={id}>
         {label}
       </label>

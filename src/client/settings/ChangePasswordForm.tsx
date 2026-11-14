@@ -24,7 +24,7 @@ export function ChangePasswordForm() {
   }
 
   return (
-    <div className="field mb-6">
+    <div className="form-field mb-6">
       <div className="mono">{t("settingsAccount.passwordLabel")}</div>
       {open ? (
         <form onSubmit={handleSubmit} className="border-[1.5px] border-rule p-4">

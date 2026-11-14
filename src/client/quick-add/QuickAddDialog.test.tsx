@@ -1,10 +1,11 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { SYNC_QUERY_KEY } from "../data/sync-query";
 import type { SyncStore } from "../data/sync-store";
-import { aProject, storeWith } from "../data/test-rows";
+import { anAttachment, aProject, storeWith } from "../data/test-rows";
 import th from "../i18n/th.json";
 import { apiError, echoCreatedRow, stubApi } from "../test/fake-api";
+import { aFile, stubBrowserImages } from "../test/fake-images";
 import { renderWithStore } from "../test/render";
 import { QuickAddDialog } from "./QuickAddDialog";
 import type { QuickAddDefaults } from "./quick-add-context";
@@ -115,5 +116,50 @@ describe("QuickAddDialog", () => {
 
     expect(await screen.findByText(th.errors.api.TASK_LIMIT.replace("{{limit}}", "1,000"))).toBeTruthy();
     expect(Object.keys(queryClient.getQueryData<SyncStore>(SYNC_QUERY_KEY)?.tasks ?? {})).toEqual([]);
+  });
+});
+
+describe("QuickAddDialog: pasted images", () => {
+  beforeEach(() => stubBrowserImages());
+  afterEach(() => vi.unstubAllGlobals());
+
+  const paste = (files: File[], types = ["Files"]) =>
+    fireEvent.paste(screen.getByRole("textbox", { name: th.quickAdd.titleField }), { clipboardData: { types, files } });
+  const chips = () => screen.queryByRole("list", { name: th.quickAdd.images });
+
+  it("shows a pasted image and uploads it right after the task is created", async () => {
+    const { calls, type, save } = renderQuickAdd();
+    stubApi({
+      "POST /api/tasks/:id/attachments": (_request, { id = "" }) =>
+        Response.json(anAttachment({ id: "a1", taskId: id }), { status: 201 }),
+    });
+
+    type("ใบเสร็จค่าไฟ");
+    expect(paste([aFile("receipt.png", "image/png")])).toBe(false);
+    expect(within(chips() as HTMLElement).getByRole("img", { name: "รูปที่ 1" })).toBeTruthy();
+    save();
+
+    await waitFor(() => expect(calls.map((call) => call.method)).toEqual(["PUT", "POST"]));
+    const taskId = calls[0]?.path.split("/").at(-1);
+    expect(calls[1]?.path).toBe(`/api/tasks/${taskId}/attachments`);
+  });
+
+  it("drops a pasted image when its chip is removed", async () => {
+    const { calls, type, save } = renderQuickAdd();
+
+    type("ใบเสร็จค่าไฟ");
+    paste([aFile("receipt.png", "image/png")]);
+    fireEvent.click(screen.getByRole("button", { name: "เอารูปที่ 1 ออก" }));
+    expect(chips()).toBeNull();
+    save();
+
+    await waitFor(() => expect(calls.map((call) => call.method)).toEqual(["PUT"]));
+  });
+
+  it("leaves a text paste to the title field", () => {
+    renderQuickAdd();
+
+    expect(paste([], ["text/plain"])).toBe(true);
+    expect(chips()).toBeNull();
   });
 });

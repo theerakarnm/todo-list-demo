@@ -129,8 +129,55 @@ async function respond(request: Request) {
   return apiError(404, "NOT_FOUND");
 }
 
+/** Records the request in the log every test can read, then answers it. */
+async function receive(request: Request) {
+  const url = new URL(request.url);
+  const text = await request.clone().text();
+  calls.push({
+    method: request.method,
+    path: url.pathname,
+    search: url.searchParams,
+    // Multipart uploads are not JSON; read them with `request.formData()`.
+    body: request.headers.get("content-type")?.startsWith("multipart/") || !text ? undefined : JSON.parse(text),
+    request: request.clone(),
+  });
+  return respond(request);
+}
+
 /**
- * Replaces `fetch` with a fake API server. Runs before every client test (test/setup.ts):
+ * The XMLHttpRequest that uploads use (for their progress events), answered by
+ * the same fake server. Progress jumps straight to done.
+ */
+class FakeXMLHttpRequest {
+  upload: { onprogress: ((event: ProgressEvent) => void) | null } = { onprogress: null };
+  onload: (() => void) | null = null;
+  onerror: (() => void) | null = null;
+  status = 0;
+  responseText = "";
+  private method = "GET";
+  private url = "";
+
+  open(method: string, url: string) {
+    this.method = method;
+    this.url = url;
+  }
+
+  send(body: FormData) {
+    const request = new Request(new URL(this.url, "http://localhost"), { method: this.method, body });
+    receive(request).then(
+      async (response) => {
+        this.upload.onprogress?.(new ProgressEvent("progress", { lengthComputable: true, loaded: 1, total: 1 }));
+        this.status = response.status;
+        this.responseText = await response.text();
+        this.onload?.();
+      },
+      () => this.onerror?.(),
+    );
+  }
+}
+
+/**
+ * Replaces `fetch` (and XMLHttpRequest) with a fake API server. Runs before every client test (test/setup.ts):
  * by default the user is signed in and onboarded; other routes answer 404 until a test sets them.
  */
 export function installFakeApi() {
@@ -141,18 +188,9 @@ export function installFakeApi() {
 
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
-      const request = new Request(new URL(input instanceof Request ? input.url : input, "http://localhost"), init);
-      const url = new URL(request.url);
-      const text = await request.clone().text();
-      calls.push({
-        method: request.method,
-        path: url.pathname,
-        search: url.searchParams,
-        body: text ? JSON.parse(text) : undefined,
-        request: request.clone(),
-      });
-      return respond(request);
-    }),
+    vi.fn(async (input: RequestInfo | URL, init?: RequestInit) =>
+      receive(new Request(new URL(input instanceof Request ? input.url : input, "http://localhost"), init)),
+    ),
   );
+  vi.stubGlobal("XMLHttpRequest", FakeXMLHttpRequest);
 }

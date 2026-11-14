@@ -23,7 +23,7 @@ export default function OnboardingNamePage() {
   return (
     <OnboardingLayout step={1} title={t("pages.onboardingName.title")} caption={t("onboarding.nameCaption")}>
       <form onSubmit={handleSubmit}>
-        <div className="field mb-6">
+        <div className="form-field mb-6">
           <label className="mono" htmlFor="display-name">
             {t("onboarding.nameLabel")}
           </label>
