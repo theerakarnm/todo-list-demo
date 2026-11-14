@@ -136,7 +136,7 @@
     color: var(--fg-muted);
   }
 
-  /* Group header above a list ("▲ เลยกำหนด / overdue - 3", "วันนี้ / today - 6"). */
+  /* Group header above a list ("▲ เลยกำหนด - 3", "วันนี้ - 6"). */
   .group-heading {
     display: flex;
     align-items: center;

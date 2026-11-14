@@ -28,7 +28,7 @@ async function browserSubscription() {
 describe("sendPush", () => {
   it("delivers the payload so the browser can decrypt it", async () => {
     const subscription = await browserSubscription();
-    const payload = { title: "โทรนัดช่างแอร์", body: "Inbox", url: "/task/1", tag: "task-1" };
+    const payload = { title: "โทรนัดช่างแอร์", body: "กล่องรับงาน", url: "/task/1", tag: "task-1" };
 
     const result = await sendPush(subscription, JSON.stringify(payload), vapid());
 

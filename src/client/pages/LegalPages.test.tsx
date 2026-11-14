@@ -33,7 +33,7 @@ describe("/privacy", () => {
     await openPage("/privacy");
 
     const text = screen.getByRole("main").textContent ?? "";
-    for (const word of ["อีเมล", "งาน", "รูปภาพ", "push subscription", "Resend", "Cloudflare", "ลบบัญชี"]) {
+    for (const word of ["อีเมล", "งาน", "รูปภาพ", "ส่งการแจ้งเตือน", "Resend", "Cloudflare", "ลบบัญชี"]) {
       expect(text).toContain(word);
     }
   });

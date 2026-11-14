@@ -40,7 +40,7 @@ describe("ProjectPage", () => {
     renderProject();
 
     expect(screen.getByRole("textbox", { name: th.pages.project.nameLabel })).toHaveProperty("value", "งาน");
-    expect(screen.getByText("เปิดอยู่ / open - 1")).toBeTruthy();
+    expect(screen.getByText("ยังไม่เสร็จ - 1")).toBeTruthy();
     expect(screen.getByRole("link", { name: "ส่งใบเสนอราคาให้ลูกค้า" })).toBeTruthy();
     expect(screen.queryByText("ไม่อยู่ในโปรเจกต์")).toBeNull();
   });
@@ -118,7 +118,7 @@ describe("ProjectPage", () => {
     fireEvent.click(screen.getByRole("checkbox", { name: th.pages.project.showCompleted }));
 
     expect(await screen.findByRole("link", { name: "ส่งใบแจ้งหนี้เดือนตุลาคม" })).toBeTruthy();
-    expect(screen.getByText("เสร็จแล้ว / completed - 2")).toBeTruthy();
+    expect(screen.getByText("เสร็จแล้ว - 2")).toBeTruthy();
     expect(screen.getByRole("link", { name: th.pages.project.seeAll }).getAttribute("href")).toBe("/app/logbook?project=p1");
   });
 });
