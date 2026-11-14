@@ -169,7 +169,11 @@ Realtime sync (Durable Object + hibernating WebSocket per user), email reminders
 
 ## 16. Images (task attachments and profile photos) **(owner: R2; limits are defaults)**
 - Images only: jpeg, png, webp, heic/heif (checked by magic bytes, not just extension). The client downscales to max 2048 px on the long side and re-encodes to WebP before upload (HEIC: browsers that cannot decode it upload the original).
+  Safari cannot encode WebP (its canvas gives PNG), so Safari uploads JPEG at the same size and quality instead **(default)**.
+  Profile photos are the centre square, at most 512 px (a smaller photo is not upscaled) **(default)**.
 - Limits: 5 MB per file after processing, 10 images per task, 200 MB per account (sum of `bytes`). Over a limit → `413`/`409` with a Thai message.
 - R2 bucket is private. Keys: `u/<user_id>/t/<task_id>/<attachment_id>` and `u/<user_id>/avatar/<uuid>`. Files are only served through `GET /api/files/:key` after checking the key's owner.
 - Where: a gallery under the notes in TaskDrawer (file picker, drag-and-drop, paste); click opens a full-screen viewer; task rows show 📎 + count. Images can also be pasted into Quick Add and upload right after the task is created.
+  Uploads go through the same ordered write queue as every other change, so an image pasted into Quick Add always reaches the server after its task.
+  Deleting an image has no Undo, because the server removes the file right away **(default)**.
 - Deleting a task soft-deletes its attachments; the 7-day purge cron deletes the R2 objects too. Deleting the account deletes every R2 object under `u/<user_id>/` immediately.
