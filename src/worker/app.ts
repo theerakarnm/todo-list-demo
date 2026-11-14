@@ -5,6 +5,7 @@ import { handleError, handleNotFound } from "./errors";
 import { requestId } from "./middleware/request-id";
 import { securityHeaders } from "./middleware/security-headers";
 import { configRoutes } from "./routes/config";
+import { fileRoutes } from "./routes/files";
 import { healthRoutes } from "./routes/health";
 import { meRoutes } from "./routes/me";
 import { onboardingRoutes } from "./routes/onboarding";
@@ -33,6 +34,7 @@ export const app = new Hono<AppEnv>()
   .route("/api/subtasks", subtaskRoutes)
   .route("/api/sync", syncRoutes)
   .route("/api/logbook", logbookRoutes)
+  .route("/api/files", fileRoutes)
   .route("/api/search", searchRoutes);
 
 app.notFound(handleNotFound);
