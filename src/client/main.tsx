@@ -1,17 +1,20 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import "./i18n";
+import { createBrowserRouter } from "react-router";
+import { RouterProvider } from "react-router/dom";
+import { AppProviders } from "./AppProviders";
+import { routes } from "./routes";
 import "./styles/app.css";
-import { ThemeProvider } from "./theme/ThemeProvider";
 
-// The app shell (router, i18n, theme) arrives in the next steps of lane 0.
+const router = createBrowserRouter(routes);
+
 const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error("Missing #root element");
 
 createRoot(rootElement).render(
   <StrictMode>
-    <ThemeProvider>
-      <main />
-    </ThemeProvider>
+    <AppProviders>
+      <RouterProvider router={router} />
+    </AppProviders>
   </StrictMode>,
 );

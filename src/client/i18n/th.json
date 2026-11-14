@@ -1,6 +1,7 @@
 {
   "app": {
-    "name": "JotList"
+    "name": "JotList",
+    "wordmark": "jotlist"
   },
   "nav": {
     "sidebar": "Sidebar",
