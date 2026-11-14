@@ -6,5 +6,5 @@
     "types": ["vite-plugin-pwa/client"],
     "outDir": ".tsbuild/sw"
   },
-  "include": ["src/client/sw.ts"]
+  "include": ["src/client/sw.ts", "src/client/push/push-message.ts"]
 }

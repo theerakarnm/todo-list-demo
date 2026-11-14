@@ -1,6 +1,7 @@
 /// <reference lib="webworker" />
 import { clientsClaim } from "workbox-core";
 import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
+import { parsePushMessage, pickClientToFocus, safeAppPath } from "./push/push-message";
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -13,4 +14,34 @@ clientsClaim();
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
-// Lane 4 adds the "push" and "notificationclick" handlers for reminders.
+// A reminder or digest arrives as a push; show it as a notification.
+self.addEventListener("push", (event) => {
+  const message = parsePushMessage(event.data?.json());
+  if (!message) return;
+  event.waitUntil(
+    self.registration.showNotification(message.title, {
+      body: message.body,
+      tag: message.tag,
+      icon: "/icons/icon-192.png",
+      data: { url: message.url },
+    }),
+  );
+});
+
+// A tap opens the task (or Today): in an open app tab if there is one, else in a new window.
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = safeAppPath(event.notification.data?.url);
+  event.waitUntil(
+    (async () => {
+      const tabs = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+      const tab = pickClientToFocus(tabs, self.location.origin);
+      if (tab) {
+        await tab.focus();
+        await tab.navigate(url);
+      } else {
+        await self.clients.openWindow(url);
+      }
+    })(),
+  );
+});
