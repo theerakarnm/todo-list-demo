@@ -18,6 +18,7 @@ const ERRORS: Record<ErrorCode, { status: ContentfulStatusCode; message: string 
   RATE_LIMITED: { status: 429, message: "ส่งคำขอถี่เกินไป กรุณารอสักครู่แล้วลองใหม่" },
   TURNSTILE_FAILED: { status: 400, message: "ยืนยันว่าไม่ใช่บอทไม่สำเร็จ กรุณาลองใหม่อีกครั้ง" },
   INVALID_CREDENTIALS: { status: 401, message: "อีเมลหรือรหัสผ่านไม่ถูกต้อง ลองอีกครั้งหรือรีเซ็ตรหัสผ่าน" },
+  WRONG_PASSWORD: { status: 400, message: "รหัสผ่านปัจจุบันไม่ถูกต้อง" },
   EMAIL_NOT_VERIFIED: { status: 403, message: "กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ เราส่งลิงก์ยืนยันไปที่อีเมลของคุณแล้ว" },
   EMAIL_TAKEN: { status: 409, message: "อีเมลนี้ถูกใช้งานแล้ว · เข้าสู่ระบบแทน" },
   EMAIL_TAKEN_LINE: {

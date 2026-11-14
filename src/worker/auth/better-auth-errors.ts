@@ -3,7 +3,8 @@ import type { ErrorCode } from "../../shared/error-codes";
 /** Better Auth error codes that get their own Thai message. */
 const BETTER_AUTH_CODES: Record<string, ErrorCode> = {
   INVALID_EMAIL_OR_PASSWORD: "INVALID_CREDENTIALS",
-  INVALID_PASSWORD: "INVALID_CREDENTIALS",
+  // Change password with a wrong current password: a 400, so the client does not treat it as signed out.
+  INVALID_PASSWORD: "WRONG_PASSWORD",
   EMAIL_NOT_VERIFIED: "EMAIL_NOT_VERIFIED",
   INVALID_TOKEN: "INVALID_TOKEN",
 };
