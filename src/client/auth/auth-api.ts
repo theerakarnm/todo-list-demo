@@ -19,9 +19,10 @@ function turnstileHeader(token: string) {
   return { "x-turnstile-token": token };
 }
 
-/** Creates an unverified account and sends the verification email. The display name comes from the email. */
+/** Creates an unverified account and sends the verification email. The display name comes from the email; the browser's time zone goes along. */
 export function signUpWithEmail(email: string, password: string, turnstileToken: string) {
-  return postAuth("sign-up/email", { name: "", email, password }, turnstileHeader(turnstileToken));
+  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  return postAuth("sign-up/email", { name: "", email, password }, { ...turnstileHeader(turnstileToken), "x-timezone": timezone });
 }
 
 /** Emails a reset link when an account has this email. Answers the same either way, so it reveals nothing. */

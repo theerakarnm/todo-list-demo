@@ -7,6 +7,7 @@ import { createUserSettingsOnce } from "../db/user-settings";
 import { sendEmail } from "../email/send-email";
 import { resetPasswordTemplate, verifyEmailTemplate } from "../email/templates";
 import { createBetterAuthLogger } from "./better-auth-logger";
+import { requestTimezone, withTimezoneOf } from "./request-timezone";
 import { isLinePlaceholderEmail, lineProfileToUser } from "./line-linking";
 
 /** Where links in auth emails land in the client app. */
@@ -62,7 +63,7 @@ export function createAuth(env: Env, request: Request, requestId?: string) {
       session: {
         create: {
           // The first sign-in, with any provider, creates the user's settings row.
-          after: (session) => createUserSettingsOnce(env.DB, session.userId),
+          after: (session) => createUserSettingsOnce(env.DB, session.userId, requestTimezone(request)),
         },
       },
     },
@@ -73,7 +74,7 @@ export function createAuth(env: Env, request: Request, requestId?: string) {
       // An unverified user who tries to sign in gets a fresh link (the old one may be lost or expired).
       sendOnSignIn: true,
       async sendVerificationEmail({ user, url }) {
-        const link = new URL(url);
+        const link = withTimezoneOf(request, new URL(url));
         link.searchParams.set("callbackURL", VERIFY_EMAIL_PAGE);
         await sendEmail(env, { to: user.email, ...verifyEmailTemplate(link.href) });
       },

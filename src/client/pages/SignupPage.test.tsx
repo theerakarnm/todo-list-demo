@@ -54,6 +54,7 @@ describe("Signup page", () => {
     expect(screen.getByText(/narin@example\.com/)).toBeTruthy();
     const [request] = requestsTo("POST /api/auth/sign-up/email");
     expect(request?.headers.get("x-turnstile-token")).toBe("turnstile-token-1");
+    expect(request?.headers.get("x-timezone")).toBe(Intl.DateTimeFormat().resolvedOptions().timeZone);
     expect(await lastJsonSentTo("POST /api/auth/sign-up/email")).toEqual({
       name: "",
       email: "narin@example.com",

@@ -4,7 +4,7 @@ import { LIMITS } from "../../shared/constants";
 import type { UpdateSettingsInput } from "../../shared/schemas/settings";
 import { user, userSettings } from "./schema";
 
-/** Until the browser sends its own (at onboarding). */
+/** Until the browser sends its own (at sign-up or onboarding). */
 export const DEFAULT_TIMEZONE = "Asia/Bangkok";
 
 /** The settings the client sees; `userId` and the digest bookkeeping stay on the server. */
@@ -26,15 +26,15 @@ function initialDisplayName(name: string, email: string) {
   return displayName.slice(0, LIMITS.displayNameLength);
 }
 
-/** Runs on every sign-in; only the first one creates the row. */
-export async function createUserSettingsOnce(db: D1Database, userId: string) {
+/** Runs on every sign-in; only the first one creates the row, with the browser's time zone when known. */
+export async function createUserSettingsOnce(db: D1Database, userId: string, timezone = DEFAULT_TIMEZONE) {
   const orm = drizzle(db);
   const [owner] = await orm.select({ name: user.name, email: user.email }).from(user).where(eq(user.id, userId));
   if (!owner) return;
 
   await orm
     .insert(userSettings)
-    .values({ userId, displayName: initialDisplayName(owner.name, owner.email), timezone: DEFAULT_TIMEZONE })
+    .values({ userId, displayName: initialDisplayName(owner.name, owner.email), timezone })
     .onConflictDoNothing();
 }
 
