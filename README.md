@@ -39,7 +39,20 @@ A To-Do List web app built as a demo for a YouTube video. Live at `https://jotli
 Nested subtasks (more than one level), recurring tasks, sharing/collaboration, tags/labels, non-image attachments, offline mode, realtime sync, email reminders, Google login.
 
 ## Getting started
-Not yet — setup steps will be added when implementation starts. Stack: Cloudflare Workers + Hono + D1 (Drizzle) + React/Vite. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Stack: Cloudflare Workers + Hono + D1 (Drizzle) + React/Vite. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+```sh
+bun install
+cp .dev.vars.example .dev.vars
+bun run db:migrate:local   # create the local D1 tables
+bun run dev                # Vite + the Worker, http://localhost:5173 (API at /api/health)
+bun run test               # Vitest: worker + client projects
+```
+
+`bun test` runs Bun's own runner, which only prints a hint; use `bun run test` for the real suites.
+After changing `src/worker/db/schema.ts`, run `bun run db:generate` to write a new SQL migration into `drizzle/`.
+After changing `wrangler.jsonc`, run `bun run cf-typegen` to refresh `worker-configuration.d.ts`.
+Static files get their security headers from `public/_headers`; API responses get the same headers from the Worker.
 
 ## License
 [MIT](LICENSE)
