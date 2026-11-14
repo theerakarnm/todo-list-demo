@@ -32,3 +32,8 @@ export function logbookQuery(projectId?: string) {
     getNextPageParam: (page): PageCursor | undefined => page.next ?? undefined,
   });
 }
+
+/** "50+" while more pages are left to load: the API does not count the rest. */
+export function loadedCountLabel(loaded: number, hasMore: boolean) {
+  return hasMore ? `${loaded}+` : String(loaded);
+}

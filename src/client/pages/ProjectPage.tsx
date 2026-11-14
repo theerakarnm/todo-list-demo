@@ -5,7 +5,7 @@ import { Link, useNavigate, useParams } from "react-router";
 import { AppPage } from "../components/AppPage";
 import { GroupHeading } from "../components/GroupHeading";
 import { PageHeader } from "../components/PageHeader";
-import { logbookQuery } from "../data/logbook-query";
+import { loadedCountLabel, logbookQuery } from "../data/logbook-query";
 import { useDeleteProject } from "../data/project-mutations";
 import { completedTasks, projectTasks } from "../data/selectors";
 import { useSyncStore } from "../data/sync-query";
@@ -30,7 +30,9 @@ function CompletedSection({ projectId }: { projectId: string }) {
   const completed = completedTasks(store, fromServer, projectId);
   return (
     <>
-      <GroupHeading label={t("pages.project.completed", { count: completed.length })}>
+      <GroupHeading
+        label={t("pages.project.completed", { count: loadedCountLabel(completed.length, logbook.hasNextPage) })}
+      >
         <Link to={`/app/logbook?project=${projectId}`} className="mono text-[11px]">
           {t("pages.project.seeAll")}
         </Link>

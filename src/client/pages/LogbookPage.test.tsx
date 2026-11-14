@@ -30,6 +30,7 @@ describe("LogbookPage", () => {
 
     expect(await screen.findByRole("link", { name: "งานที่ 0" })).toBeTruthy();
     expect(screen.getAllByRole("button", { name: /ทำเครื่องหมายว่ายังไม่เสร็จ/ })).toHaveLength(50);
+    expect(screen.getByText("เสร็จแล้ว / completed - 50+")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: th.pages.completed.loadMore }));
 
     expect(await screen.findByRole("link", { name: "งานที่ 52" })).toBeTruthy();

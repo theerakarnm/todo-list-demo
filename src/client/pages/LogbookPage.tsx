@@ -4,7 +4,7 @@ import { Link, useSearchParams } from "react-router";
 import { AppPage } from "../components/AppPage";
 import { GroupHeading } from "../components/GroupHeading";
 import { PageHeader } from "../components/PageHeader";
-import { logbookQuery } from "../data/logbook-query";
+import { loadedCountLabel, logbookQuery } from "../data/logbook-query";
 import { completedTasks } from "../data/selectors";
 import { useSyncStore } from "../data/sync-query";
 import { TaskList } from "../tasks/TaskList";
@@ -38,7 +38,9 @@ export default function LogbookPage() {
       )}
       {logbook.data && (
         <>
-          <GroupHeading label={t("pages.completed.group", { count: tasks.length })} />
+          <GroupHeading
+            label={t("pages.completed.group", { count: loadedCountLabel(tasks.length, logbook.hasNextPage) })}
+          />
           {tasks.length === 0 && <p className="muted mt-4">{t("pages.completed.empty")}</p>}
           <TaskList tasks={tasks} dateStyle="full" showProject={!projectId} />
         </>
