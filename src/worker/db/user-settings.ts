@@ -28,8 +28,9 @@ function initialDisplayName(name: string, email: string) {
 
 type SettingsOwner = { id: string; name: string; email: string };
 
-/** Creates the user's settings row unless it already exists. */
+/** Creates the user's settings row unless it already exists. Reads first, so a user who has one costs no write. */
 export async function ensureUserSettings(db: D1Database, owner: SettingsOwner, timezone = DEFAULT_TIMEZONE) {
+  if (await findUserSettings(db, owner.id)) return;
   await drizzle(db)
     .insert(userSettings)
     .values({ userId: owner.id, displayName: initialDisplayName(owner.name, owner.email), timezone })
