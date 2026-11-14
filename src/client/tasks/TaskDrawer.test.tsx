@@ -151,6 +151,15 @@ describe("TaskDrawer images", () => {
   });
 });
 
+describe("TaskDrawer images: reorder", () => {
+  it("gives each image a grip to drag it, with a Thai name for the screen reader", () => {
+    const { drawer } = renderDrawer([anAttachment({ id: "a1", taskId: "t1" })]);
+
+    const grip = drawer.getByRole("button", { name: "ลากเพื่อย้าย: รูปที่ 1" });
+    expect(grip.getAttribute("aria-roledescription")).toBe(th.dnd.roleDescription);
+  });
+});
+
 describe("TaskDrawer images: delete", () => {
   afterEach(() => vi.unstubAllGlobals());
 

@@ -54,6 +54,23 @@
     background: var(--bg);
   }
 
+  .image-tile .drag-handle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 28px;
+    height: 36px;
+    margin: 0;
+    border: solid var(--rule-color);
+    border-width: 0 var(--rule-thin) var(--rule-thin) 0;
+    background: var(--bg);
+  }
+
+  .image-tile[data-dragging="true"] {
+    z-index: 1;
+    opacity: 0.6;
+  }
+
   .image-delete {
     right: 0;
     border-width: 0 0 var(--rule-thin) var(--rule-thin);
