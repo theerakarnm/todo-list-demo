@@ -77,7 +77,9 @@ Indexes: `tasks(user_id, updated_at)`, `tasks(user_id, completed_at)`, `tasks(re
 ### Rules
 - **Active task** = `completed_at IS NULL AND deleted_at IS NULL`. Max **1,000 active tasks per account** **(owner)**. Creating the 1,001st returns `409 TASK_LIMIT` with a Thai message; the client rolls back the optimistic add. Restoring or un-completing a task also counts against the limit. Defaults: max 100 projects, max 50 subtasks per task.
 - **Soft delete** (`deleted_at`) so Undo works; a daily cron hard-deletes rows deleted more than **7 days** ago **(owner)**.
-  The purge goes child first: attachments (R2 objects before their rows), subtasks, tasks, then projects, in pages of at most 1,000 rows; a run that uses up its pages lets the next minute's run go on.
+  The purge goes child first: the cron first calls `purgeDeletedAttachments` (§16), which deletes the R2 objects and then their attachment rows; then it deletes subtasks, tasks, then projects.
+  A task goes only once its attachment rows are gone, because deleting a task cascades to them and their R2 keys would be lost.
+  Every kind goes in pages of at most 1,000 rows, and one run deletes at most 10 pages across all kinds; a run that uses them up releases its `cron_runs` claim, so the next minute's run goes on.
   A soft-deleted project is kept until none of its tasks remain (no task row of any state points to it), because deleting a project cascades to its tasks; it goes in the first purge after its last task is gone.
 - **Dates and time zones** **(owner)**: due date/time are stored as the user's local wall-clock values; `remind_at` is computed on the server from `due_date + due_time + user_settings.timezone` and recomputed when any of those change. Today / Upcoming are computed from "today" in the user's time zone.
 - **Ordering:** `position` is a fractional-index string; moving an item writes only that row. Moving a task to a project puts it at the end of that project.
@@ -184,4 +186,6 @@ Realtime sync (Durable Object + hibernating WebSocket per user), email reminders
   Uploads go through the same ordered write queue as every other change, so an image pasted into Quick Add always reaches the server after its task.
   Deleting an image is a soft delete with the 5-second Undo; a deleted image does not count toward the limits.
 - Restoring a task (or a project) re-checks the 200 MB: if its images no longer fit, it comes back without them, and they stay deleted until the purge.
-- Deleting a task soft-deletes its attachments. The R2 object of a deleted image stays until `purgeDeletedAttachments` (run by the 7-day purge cron) removes it with the row. Deleting the account deletes every R2 object under `u/<user_id>/` immediately.
+- Deleting a task soft-deletes its attachments.
+  The R2 object of a deleted image stays until the daily purge (§4): the cron calls `purgeDeletedAttachments` before it deletes any task, and that removes the R2 objects first, then their rows, in the same bounded pages as the rest of the purge.
+  Deleting the account deletes every R2 object under `u/<user_id>/` immediately.
