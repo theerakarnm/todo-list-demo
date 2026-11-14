@@ -80,6 +80,7 @@ The tests always run in development without a key, even when `.dev.vars` holds a
 | `bun run typecheck` | `tsc -b` over the client, Worker, shared code, service worker and config files |
 | `bun run lint` | Biome lint (recommended rules plus the React hooks rules); config in `biome.json` |
 | `bun run test` | Vitest: `worker` (Workers runtime, migrations applied per test file) and `client` (jsdom) |
+| `bun run test:e2e` | Playwright smoke in Chromium: migrates the local D1, starts the dev server on port 5199 and stops it after; needs `APP_ENV=development` in `.dev.vars` (the placeholder dev user) |
 | `bun run cf-typegen` | Regenerate `worker-configuration.d.ts` from `wrangler.jsonc` (ignores `.dev.vars`: secret types live in `src/worker/secrets.d.ts`) |
 | `bun run db:generate` | Write a new SQL migration into `drizzle/` from the Drizzle schema |
 | `bun run db:migrate:local` | Apply migrations to the local D1 database |
