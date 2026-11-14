@@ -126,6 +126,10 @@
   "toast": {
     "region": "การแจ้งเตือน",
     "undo": "Undo",
-    "dismiss": "ปิดการแจ้งเตือน"
+    "dismiss": "ปิดการแจ้งเตือน",
+    "completed": "ทำเสร็จแล้ว: {{title}}",
+    "deleted": "ลบงานแล้ว: {{title}}",
+    "rescheduled": "ย้าย {{count}} งานมาเป็นวันนี้แล้ว",
+    "projectDeleted": "ลบโปรเจกต์ {{name}} แล้ว"
   }
 }
