@@ -1,7 +1,7 @@
 /// <reference lib="webworker" />
 import { clientsClaim } from "workbox-core";
 import { cleanupOutdatedCaches, precacheAndRoute } from "workbox-precaching";
-import { parsePushMessage, pickClientToFocus, safeAppPath } from "./push/push-message";
+import { pickClientToFocus, readPushMessage, safeAppPath } from "./push/push-message";
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -14,10 +14,9 @@ clientsClaim();
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
-// A reminder or digest arrives as a push; show it as a notification.
+// A reminder or digest arrives as a push; every push shows a notification.
 self.addEventListener("push", (event) => {
-  const message = parsePushMessage(event.data?.json());
-  if (!message) return;
+  const message = readPushMessage(event.data?.text());
   event.waitUntil(
     self.registration.showNotification(message.title, {
       body: message.body,

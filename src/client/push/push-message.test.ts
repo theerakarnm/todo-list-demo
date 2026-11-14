@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parsePushMessage, pickClientToFocus, safeAppPath } from "./push-message";
+import { pickClientToFocus, readPushMessage, safeAppPath } from "./push-message";
 
 describe("safeAppPath", () => {
   it.each(["/task/abc", "/today", "/app/today?task=1"])("accepts %s", (path) => {
@@ -14,22 +14,34 @@ describe("safeAppPath", () => {
   );
 });
 
-describe("parsePushMessage", () => {
-  it("reads title, body, url and tag", () => {
-    const message = parsePushMessage({ title: "ส่งรายงาน", body: "งาน · วันนี้", url: "/task/t1", tag: "task-t1" });
+describe("readPushMessage", () => {
+  const generic = { title: "JotList", body: "มีการแจ้งเตือนใหม่", url: "/today", tag: undefined };
 
-    expect(message).toEqual({ title: "ส่งรายงาน", body: "งาน · วันนี้", url: "/task/t1", tag: "task-t1" });
+  it("reads title, body, url and tag", () => {
+    const text = JSON.stringify({ title: "ส่งรายงาน", body: "งาน · วันนี้", url: "/task/t1", tag: "task-t1" });
+
+    expect(readPushMessage(text)).toEqual({ title: "ส่งรายงาน", body: "งาน · วันนี้", url: "/task/t1", tag: "task-t1" });
   });
 
   it("falls back to Today for a missing or foreign url", () => {
-    expect(parsePushMessage({ title: "a", body: "b", url: "https://evil.example" })?.url).toBe("/today");
-    expect(parsePushMessage({ title: "a", body: "b" })?.url).toBe("/today");
+    expect(readPushMessage(JSON.stringify({ title: "a", body: "b", url: "https://evil.example" })).url).toBe("/today");
+    expect(readPushMessage(JSON.stringify({ title: "a", body: "b" })).url).toBe("/today");
   });
 
-  it("returns nothing without a title", () => {
-    expect(parsePushMessage({ body: "b" })).toBeNull();
-    expect(parsePushMessage(null)).toBeNull();
-    expect(parsePushMessage("text")).toBeNull();
+  it("keeps a message with a title but no body or tag", () => {
+    expect(readPushMessage(JSON.stringify({ title: "a" }))).toEqual({ title: "a", body: "", url: "/today", tag: undefined });
+  });
+
+  it.each([
+    ["no data", undefined],
+    ["empty data", ""],
+    ["text that is not JSON", "hello"],
+    ["JSON that is not an object", '"text"'],
+    ["null", "null"],
+    ["no title", JSON.stringify({ body: "b", url: "/task/t1" })],
+    ["an empty title", JSON.stringify({ title: "", body: "b" })],
+  ])("shows a generic notification for %s", (_case, text) => {
+    expect(readPushMessage(text)).toEqual(generic);
   });
 });
 
