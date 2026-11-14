@@ -53,7 +53,16 @@
     },
     "upcoming": {
       "eyebrow": "03 - กำลังมา / upcoming",
-      "title": "Upcoming"
+      "title": "Upcoming",
+      "range": "ช่วงเวลา / range",
+      "rangeOption": "{{count}} วัน",
+      "load": "load / ภาระงาน",
+      "loadLabel": "ความหนาแน่นของงานรายวัน",
+      "tomorrow": "พรุ่งนี้",
+      "taskCount": "{{count}} งาน",
+      "addTask": "Add task",
+      "addTaskLabel": "เพิ่มงานวัน{{date}}",
+      "free": "ว่าง / free"
     },
     "project": {
       "eyebrow": "04 - โปรเจกต์ / project",
