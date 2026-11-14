@@ -68,11 +68,16 @@ Better Auth owns `user`, `session`, `account`, `verification`. App tables:
 
 **push_subscriptions** — `id`, `user_id`, `endpoint` (unique), `p256dh`, `auth`, `created_at`.
 
+**cron_runs** - `job` PK, `last_run_on` (`YYYY-MM-DD`, UTC).
+It remembers the last day a once-a-day cron job ran (today only `purge`), so overlapping 1-minute runs claim that job only once per day.
+
 Indexes: `tasks(user_id, updated_at)`, `tasks(user_id, completed_at)`, `tasks(remind_at) WHERE reminder_sent_at IS NULL`, `projects(user_id, updated_at)`, `subtasks(task_id)`.
 
 ### Rules
 - **Active task** = `completed_at IS NULL AND deleted_at IS NULL`. Max **1,000 active tasks per account** **(owner)**. Creating the 1,001st returns `409 TASK_LIMIT` with a Thai message; the client rolls back the optimistic add. Restoring or un-completing a task also counts against the limit. Defaults: max 100 projects, max 50 subtasks per task.
 - **Soft delete** (`deleted_at`) so Undo works; a daily cron hard-deletes rows deleted more than **7 days** ago **(owner)**.
+  The purge goes child first: attachments (R2 objects before their rows), subtasks, tasks, then projects, in pages of at most 1,000 rows; a run that uses up its pages lets the next minute's run go on.
+  A soft-deleted project is kept until none of its tasks remain (no task row of any state points to it), because deleting a project cascades to its tasks; it goes in the first purge after its last task is gone.
 - **Dates and time zones** **(owner)**: due date/time are stored as the user's local wall-clock values; `remind_at` is computed on the server from `due_date + due_time + user_settings.timezone` and recomputed when any of those change. Today / Upcoming are computed from "today" in the user's time zone.
 - **Ordering:** `position` is a fractional-index string; moving an item writes only that row. Moving a task to a project puts it at the end of that project.
 - **Views:** Inbox = `project_id IS NULL`; Today = due today or overdue, not completed; Upcoming = due tomorrow through 7 days ahead, grouped by date (default reading of "next 7 days", since today already has its own view); Logbook = completed, newest `completed_at` first, **paged 50 at a time** **(owner)**, unlimited history.
@@ -89,7 +94,9 @@ JSON over HTTPS under `/api`, all Zod-validated, all queries scoped by the sessi
 - `PUT /api/tasks/:id` (create-or-update, idempotent), `PATCH /api/tasks/:id`, `DELETE /api/tasks/:id` (soft), `POST /api/tasks/:id/restore`. Same shape for `projects` and `subtasks`.
 - `POST /api/tasks/:id/attachments` (multipart), `GET /api/files/:key` (owner-checked stream from R2, `Cache-Control: private`), `DELETE /api/attachments/:id`; `PUT /api/me/avatar`, `DELETE /api/me/avatar`.
 - `POST /api/tasks/reschedule-overdue` (moves every overdue active task to today in the user's time zone; returns `{ today, tasks: [{ id, dueDate }] }` with the previous dates). Undo sends that `tasks` list to `POST /api/tasks/reschedule-overdue/undo`, one request however many tasks moved.
-- `POST /api/push/subscribe`, `DELETE /api/push/subscribe`.
+- `GET /api/push/public-key` (the VAPID public key the browser needs to subscribe; signed-in users only), `POST /api/push/subscribe`, `DELETE /api/push/subscribe`.
+  `POST /api/push/subscribe` upserts by `endpoint`: subscribing again updates the row, and a later subscriber (for example another user signed in on the same browser) takes that endpoint over.
+  This is accepted because an endpoint is an unguessable capability URL that only its browser knows.
 - `PATCH /api/settings`, `DELETE /api/account` (hard-deletes the user and every row they own).
 
 Errors use one shape: `{ "error": { "code": "TASK_LIMIT", "message": "<Thai text>" } }`.
