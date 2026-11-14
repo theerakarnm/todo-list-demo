@@ -70,6 +70,9 @@
   --highlight: var(--ink-orange);
   --on-highlight: var(--ink-black);
   --overlay: rgb(26 26 26 / 0.45);
+  /* LINE brand green for "Continue with LINE"; ink-black text keeps it at AA contrast. */
+  --line-green: #06c755;
+  --on-line-green: var(--ink-black);
   color-scheme: light;
 }
 

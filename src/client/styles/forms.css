@@ -1,0 +1,95 @@
+/*
+ * Form primitives from the Login, Signup and Settings mockups
+ * (.input, .input.bad, .err, .btn-lg), written with the semantic tokens.
+ */
+@layer components {
+  .input {
+    width: 100%;
+    min-height: 52px;
+    border: var(--rule-thin) solid var(--fg);
+    background: transparent;
+    padding: 0 14px;
+    font-size: 16px;
+    color: var(--fg);
+  }
+
+  .input::placeholder {
+    color: var(--fg-muted);
+  }
+
+  .input:focus {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
+  }
+
+  .input[aria-invalid="true"] {
+    border-width: var(--rule-bold);
+    border-bottom: 6px solid var(--highlight);
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .form-error {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin: 10px 0 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+  }
+
+  .password-toggle {
+    position: absolute;
+    inset: 0 0 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 76px;
+    background: transparent;
+    border: 0;
+    border-left: var(--rule-thin) solid var(--fg);
+    color: var(--fg);
+    cursor: pointer;
+  }
+
+  .password-toggle:hover {
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+  }
+
+  .btn-lg {
+    min-height: 60px;
+    padding: 0 32px;
+    font-size: 18px;
+  }
+
+  .btn:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .btn-line,
+  .btn-line:hover {
+    min-height: 56px;
+    border-color: var(--line-green);
+    background: var(--line-green);
+    color: var(--on-line-green);
+    font-weight: 700;
+  }
+
+  .btn-line:hover {
+    border-color: var(--fg);
+  }
+
+  .halftone-dot {
+    border-radius: 9999px;
+    background-image: radial-gradient(circle, var(--paper) 2.4px, transparent 3px);
+    background-size: 10px 10px;
+  }
+}

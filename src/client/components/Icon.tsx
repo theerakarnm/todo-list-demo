@@ -11,6 +11,7 @@ const ICON_PATHS = {
   expand: "M6 3 L11 8 L6 13 M14 2 V14",
   menu: "M2 4 H14 M2 8 H14 M2 12 H14",
   close: "M3 3 L13 13 M13 3 L3 13",
+  eye: "M1.5 8 C4 3.5 12 3.5 14.5 8 C12 12.5 4 12.5 1.5 8 Z M8 6 V10",
 } as const;
 
 export type IconName = keyof typeof ICON_PATHS;

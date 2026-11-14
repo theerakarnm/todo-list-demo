@@ -107,5 +107,34 @@
   "errors": {
     "generic": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
     "network": "เชื่อมต่อไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ต"
+  },
+  "auth": {
+    "or": "or / หรือ",
+    "continueWithLine": "Continue with LINE",
+    "emailLabel": "อีเมล / email",
+    "emailPlaceholder": "you@example.com",
+    "passwordLabel": "รหัสผ่าน / password",
+    "showPassword": "แสดง",
+    "hidePassword": "ซ่อน",
+    "showPasswordLabel": "แสดงรหัสผ่าน",
+    "hidePasswordLabel": "ซ่อนรหัสผ่าน",
+    "panel": {
+      "plate": "pl.03 - violet",
+      "number": "06",
+      "headline": "งานวันนี้ แค่นี้พอ",
+      "caption": "due today. nothing else."
+    },
+    "login": {
+      "eyebrow": "04 - วิธีเข้า / access",
+      "subtitle": "กลับมาจดงานต่อ",
+      "forgotPassword": "Forgot password?",
+      "submit": "Log in",
+      "noAccount": "ยังไม่มีบัญชี?",
+      "signUp": "สมัครใช้งาน"
+    },
+    "lineErrors": {
+      "cancelled": "ยกเลิกการเข้าสู่ระบบด้วย LINE แล้ว ลองอีกครั้งได้เลย",
+      "failed": "เข้าสู่ระบบด้วย LINE ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง"
+    }
   }
 }
