@@ -11,9 +11,10 @@ import { validate } from "../validate";
 export const settingsRoutes = new Hono<SessionEnv>()
   .use(requireSession)
   .patch("/", validate("json", updateSettingsSchema), async (c) => {
+    const userId = c.var.user.id;
     const changes = c.req.valid("json");
-    const settings = await updateUserSettings(c.env.DB, c.var.user.id, changes);
+    const settings = await updateUserSettings(c.env.DB, userId, changes);
     // Due times are local wall-clock times, so their reminders follow the new zone.
-    if (changes.timezone) await moveRemindersToTimeZone(createDb(c.env.DB), c.var.user.id, changes.timezone, Date.now());
+    if (changes.timezone) await moveRemindersToTimeZone(createDb(c.env.DB), userId, changes.timezone, Date.now());
     return c.json({ settings });
   });

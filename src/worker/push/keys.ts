@@ -41,8 +41,9 @@ export function importP256PublicKey(publicKey: string, algorithm: Algorithm) {
  */
 export async function importP256KeyPair(publicKey: string, privateKey: string, algorithm: Algorithm) {
   const jwk = { ...pointToJwk(publicKey), d: privateKey };
+  const curve = { name: algorithm, namedCurve: "P-256" };
   const [importedPrivate, importedPublic] = await Promise.all([
-    crypto.subtle.importKey("jwk", jwk, { name: algorithm, namedCurve: "P-256" }, false, usagesFor(algorithm).privateKey),
+    crypto.subtle.importKey("jwk", jwk, curve, false, usagesFor(algorithm).privateKey),
     importP256PublicKey(publicKey, algorithm),
   ]);
   return { privateKey: importedPrivate, publicKey: importedPublic } satisfies CryptoKeyPair;

@@ -44,7 +44,10 @@ async function statusOf(subscription: Subscription, payload: PushPayload, vapid:
 export async function deliver(db: Db, vapid: Vapid, pushes: { subscription: Subscription; payload: PushPayload }[]) {
   const counts: DeliveryCounts = { sent: 0, failed: 0, expired: 0 };
   const statuses = await Promise.all(
-    pushes.map(async ({ subscription, payload }) => ({ subscription, status: await statusOf(subscription, payload, vapid) })),
+    pushes.map(async ({ subscription, payload }) => ({
+      subscription,
+      status: await statusOf(subscription, payload, vapid),
+    })),
   );
   for (const { subscription, status } of statuses) {
     if (status >= 200 && status < 300) counts.sent++;
