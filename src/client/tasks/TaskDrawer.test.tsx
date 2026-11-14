@@ -5,6 +5,7 @@ import th from "../i18n/th.json";
 import { echoCreatedRow, stubApi } from "../test/fake-api";
 import { renderWithStore } from "../test/render";
 import { TaskDrawer } from "./TaskDrawer";
+import { TaskList } from "./TaskList";
 
 function renderDrawer() {
   const store = storeWith({
@@ -85,5 +86,23 @@ describe("TaskDrawer", () => {
     await act(() => router.navigate("/app/today"));
 
     await waitFor(() => expect(calls[0]?.body).toEqual({ notes: "แนบราคาใหม่" }));
+  });
+
+  it("closing a task opened from a list goes back, leaving no extra history entry", async () => {
+    const store = storeWith({ tasks: [aTask({ id: "t1", title: "จ่ายค่าไฟ" })] });
+    const { router } = renderWithStore(
+      <>
+        <TaskList tasks={Object.values(store.tasks)} dateStyle="full" />
+        <TaskDrawer />
+      </>,
+      store,
+      "/app/inbox",
+    );
+
+    fireEvent.click(screen.getByRole("link", { name: "จ่ายค่าไฟ" }));
+    fireEvent.keyDown(await screen.findByRole("dialog"), { key: "Escape" });
+
+    await waitFor(() => expect(router.state.historyAction).toBe("POP"));
+    expect(router.state.location.search).toBe("");
   });
 });

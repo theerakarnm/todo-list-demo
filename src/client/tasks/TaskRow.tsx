@@ -5,6 +5,7 @@ import { Icon } from "../components/Icon";
 import type { Project, Task } from "../data/types";
 import { formatDayMonth } from "../i18n/format-date";
 import { type DueLabel, dueLabelFor } from "./due-label";
+import { OPENED_IN_APP } from "./use-open-task";
 import { PriorityBadge } from "./PriorityBadge";
 
 type TaskRowProps = {
@@ -57,7 +58,7 @@ export function TaskRow({ task, project, progress, dateStyle, today, completedOn
         </span>
       </button>
       <div className="task-body">
-        <Link className="task-title" to={{ search: `?${drawerParams}` }}>
+        <Link className="task-title" to={{ search: `?${drawerParams}` }} state={OPENED_IN_APP}>
           {task.title}
         </Link>
         <span className="task-meta">
