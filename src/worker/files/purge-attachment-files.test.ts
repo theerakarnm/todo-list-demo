@@ -1,13 +1,15 @@
 import { env } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
+import { apiAs, bodyOf } from "../test/api";
 import { newId } from "../test/ids";
-import { seedAttachments } from "../test/images";
+import { attachmentForm, createTask, pngFile, seedAttachments } from "../test/images";
 import { createTestUser } from "../test/users";
 import { purgeDeletedAttachments } from "./purge-attachment-files";
 
 const CUTOFF = Date.UTC(2026, 10, 7);
 const BEFORE = CUTOFF - 1;
 const AFTER = CUTOFF + 1;
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 async function insertTask(userId: string, deletedAt: number | null) {
   const id = newId();
@@ -55,6 +57,25 @@ describe("purgeDeletedAttachments", () => {
     expect(purged).toBe(2);
     const kept = [live, recentlyDeleted, onRecentTask].sort();
     expect(await remainingKeys(userId)).toEqual({ rows: kept, files: kept });
+  });
+
+  it("removes the file an image delete left in R2 once 7 days have passed, and keeps a recent delete for Undo", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+    const upload = () => apiAs(userId).postForm(`/api/tasks/${taskId}/attachments`, attachmentForm(pngFile()));
+    const old = await bodyOf<{ id: string; r2Key: string }>(await upload());
+    const recent = await bodyOf<{ id: string; r2Key: string }>(await upload());
+    await apiAs(userId).delete(`/api/attachments/${old.id}`);
+    await apiAs(userId).delete(`/api/attachments/${recent.id}`);
+    const now = Date.UTC(2026, 10, 14);
+    const setDeletedAt = (id: string, deletedAt: number) =>
+      env.DB.prepare("UPDATE attachments SET deleted_at = ? WHERE id = ?").bind(deletedAt, id).run();
+    await setDeletedAt(old.id, now - 8 * DAY_MS);
+    await setDeletedAt(recent.id, now - DAY_MS);
+
+    expect(await purgeDeletedAttachments(env.DB, env.FILES, now - 7 * DAY_MS)).toBe(1);
+
+    expect(await remainingKeys(userId)).toEqual({ rows: [recent.r2Key], files: [recent.r2Key] });
   });
 
   it("removes more images than one R2 delete call takes", async () => {
