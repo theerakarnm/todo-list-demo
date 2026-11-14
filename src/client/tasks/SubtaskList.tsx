@@ -1,32 +1,16 @@
-import {
-  closestCenter,
-  DndContext,
-  type DragEndEvent,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { type KeyboardEvent, type ReactNode, useState } from "react";
+import { type KeyboardEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LIMITS } from "../../shared/constants";
 import { Icon } from "../components/Icon";
 import { useDraft } from "../components/use-draft";
 import { subtasksOf } from "../data/selectors";
 import { useCreateSubtask, useDeleteSubtask, useUpdateSubtask } from "../data/subtask-mutations";
-import { positionForMove } from "../data/positions";
 import { useSyncStore } from "../data/sync-query";
 import type { Subtask } from "../data/types";
-import { KEYBOARD_CODES } from "../dnd/AppDndContext";
-import { dragAnnouncements } from "../dnd/announcements";
 import { DragHandle } from "../dnd/DragHandle";
+import { SortableArea } from "../dnd/SortableArea";
 
 /** Enter is "done" unless a Thai input method is still composing a word. */
 function isEnter(event: KeyboardEvent) {
@@ -88,59 +72,12 @@ function SubtaskRow({ subtask }: { subtask: Subtask }) {
   );
 }
 
-/**
- * Drag to reorder subtasks. Its own drag area: the drawer is a modal, so the page's
- * area (and its announcements) cannot reach in; these are announced inside the drawer.
- */
-function SortableSubtasks({ subtasks, children }: { subtasks: Subtask[]; children: ReactNode }) {
-  const { t } = useTranslation();
-  const updateSubtask = useUpdateSubtask();
-  const [announcer, setAnnouncer] = useState<HTMLElement | null>(null);
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates, keyboardCodes: KEYBOARD_CODES }),
-  );
-  const titleOf = (id: string | number) => subtasks.find((subtask) => subtask.id === id)?.title ?? "";
-
-  function onDragEnd({ active, over }: DragEndEvent) {
-    const fromIndex = subtasks.findIndex((subtask) => subtask.id === active.id);
-    const toIndex = subtasks.findIndex((subtask) => subtask.id === over?.id);
-    const moved = subtasks[fromIndex];
-    if (!moved || toIndex < 0 || fromIndex === toIndex) return;
-    updateSubtask(moved, { position: positionForMove(subtasks, fromIndex, toIndex) });
-  }
-
-  return (
-    <div ref={setAnnouncer}>
-      {announcer && (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={onDragEnd}
-          accessibility={{
-            container: announcer,
-            screenReaderInstructions: { draggable: t("dnd.instructions") },
-            announcements: dragAnnouncements(
-              t,
-              (active) => titleOf(active.id),
-              (over) => t("dnd.targetTask", { title: titleOf(over.id) }),
-            ),
-          }}
-        >
-          <SortableContext items={subtasks.map((subtask) => subtask.id)} strategy={verticalListSortingStrategy}>
-            {children}
-          </SortableContext>
-        </DndContext>
-      )}
-    </div>
-  );
-}
-
 /** One level of subtasks: tick, rename, reorder, delete, and add at the bottom. */
 export function SubtaskList({ taskId }: { taskId: string }) {
   const { t } = useTranslation();
   const store = useSyncStore();
   const createSubtask = useCreateSubtask();
+  const updateSubtask = useUpdateSubtask();
   const [newTitle, setNewTitle] = useState("");
   const subtasks = store ? subtasksOf(store, taskId) : [];
   const done = subtasks.filter((subtask) => subtask.completedAt !== null).length;
@@ -148,13 +85,18 @@ export function SubtaskList({ taskId }: { taskId: string }) {
   return (
     <section className="flex flex-col">
       <h3 className="mono m-0 mb-2 font-semibold">{t("drawer.subtasks", { done, total: subtasks.length })}</h3>
-      <SortableSubtasks subtasks={subtasks}>
+      <SortableArea
+        rows={subtasks}
+        nameOf={(subtask) => subtask.title}
+        strategy={verticalListSortingStrategy}
+        onMove={(subtask, position) => updateSubtask(subtask, { position })}
+      >
         <ul className="m-0 list-none border-t-[1.5px] border-rule p-0">
           {subtasks.map((subtask) => (
             <SubtaskRow key={subtask.id} subtask={subtask} />
           ))}
         </ul>
-      </SortableSubtasks>
+      </SortableArea>
       <label className="add-task mt-3">
         <Icon name="plus" size={16} />
         <span className="sr-only">{t("drawer.addSubtask")}</span>
