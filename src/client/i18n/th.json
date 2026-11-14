@@ -85,7 +85,13 @@
     },
     "completed": {
       "eyebrow": "05 - เสร็จแล้ว / completed",
-      "title": "Completed"
+      "title": "Completed",
+      "subtitle": "งานที่ทำเสร็จแล้ว ใหม่สุดก่อน ติ๊กออกเพื่อนำงานกลับมา",
+      "group": "เสร็จแล้ว / completed - {{count}}",
+      "inProject": "โปรเจกต์: {{name}}",
+      "showAll": "ดูทุกโปรเจกต์ / all projects",
+      "loadMore": "โหลดเพิ่ม / load more",
+      "empty": "ยังไม่มีงานที่ทำเสร็จ"
     },
     "settings": {
       "eyebrow": "06 - ตั้งค่า / settings",
