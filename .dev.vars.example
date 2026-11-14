@@ -1,5 +1,7 @@
 # Copy to .dev.vars for local development. Never commit .dev.vars.
 # Production values are set with `wrangler secret put <NAME>`.
+# "development" logs email links when RESEND_API_KEY is empty; wrangler.jsonc sets "production" for deploys.
+APP_ENV=development
 BETTER_AUTH_SECRET=
 LINE_LOGIN_CHANNEL_ID=
 LINE_LOGIN_CHANNEL_SECRET=

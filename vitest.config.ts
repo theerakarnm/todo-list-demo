@@ -16,6 +16,8 @@ export default defineConfig({
                 TEST_MIGRATIONS: await readD1Migrations(migrationsPath),
                 // .dev.vars may hold a real key; tests must never send real email.
                 RESEND_API_KEY: "",
+                // Same in every checkout, whatever .dev.vars says.
+                APP_ENV: "development",
               },
             },
           })),

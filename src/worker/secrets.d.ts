@@ -1,5 +1,6 @@
 // Secrets and plain vars read from .dev.vars locally and Worker secrets in production.
 // Declared by hand so the types do not depend on a local .dev.vars file.
+// APP_ENV is not here: it is a var in wrangler.jsonc, so `bun run cf-typegen` declares it.
 interface JotListSecrets {
   BETTER_AUTH_SECRET?: string;
   LINE_LOGIN_CHANNEL_ID?: string;

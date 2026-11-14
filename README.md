@@ -63,9 +63,11 @@ Keep your real values in `.env` (start from `.env.example`), then copy it to `.d
 Both `.env` and `.dev.vars` are gitignored: never commit their values, and only add new names to the `*.example` files and `src/worker/secrets.d.ts`.
 In production the same names are Worker secrets, set once with `wrangler secret put <NAME>`.
 
+`APP_ENV` is `production` by default (`vars` in `wrangler.jsonc`); `.dev.vars` sets it to `development` for local runs.
 Without `RESEND_API_KEY`, no email is sent.
-The Worker logs one line instead (`{"level":"info","event":"email.mock","subject":...,"link":...}`), so you can open verification and reset links from the terminal.
-The tests always run this way, even when `.dev.vars` holds a real key.
+In development the Worker logs one line instead (`{"level":"info","event":"email.mock","subject":...,"link":...}`), so you can open verification and reset links from the terminal.
+Anywhere else it logs only `{"level":"warn","event":"email.skipped","subject":...}`, because the link holds a token.
+The tests always run in development without a key, even when `.dev.vars` holds a real key.
 
 ### Scripts
 
@@ -77,7 +79,7 @@ The tests always run this way, even when `.dev.vars` holds a real key.
 | `bun run typecheck` | `tsc -b` over the client, Worker, shared code, service worker and config files |
 | `bun run lint` | Biome lint (recommended rules plus the React hooks rules); config in `biome.json` |
 | `bun run test` | Vitest: `worker` (Workers runtime, migrations applied per test file) and `client` (jsdom) |
-| `bun run cf-typegen` | Regenerate `worker-configuration.d.ts` from `wrangler.jsonc` |
+| `bun run cf-typegen` | Regenerate `worker-configuration.d.ts` from `wrangler.jsonc` (ignores `.dev.vars`: secret types live in `src/worker/secrets.d.ts`) |
 | `bun run db:generate` | Write a new SQL migration into `drizzle/` from the Drizzle schema |
 | `bun run db:migrate:local` | Apply migrations to the local D1 database |
 | `bun run db:migrate:remote` | Apply migrations to the production D1 database |

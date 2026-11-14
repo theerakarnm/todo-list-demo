@@ -1,25 +1,26 @@
 const RESEND_EMAILS_URL = "https://api.resend.com/emails";
 
-type EmailEnv = Pick<Env, "RESEND_API_KEY" | "EMAIL_FROM">;
+type EmailEnv = Pick<Env, "RESEND_API_KEY" | "EMAIL_FROM" | "APP_ENV">;
 
 export type Email = {
   to: string;
   subject: string;
   html: string;
   text: string;
-  /** The verify / reset link inside the email. Logged in dev so you can click it. */
+  /** The verify / reset link inside the email. Logged in development so you can click it. */
   link?: string;
 };
 
 /**
  * Sends an auth email through Resend.
- * Without RESEND_API_KEY (local dev, tests, CI) nothing is sent: one log line
- * with the subject and link is written instead. Logs never contain the
- * recipient, the body or the key.
+ * Without RESEND_API_KEY nothing is sent. In development one log line with the
+ * subject and link is written instead; anywhere else only a warning with the
+ * subject, because the link holds a token. Logs never contain the recipient,
+ * the body or the key.
  */
 export async function sendEmail(env: EmailEnv, email: Email) {
   if (!env.RESEND_API_KEY) {
-    console.log(JSON.stringify({ level: "info", event: "email.mock", subject: email.subject, link: email.link }));
+    logSkippedEmail(env.APP_ENV, email);
     return;
   }
   if (!env.EMAIL_FROM) {
@@ -43,5 +44,13 @@ export async function sendEmail(env: EmailEnv, email: Email) {
 
   if (!response.ok) {
     throw new Error(`Resend did not accept the email: HTTP ${response.status}`);
+  }
+}
+
+function logSkippedEmail(appEnv: string, email: Email) {
+  if (appEnv === "development") {
+    console.log(JSON.stringify({ level: "info", event: "email.mock", subject: email.subject, link: email.link }));
+  } else {
+    console.warn(JSON.stringify({ level: "warn", event: "email.skipped", subject: email.subject }));
   }
 }

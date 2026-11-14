@@ -26,12 +26,18 @@ describe("sendEmail", () => {
     expect(env.RESEND_API_KEY).toBe("");
   });
 
-  describe("without RESEND_API_KEY", () => {
+  it("runs as development in tests (vitest.config.ts pins APP_ENV)", () => {
+    expect(env.APP_ENV).toBe("development");
+  });
+
+  describe("without RESEND_API_KEY in development", () => {
+    const devEnv = { RESEND_API_KEY: "", EMAIL_FROM: undefined, APP_ENV: "development" };
+
     it("logs the link instead of sending", async () => {
       const fetchMock = stubFetch(new Response());
       const log = vi.spyOn(console, "log").mockImplementation(() => {});
 
-      await sendEmail({ RESEND_API_KEY: "", EMAIL_FROM: undefined }, verificationEmail);
+      await sendEmail(devEnv, verificationEmail);
 
       expect(fetchMock).not.toHaveBeenCalled();
       expect(log).toHaveBeenCalledOnce();
@@ -47,7 +53,7 @@ describe("sendEmail", () => {
       stubFetch(new Response());
       const log = vi.spyOn(console, "log").mockImplementation(() => {});
 
-      await sendEmail({ RESEND_API_KEY: undefined, EMAIL_FROM: undefined }, verificationEmail);
+      await sendEmail({ ...devEnv, RESEND_API_KEY: undefined }, verificationEmail);
 
       const line = String(log.mock.calls[0]?.[0]);
       expect(line).not.toContain(verificationEmail.to);
@@ -55,8 +61,41 @@ describe("sendEmail", () => {
     });
   });
 
+  describe("without RESEND_API_KEY in production", () => {
+    const productionEnv = { RESEND_API_KEY: undefined, EMAIL_FROM: undefined, APP_ENV: "production" };
+
+    it("sends nothing and warns with the subject only", async () => {
+      const fetchMock = stubFetch(new Response());
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      await sendEmail(productionEnv, verificationEmail);
+
+      expect(fetchMock).not.toHaveBeenCalled();
+      expect(warn).toHaveBeenCalledOnce();
+      expect(JSON.parse(String(warn.mock.calls[0]?.[0]))).toEqual({
+        level: "warn",
+        event: "email.skipped",
+        subject: verificationEmail.subject,
+      });
+    });
+
+    it("never logs the link, its token, the address or the body", async () => {
+      stubFetch(new Response());
+      const log = vi.spyOn(console, "log").mockImplementation(() => {});
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+      await sendEmail(productionEnv, verificationEmail);
+
+      expect(log).not.toHaveBeenCalled();
+      const line = String(warn.mock.calls[0]?.[0]);
+      for (const secret of [verificationEmail.link, "token=abc", verificationEmail.to, "secret body"]) {
+        expect(line).not.toContain(secret);
+      }
+    });
+  });
+
   describe("with RESEND_API_KEY", () => {
-    const resendEnv = { RESEND_API_KEY: "test-key", EMAIL_FROM: "no-reply@mail.eukron.com" };
+    const resendEnv = { RESEND_API_KEY: "test-key", EMAIL_FROM: "no-reply@mail.eukron.com", APP_ENV: "production" };
 
     it("posts the email to Resend from EMAIL_FROM", async () => {
       const fetchMock = stubFetch(Response.json({ id: "email_1" }));
@@ -87,7 +126,7 @@ describe("sendEmail", () => {
     it("refuses to send without EMAIL_FROM", async () => {
       const fetchMock = stubFetch(Response.json({ id: "email_1" }));
 
-      await expect(sendEmail({ RESEND_API_KEY: "test-key", EMAIL_FROM: "" }, verificationEmail)).rejects.toThrow(
+      await expect(sendEmail({ ...resendEnv, EMAIL_FROM: "" }, verificationEmail)).rejects.toThrow(
         "EMAIL_FROM",
       );
       expect(fetchMock).not.toHaveBeenCalled();

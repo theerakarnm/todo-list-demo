@@ -10,7 +10,7 @@
     "typecheck": "tsc -b",
     "lint": "biome lint",
     "test": "vitest run",
-    "cf-typegen": "wrangler types",
+    "cf-typegen": "wrangler types --strict-vars=false --env-file /dev/null",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply jotlist --local",
     "db:migrate:remote": "wrangler d1 migrations apply jotlist --remote",
