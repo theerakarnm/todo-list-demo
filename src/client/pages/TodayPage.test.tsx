@@ -89,7 +89,7 @@ describe("TodayPage", () => {
 
     expect(await screen.findByRole("heading", { name: "วันนี้ / today - 1" })).toBeTruthy();
     expect(screen.queryByText(/เลยกำหนด/)).toBeNull();
-    expect(screen.getByText("ย้าย 1 งานมาเป็นวันนี้แล้ว")).toBeTruthy();
+    expect(await screen.findByText("ย้าย 1 งานมาเป็นวันนี้แล้ว")).toBeTruthy();
     await waitFor(() => expect(calls).toHaveLength(1));
   });
 

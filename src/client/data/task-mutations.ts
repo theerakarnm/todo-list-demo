@@ -162,31 +162,39 @@ export function useDeleteTask() {
 }
 
 type Reschedule = { tasks: Task[]; today: string };
-type RescheduleAnswer = { tasks: { id: string; dueDate: string }[] };
+type PreviousDueDates = { tasks: { id: string; dueDate: string }[] };
 
-/** "Reschedule" on the overdue group: every overdue task moves to today, with Undo. */
+/** Gives each listed task in the store its listed due date, keeping everything else as it is now. */
+function withDueDates(store: SyncStore, changes: { id: string; dueDate: string }[]) {
+  const tasks = changes.flatMap(({ id, dueDate }) => {
+    const task = store.tasks[id];
+    return task ? [{ ...task, dueDate }] : [];
+  });
+  return putRows(store, { tasks });
+}
+
+/**
+ * "Reschedule" on the overdue group: every overdue task moves to today. Undo is offered
+ * once the server has answered, with its list of previous dates: it may have moved
+ * tasks this device has not seen yet, and a failed reschedule has nothing to undo.
+ */
 export function useRescheduleOverdue() {
   const { showToast } = useToast();
   const { t } = useTranslation();
 
+  const undo = useOptimisticMutation({
+    request: (previous: PreviousDueDates) => request(api.api.tasks["reschedule-overdue"].undo.$post({ json: previous })),
+    apply: (store, previous) => withDueDates(store, previous.tasks),
+  });
   const reschedule = useOptimisticMutation({
     request: (_: Reschedule) => request(api.api.tasks["reschedule-overdue"].$post()),
-    apply: (store, { tasks, today }) => putRows(store, { tasks: tasks.map((task) => ({ ...task, dueDate: today })) }),
-  });
-  const undo = useOptimisticMutation({
-    // The server's list is the truth: it may have moved tasks this device has not seen yet.
-    request: async ({ answer }: { tasks: Task[]; answer: Promise<RescheduleAnswer> }) =>
-      request(api.api.tasks["reschedule-overdue"].undo.$post({ json: { tasks: (await answer).tasks } })),
-    apply: (store, { tasks }) => putRows(store, { tasks }),
+    apply: (store, { tasks, today }) => withDueDates(store, tasks.map(({ id }) => ({ id, dueDate: today }))),
+    onSuccess: (previous) =>
+      showToast({
+        message: t("toast.rescheduled", { count: previous.tasks.length }),
+        onUndo: () => undo.mutate({ tasks: previous.tasks }),
+      }),
   });
 
-  return (overdue: Task[], today: string) => {
-    const answer = reschedule.mutateAsync({ tasks: overdue, today });
-    // A failure is already shown by the mutation's own error toast.
-    answer.catch(() => {});
-    showToast({
-      message: t("toast.rescheduled", { count: overdue.length }),
-      onUndo: () => undo.mutate({ tasks: overdue, answer }),
-    });
-  };
+  return (overdue: Task[], today: string) => reschedule.mutate({ tasks: overdue, today });
 }

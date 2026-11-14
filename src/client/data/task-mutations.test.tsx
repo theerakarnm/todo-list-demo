@@ -70,7 +70,7 @@ describe("task mutations", () => {
     act(() => result.current([overdue], "2026-11-14"));
     await waitFor(() => expect(storeIn(queryClient).tasks.t1?.dueDate).toBe("2026-11-14"));
 
-    clickUndo();
+    fireEvent.click(await screen.findByRole("button", { name: th.toast.undo }));
     await waitFor(() => expect(calls[1]?.body).toEqual({ tasks: previous }));
     expect(storeIn(queryClient).tasks.t1?.dueDate).toBe("2026-11-10");
   });
@@ -83,5 +83,17 @@ describe("task mutations", () => {
 
     expect(await screen.findByText(/มีงานที่ยังไม่เสร็จครบ 1,000 งานแล้ว/)).toBeTruthy();
     expect(storeIn(queryClient).tasks).toEqual({});
+  });
+
+  it("reschedule overdue: offers no Undo when the server refuses", async () => {
+    stubApi({ "POST /api/tasks/reschedule-overdue": () => apiError("RATE_LIMITED", 429) });
+    const overdue = aTask({ id: "t1", dueDate: "2026-11-10" });
+    const { result, queryClient } = renderHookWithStore(useRescheduleOverdue, storeWith({ tasks: [overdue] }));
+
+    act(() => result.current([overdue], "2026-11-14"));
+
+    expect(await screen.findByText(th.errors.api.RATE_LIMITED)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: th.toast.undo })).toBeNull();
+    expect(storeIn(queryClient).tasks.t1?.dueDate).toBe("2026-11-10");
   });
 });
