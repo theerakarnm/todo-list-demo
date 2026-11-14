@@ -1,4 +1,4 @@
-import { and, eq, isNull, max } from "drizzle-orm";
+import { and, eq, isNull, max, sql } from "drizzle-orm";
 import { generateKeyBetween } from "fractional-indexing";
 import { zonedDateTimeToUtcMs } from "../../shared/time-zone";
 import { ApiError } from "../errors";
@@ -48,4 +48,27 @@ export async function reminderFor(db: Db, userId: string, { dueDate, dueTime }: 
 
 export function isSameDue(a: Due, b: Due) {
   return a.dueDate === b.dueDate && a.dueTime === b.dueTime;
+}
+
+type DueDateChange = { id: string; dueDate: string; dueTime: string | null };
+
+/**
+ * Gives many tasks a new due date in one statement (any number of rows fits:
+ * the changes travel as one JSON parameter). Reminders move with the dates.
+ */
+export async function setDueDates(db: Db, userId: string, timeZone: string, changes: DueDateChange[]) {
+  if (changes.length === 0) return;
+  const rows = changes.map(({ id, dueDate, dueTime }) => ({
+    id,
+    dueDate,
+    remindAt: dueTime ? zonedDateTimeToUtcMs(dueDate, dueTime, timeZone) : null,
+  }));
+  await db.run(sql`
+    UPDATE tasks
+    SET due_date = changes.due_date, remind_at = changes.remind_at, reminder_sent_at = NULL, updated_at = ${Date.now()}
+    FROM (
+      SELECT value ->> 'id' AS id, value ->> 'dueDate' AS due_date, value ->> 'remindAt' AS remind_at
+      FROM json_each(${JSON.stringify(rows)})
+    ) AS changes
+    WHERE tasks.id = changes.id AND tasks.user_id = ${userId}`);
 }
