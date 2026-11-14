@@ -3,7 +3,7 @@ import { Route, Routes } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SYNC_QUERY_KEY } from "../data/sync-query";
 import type { SyncStore } from "../data/sync-store";
-import { aProject, aTask, storeWith } from "../data/test-rows";
+import { anAttachment, aProject, aTask, storeWith } from "../data/test-rows";
 import th from "../i18n/th.json";
 import { stubApi } from "../test/fake-api";
 import { renderWithStore } from "../test/render";
@@ -16,6 +16,7 @@ const store = storeWith({
     aTask({ id: "t2", title: "ไม่อยู่ในโปรเจกต์" }),
     aTask({ id: "t3", title: "เสร็จไปแล้ว", projectId: "p1", completedAt: 5 }),
   ],
+  attachments: [anAttachment({ id: "a1", taskId: "t1" })],
 });
 
 function renderProject() {
@@ -95,11 +96,13 @@ describe("ProjectPage", () => {
     expect(await screen.findByText("today page")).toBeTruthy();
     await waitFor(() => expect(projectIn(queryClient)).toBeUndefined());
     expect((queryClient.getQueryData(SYNC_QUERY_KEY) as SyncStore).tasks.t3).toBeUndefined();
+    expect((queryClient.getQueryData(SYNC_QUERY_KEY) as SyncStore).attachments.a1).toBeUndefined();
     fireEvent.click(within(screen.getByRole("status")).getByRole("button", { name: th.toast.undo }));
     await waitFor(() => expect(calls.map((call) => call.method)).toEqual(["DELETE", "POST"]));
     expect(projectIn(queryClient)?.name).toBe("งาน");
     expect((queryClient.getQueryData(SYNC_QUERY_KEY) as SyncStore).tasks.t1).toBeDefined();
     expect((queryClient.getQueryData(SYNC_QUERY_KEY) as SyncStore).tasks.t3).toBeDefined();
+    expect((queryClient.getQueryData(SYNC_QUERY_KEY) as SyncStore).attachments.a1).toBeDefined();
   });
 
   it("shows recent completed tasks when asked, with a link to all of them", async () => {

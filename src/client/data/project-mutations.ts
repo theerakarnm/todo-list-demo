@@ -7,11 +7,11 @@ import { useToast } from "../toast/ToastProvider";
 import { LOGBOOK_QUERY_KEY } from "./logbook-query";
 import { useOptimisticMutation } from "./optimistic";
 import { positionAtEnd } from "./positions";
-import { sortedProjects, subtasksOf } from "./selectors";
+import { attachmentsOfTask, sortedProjects, subtasksOf } from "./selectors";
 import { putRows, removeRows } from "./store-updates";
 import { SYNC_QUERY_KEY } from "./sync-query";
 import type { SyncStore } from "./sync-store";
-import type { Project, Subtask, Task } from "./types";
+import type { Attachment, Project, Subtask, Task } from "./types";
 import { uuidv7 } from "./uuidv7";
 
 export type ProjectChanges = Partial<Pick<Project, "name" | "color" | "position">>;
@@ -60,7 +60,7 @@ export function useUpdateProject() {
   return (project: Project, changes: ProjectChanges) => update.mutate({ id: project.id, changes });
 }
 
-type DeletedProject = { project: Project; tasks: Task[]; subtasks: Subtask[] };
+type DeletedProject = { project: Project; tasks: Task[]; subtasks: Subtask[]; attachments: Attachment[] };
 
 /**
  * Deletes a project with its tasks (ARCHITECTURE §15) and offers Undo.
@@ -76,18 +76,20 @@ export function useDeleteProject() {
 
   const remove = useOptimisticMutation({
     request: ({ project }: DeletedProject) => request(api.api.projects[":id"].$delete({ param: { id: project.id } })),
-    apply: (store, { project, tasks, subtasks }) =>
+    apply: (store, { project, tasks, subtasks, attachments }) =>
       removeRows(store, {
         projects: [project.id],
         tasks: tasks.map((task) => task.id),
         subtasks: subtasks.map((subtask) => subtask.id),
+        attachments: attachments.map((attachment) => attachment.id),
       }),
     onSettled: refreshLogbook,
   });
   const restore = useOptimisticMutation({
     request: ({ project }: DeletedProject) =>
       request(api.api.projects[":id"].restore.$post({ param: { id: project.id } })),
-    apply: (store, { project, tasks, subtasks }) => putRows(store, { projects: [project], tasks, subtasks }),
+    apply: (store, { project, tasks, subtasks, attachments }) =>
+      putRows(store, { projects: [project], tasks, subtasks, attachments }),
     confirm: (project) => ({ projects: [project] }),
     onSettled: refreshLogbook,
   });
@@ -97,7 +99,8 @@ export function useDeleteProject() {
     // Active and completed: the server deletes every task in the project.
     const tasks = store ? Object.values(store.tasks).filter((task) => task.projectId === project.id) : [];
     const subtasks = store ? tasks.flatMap((task) => subtasksOf(store, task.id)) : [];
-    const deleted = { project, tasks, subtasks };
+    const attachments = store ? tasks.flatMap((task) => attachmentsOfTask(store, task.id)) : [];
+    const deleted = { project, tasks, subtasks, attachments };
     remove.mutate(deleted);
     showToast({ message: t("toast.projectDeleted", { name: project.name }), onUndo: () => restore.mutate(deleted) });
   };
