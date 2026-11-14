@@ -9,6 +9,9 @@ function appThatThrows(error: unknown) {
   app.get("/api/boom", () => {
     throw error;
   });
+  app.get("/api/tasks/:taskId", () => {
+    throw error;
+  });
   app.notFound(handleNotFound);
   app.onError(handleError);
   return app;
@@ -49,11 +52,33 @@ describe("error middleware", () => {
       level: "error",
       requestId: response.headers.get("X-Request-Id"),
       code: "INTERNAL_ERROR",
-      path: "/api/boom",
+      route: "/api/boom",
       method: "GET",
       status: 500,
     });
     expect(line).not.toContain("user@example.com");
     expect(line).not.toContain("private-search");
+  });
+
+  it("logs the route pattern, not the id in the path", async () => {
+    const log = vi.spyOn(console, "error").mockImplementation(() => {});
+    const taskId = "0192f3a4-5b6c-7d8e-9f01-23456789abcd";
+
+    await appThatThrows(new Error("boom")).request(`/api/tasks/${taskId}`);
+
+    const line = String(log.mock.calls[0]?.[0]);
+    expect(JSON.parse(line).route).toBe("/api/tasks/:taskId");
+    expect(line).not.toContain(taskId);
+  });
+
+  it("logs a fixed placeholder for an unknown path, so a token in it stays out", async () => {
+    const log = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    const response = await appThatThrows(new Error("boom")).request("/api/reset/secret-token-123");
+
+    expect(response.status).toBe(404);
+    const line = String(log.mock.calls[0]?.[0]);
+    expect(JSON.parse(line).route).toBe("<unmatched>");
+    expect(line).not.toContain("secret-token-123");
   });
 });

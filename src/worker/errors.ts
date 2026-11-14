@@ -1,4 +1,5 @@
 import type { Context } from "hono";
+import { routePath } from "hono/route";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { LIMITS } from "../shared/constants";
 import type { ApiErrorBody, ErrorCode } from "../shared/error-codes";
@@ -49,13 +50,16 @@ export class ApiError extends Error {
   }
 }
 
-function errorResponse(c: Context<AppEnv>, code: ErrorCode) {
+/** Logged instead of the raw path when no route matched: the path itself may hold a token. */
+const UNMATCHED_ROUTE = "<unmatched>";
+
+function errorResponse(c: Context<AppEnv>, code: ErrorCode, route: string) {
   const { status, message } = ERRORS[code];
   logError({
     level: status >= 500 ? "error" : "warn",
     requestId: c.get("requestId"),
     code,
-    path: c.req.path,
+    route,
     method: c.req.method,
     status,
   });
@@ -63,9 +67,10 @@ function errorResponse(c: Context<AppEnv>, code: ErrorCode) {
 }
 
 export function handleError(error: Error, c: Context<AppEnv>) {
-  return errorResponse(c, error instanceof ApiError ? error.code : "INTERNAL_ERROR");
+  // The pattern of the route that threw, e.g. "/api/tasks/:id", never the ids in the real path.
+  return errorResponse(c, error instanceof ApiError ? error.code : "INTERNAL_ERROR", routePath(c));
 }
 
 export function handleNotFound(c: Context<AppEnv>) {
-  return errorResponse(c, "NOT_FOUND");
+  return errorResponse(c, "NOT_FOUND", UNMATCHED_ROUTE);
 }
