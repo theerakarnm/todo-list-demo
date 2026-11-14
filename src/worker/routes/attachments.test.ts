@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { LIMITS } from "../../shared/constants";
 import { apiAs, bodyOf } from "../test/api";
 import { newId } from "../test/ids";
-import { attachmentForm, createTask, pngFile, renamedExeFile } from "../test/images";
+import { attachmentForm, createTask, pngFile, renamedExeFile, seedAttachments } from "../test/images";
 import { createTestUser } from "../test/users";
 
 type Attachment = {
@@ -137,6 +137,46 @@ describe("POST /api/tasks/:id/attachments", () => {
 
     expect(response.status).toBe(413);
     expect((await bodyOf<ApiError>(response)).error.code).toBe("FILE_TOO_LARGE");
+  });
+
+  it("refuses an 11th image on a task with 409 ATTACHMENT_LIMIT, not counting deleted ones", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+    await seedAttachments(userId, taskId, 3, { deletedAt: Date.now() });
+    await seedAttachments(userId, taskId, LIMITS.attachmentsPerTask - 1);
+    await uploadPng(userId, taskId);
+
+    const response = await upload(userId, taskId, attachmentForm(pngFile()));
+
+    expect(response.status).toBe(409);
+    const body = await bodyOf<ApiError>(response);
+    expect(body.error.code).toBe("ATTACHMENT_LIMIT");
+    expect(body.error.message).toContain("10");
+  });
+
+  it("refuses an image that would take the account over 200 MB with 409 STORAGE_LIMIT", async () => {
+    const userId = await createTestUser();
+    const firstTaskId = await createTask(userId);
+    const secondTaskId = await createTask(userId);
+    await seedAttachments(userId, firstTaskId, 1, { bytes: LIMITS.storageBytesPerUser / 2 });
+    await seedAttachments(userId, secondTaskId, 1, { bytes: LIMITS.storageBytesPerUser / 2 - 100 });
+    await seedAttachments(userId, secondTaskId, 1, { bytes: LIMITS.storageBytesPerUser, deletedAt: Date.now() });
+    await uploadPng(userId, firstTaskId);
+
+    const response = await upload(userId, firstTaskId, attachmentForm(pngFile(64)));
+
+    expect(response.status).toBe(409);
+    const body = await bodyOf<ApiError>(response);
+    expect(body.error.code).toBe("STORAGE_LIMIT");
+    expect(body.error.message).toContain("200 MB");
+  });
+
+  it("does not count another user's images against the storage limit", async () => {
+    const userId = await createTestUser();
+    const otherUserId = await createTestUser();
+    await seedAttachments(otherUserId, await createTask(otherUserId), 1, { bytes: LIMITS.storageBytesPerUser });
+
+    await uploadPng(userId, await createTask(userId));
   });
 
   it("rejects an id that is not a UUIDv7 and a form without a file", async () => {

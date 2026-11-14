@@ -8,6 +8,7 @@ import { attachmentColumns } from "../db/columns";
 import { attachments } from "../db/schema";
 import { assertUsableTask } from "../db/task-queries";
 import { ApiError } from "../errors";
+import { assertRoomForAttachment, assertRoomInStorage } from "../limits";
 import { attachmentFileKey } from "../files/file-keys";
 import { SNIFF_BYTES, sniffImageMime } from "../files/sniff-image";
 import { imageBodyLimit, uploadAttachmentSchema } from "../files/uploads";
@@ -52,6 +53,8 @@ export const taskAttachmentRoutes = new Hono<SessionEnv>()
     const mime = sniffImageMime(new Uint8Array(await file.slice(0, SNIFF_BYTES).arrayBuffer()));
     if (!mime) throw new ApiError("UNSUPPORTED_FILE");
     if (file.size > LIMITS.attachmentBytes) throw new ApiError("FILE_TOO_LARGE");
+    await assertRoomForAttachment(db, taskId);
+    await assertRoomInStorage(db, userId, file.size);
 
     const r2Key = attachmentFileKey(userId, taskId, id);
     await c.env.FILES.put(r2Key, file, { httpMetadata: { contentType: mime } });
