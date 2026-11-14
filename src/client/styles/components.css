@@ -168,4 +168,41 @@
     background: var(--inverse-bg);
     color: var(--inverse-fg);
   }
+
+  /* Segmented radio choice (.opt in the Settings mockup). */
+  .segment-option {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 18px;
+    border: var(--rule-thin) solid var(--fg);
+    margin-right: -1.5px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 600;
+    background: transparent;
+  }
+
+  .segment-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .segment-option:has(input:checked) {
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+  }
+
+  .segment-option:has(input:focus-visible) {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
+  }
+
+  .segment-option:hover {
+    background: var(--highlight);
+    color: var(--on-highlight);
+  }
 }

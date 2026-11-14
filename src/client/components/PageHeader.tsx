@@ -15,7 +15,7 @@ export function PageHeader({ eyebrow, title, subtitle, aside }: PageHeaderProps)
       <div>
         <div className="mono muted">{eyebrow}</div>
         <h1 className="display mt-2.5 mb-0 text-[clamp(48px,6vw,84px)]">{title}</h1>
-        {subtitle && <p className="muted mt-4 mb-0 text-[15px]">{subtitle}</p>}
+        {subtitle && <p className="muted mt-3.5 mb-0 max-w-[520px] text-[15px] leading-[1.6]">{subtitle}</p>}
       </div>
       {aside}
     </header>
