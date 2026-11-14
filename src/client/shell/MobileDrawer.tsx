@@ -15,7 +15,8 @@ export function MobileDrawer({ onClose, onOpenSearch, onOpenQuickAdd }: MobileDr
 
   return (
     <Dialog label={t("nav.menu")} onClose={onClose} className="drawer">
-      {/* Following any link in the drawer closes it. */}
+      {/* Following any link in the drawer closes it. Links fire click for Enter too, so keyboards are covered. */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions lint/a11y/useKeyWithClickEvents: only listens for clicks bubbling up from links. */}
       <div
         className="flex min-h-full flex-col gap-3.5 px-4 pt-2 pb-5"
         onClick={(event) => {

@@ -22,6 +22,7 @@ export function Dialog({ label, onClose, className, children }: DialogProps) {
   }, []);
 
   return (
+    // biome-ignore lint/a11y/useKeyWithClickEvents: the keyboard way to close is Esc, built into a modal <dialog>.
     <dialog
       ref={dialogRef}
       aria-label={label}

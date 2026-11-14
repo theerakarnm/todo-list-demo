@@ -75,6 +75,7 @@ The tests always run this way, even when `.dev.vars` holds a real key.
 | `bun run build` | Production build of the client and the Worker into `dist/` |
 | `bun run preview` | Serve the production build locally |
 | `bun run typecheck` | `tsc -b` over the client, Worker, shared code, service worker and config files |
+| `bun run lint` | Biome lint (recommended rules plus the React hooks rules); config in `biome.json` |
 | `bun run test` | Vitest: `worker` (Workers runtime, migrations applied per test file) and `client` (jsdom) |
 | `bun run cf-typegen` | Regenerate `worker-configuration.d.ts` from `wrangler.jsonc` |
 | `bun run db:generate` | Write a new SQL migration into `drizzle/` from the Drizzle schema |
@@ -83,7 +84,7 @@ The tests always run this way, even when `.dev.vars` holds a real key.
 | `bun run icons:generate` | Render `public/favicon.svg` into the PNG app icons |
 
 ## CI and deploy
-- `.github/workflows/ci.yml` runs on every pull request into `develop` and every push to `develop`: install, type-check, test, build.
+- `.github/workflows/ci.yml` runs on every pull request into `develop` and every push to `develop`: install, type-check, lint, test, build.
 - `.github/workflows/deploy.yml` runs on every push to `main`: the same checks, then `wrangler d1 migrations apply jotlist --remote` and `wrangler deploy`.
   It needs the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
 

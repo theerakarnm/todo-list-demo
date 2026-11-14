@@ -4,14 +4,14 @@ import tokensCss from "./tokens.css?raw";
 // WCAG 2 contrast ratio between two #rrggbb colours.
 function contrastRatio(foreground: string, background: string) {
   const luminance = (hex: string) => {
-    const [red, green, blue] = [1, 3, 5].map((start) => {
+    const [red = 0, green = 0, blue = 0] = [1, 3, 5].map((start) => {
       const channel = Number.parseInt(hex.slice(start, start + 2), 16) / 255;
       return channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
     });
-    return 0.2126 * red! + 0.7152 * green! + 0.0722 * blue!;
+    return 0.2126 * red + 0.7152 * green + 0.0722 * blue;
   };
-  const [lighter, darker] = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
-  return (lighter! + 0.05) / (darker! + 0.05);
+  const [lighter = 0, darker = 0] = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+  return (lighter + 0.05) / (darker + 0.05);
 }
 
 // Reads the custom properties of one CSS block and follows var(--x) references to a hex value.
@@ -24,8 +24,8 @@ function themeColors(selector: string) {
   const variables = { ...readBlock(":root"), ...readBlock(selector) };
   const resolve = (name: string): string => {
     const value = variables[name] ?? "";
-    const reference = value.match(/^var\((--[\w-]+)\)$/);
-    return reference ? resolve(reference[1]!) : value;
+    const referencedName = value.match(/^var\((--[\w-]+)\)$/)?.[1];
+    return referencedName ? resolve(referencedName) : value;
   };
   return resolve;
 }

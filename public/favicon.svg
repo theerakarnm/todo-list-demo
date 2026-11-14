@@ -1,4 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <title>JotList</title>
   <rect width="512" height="512" fill="#1a1a1a"/>
   <path d="M200 112 H352 V400 H160 V272 H224 V336 H288 V176 H200 Z" fill="#ff6c2f" transform="translate(14 14)"/>
   <path d="M200 112 H352 V400 H160 V272 H224 V336 H288 V176 H200 Z" fill="#f2ede1"/>

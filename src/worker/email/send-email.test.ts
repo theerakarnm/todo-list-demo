@@ -64,7 +64,7 @@ describe("sendEmail", () => {
       await sendEmail(resendEnv, verificationEmail);
 
       expect(fetchMock).toHaveBeenCalledOnce();
-      const [url, init] = fetchMock.mock.calls[0]!;
+      const [url, init] = fetchMock.mock.calls[0] ?? [];
       expect(url).toBe("https://api.resend.com/emails");
       expect(init?.method).toBe("POST");
       expect(new Headers(init?.headers).get("Authorization")).toBe("Bearer test-key");
