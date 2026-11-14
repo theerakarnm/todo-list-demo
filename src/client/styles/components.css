@@ -278,4 +278,75 @@
       transition: none;
     }
   }
+
+  /* Undo toast (no mockup): an ink slip, bottom left, above the mobile bottom bar. */
+  .toast-region {
+    position: fixed;
+    z-index: 50;
+    left: 16px;
+    right: 16px;
+    bottom: calc(60px + env(safe-area-inset-bottom) + 12px);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    pointer-events: none;
+  }
+
+  @media (min-width: 64rem) {
+    .toast-region {
+      right: auto;
+      left: 24px;
+      bottom: 24px;
+    }
+  }
+
+  .toast {
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: min(440px, 100%);
+    min-height: 52px;
+    padding: 4px 4px 4px 16px;
+    border: var(--rule-thin) solid var(--rule-color);
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+    font-size: 15px;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .toast-error {
+    background: var(--highlight);
+    color: var(--on-highlight);
+    border-color: var(--ink-black);
+  }
+
+  .toast-undo {
+    min-height: 36px;
+    padding: 0 12px;
+    border: var(--rule-thin) solid currentColor;
+    background: transparent;
+    color: inherit;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .toast-undo:hover {
+    border-color: var(--highlight);
+    background: var(--highlight);
+    color: var(--on-highlight);
+  }
+
+  .toast .toast-close,
+  .toast .toast-close:hover {
+    width: 40px;
+    height: 40px;
+    color: inherit;
+  }
+
+  .toast .toast-close:hover {
+    border-color: currentColor;
+  }
 }
