@@ -1,0 +1,53 @@
+import { useRef } from "react";
+import { useTranslation } from "react-i18next";
+import { LIMITS } from "../../shared/constants";
+import { Icon } from "../components/Icon";
+import { useUploadImages } from "../data/attachment-mutations";
+import { attachmentsOfTask } from "../data/selectors";
+import { useSyncStore } from "../data/sync-query";
+import { ImageTile } from "./ImageTile";
+
+/** Also .heic: some systems give HEIC photos no image/ type, so image/* alone would hide them. */
+const ACCEPTED_FILES = "image/*,.heic,.heif";
+
+/** The task's images under the notes: thumbnails, and a button to add more. */
+export function ImageGallery({ taskId }: { taskId: string }) {
+  const { t } = useTranslation();
+  const store = useSyncStore();
+  const uploadImages = useUploadImages();
+  const fileInput = useRef<HTMLInputElement>(null);
+  const attachments = store ? attachmentsOfTask(store, taskId) : [];
+
+  return (
+    <section className="flex flex-col">
+      <h3 className="mono m-0 mb-2 font-semibold">
+        {t("images.heading", { count: attachments.length, limit: LIMITS.attachmentsPerTask })}
+      </h3>
+      {attachments.length > 0 && (
+        <ul className="image-grid">
+          {attachments.map((attachment, index) => (
+            <ImageTile key={attachment.id} attachment={attachment} number={index + 1} />
+          ))}
+        </ul>
+      )}
+      <button type="button" className="add-task mt-3" onClick={() => fileInput.current?.click()}>
+        <Icon name="plus" size={16} />
+        <span className="flex-1">{t("images.add")}</span>
+        <span className="mono max-sm:hidden">{t("images.addHint")}</span>
+      </button>
+      <input
+        ref={fileInput}
+        type="file"
+        hidden
+        multiple
+        accept={ACCEPTED_FILES}
+        aria-label={t("images.add")}
+        onChange={(event) => {
+          uploadImages(taskId, [...(event.target.files ?? [])]);
+          // The same file can be picked again later.
+          event.target.value = "";
+        }}
+      />
+    </section>
+  );
+}

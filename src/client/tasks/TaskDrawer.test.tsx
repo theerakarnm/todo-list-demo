@@ -1,17 +1,20 @@
 import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { aProject, aSubtask, aTask, storeWith } from "../data/test-rows";
+import { anAttachment, aProject, aSubtask, aTask, storeWith } from "../data/test-rows";
 import th from "../i18n/th.json";
-import { echoCreatedRow, stubApi } from "../test/fake-api";
+import { answerLater, echoCreatedRow, requestsTo, stubApi } from "../test/fake-api";
+import { aFile, stubBrowserImages } from "../test/fake-images";
 import { renderWithStore } from "../test/render";
+import type { Attachment } from "../data/types";
 import { TaskDrawer } from "./TaskDrawer";
 import { TaskList } from "./TaskList";
 
-function renderDrawer() {
+function renderDrawer(attachments: Attachment[] = []) {
   const store = storeWith({
     projects: [aProject({ id: "p1", name: "งาน" })],
     tasks: [aTask({ id: "t1", title: "ส่งใบเสนอราคาให้ลูกค้า", dueDate: "2026-11-14" })],
     subtasks: [aSubtask({ id: "s1", taskId: "t1", title: "ทำตัวเลข" })],
+    attachments,
   });
   const result = renderWithStore(<TaskDrawer />, store, "/app/today?task=t1");
   return { ...result, drawer: within(screen.getByRole("dialog", { name: th.drawer.label })) };
@@ -106,3 +109,50 @@ describe("TaskDrawer", () => {
     expect(router.state.location.search).toBe("");
   });
 });
+
+const imageSources = (scope: ReturnType<typeof within>) =>
+  scope.queryAllByRole("img").map((image: HTMLElement) => image.getAttribute("src"));
+
+describe("TaskDrawer images", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("shows the task's images in gallery order under the notes", () => {
+    const { drawer } = renderDrawer([
+      anAttachment({ id: "a2", taskId: "t1", position: "a1" }),
+      anAttachment({ id: "a1", taskId: "t1", position: "a0" }),
+    ]);
+
+    expect(drawer.getByText("รูปภาพ / images - 2/10")).toBeTruthy();
+    expect(imageSources(drawer)).toEqual(["/api/files/u/user-1/t/t1/a1", "/api/files/u/user-1/t/t1/a2"]);
+  });
+
+  it("adds images from the file picker and shows the progress until each is stored", async () => {
+    stubBrowserImages();
+    const upload = answerLater("POST /api/tasks/:id/attachments");
+    const { drawer } = renderDrawer();
+
+    fireEvent.change(drawer.getByLabelText(th.images.add), {
+      target: { files: [aFile("receipt.jpg", "image/jpeg")] },
+    });
+
+    const progress = await drawer.findByRole("progressbar", { name: "กำลังอัปโหลดรูปที่ 1" });
+    expect(progress.getAttribute("aria-valuenow")).toBe("0");
+    expect(imageSources(drawer)).toEqual(["blob:preview-1"]);
+    expect(drawer.getByText("รูปภาพ / images - 1/10")).toBeTruthy();
+
+    const id = (await vi.waitFor(async () => {
+      const form = await stubbedUploadForm();
+      return form.get("id");
+    })) as string;
+    upload.reply(Response.json(anAttachment({ id, taskId: "t1", updatedAt: 9 }), { status: 201 }));
+
+    await waitFor(() => expect(imageSources(drawer)).toEqual([`/api/files/u/user-1/t/t1/${id}`]));
+    expect(drawer.queryByRole("progressbar")).toBeNull();
+  });
+});
+
+async function stubbedUploadForm() {
+  const request = requestsTo("POST /api/tasks/t1/attachments")[0];
+  if (!request) throw new Error("not sent yet");
+  return request.clone().formData();
+}

@@ -1,0 +1,63 @@
+/*
+ * Task images (no mockup): square thumbnails in printed rules, from the
+ * same tokens as the task list. Square corners everywhere.
+ */
+@layer components {
+  .image-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .image-tile {
+    position: relative;
+    aspect-ratio: 1;
+    border: var(--rule-thin) solid var(--rule-color);
+    background: var(--bg);
+    overflow: hidden;
+  }
+
+  .image-tile img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* A HEIC this browser cannot show. */
+  .image-broken {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    padding: 8px;
+    color: var(--fg-muted);
+    font-size: 10px;
+    text-align: center;
+  }
+
+  /* Upload progress: a slip along the bottom with the percentage, an orange bar on its top edge. */
+  .image-progress {
+    position: absolute;
+    inset: auto 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 24px;
+    border-top: var(--rule-thin) solid var(--rule-color);
+    background: var(--bg);
+    color: var(--fg);
+    font-size: 11px;
+  }
+
+  .image-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background: var(--highlight);
+    transition: width 120ms linear;
+  }
+}

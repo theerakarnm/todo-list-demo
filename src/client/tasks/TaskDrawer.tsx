@@ -6,6 +6,7 @@ import { Icon } from "../components/Icon";
 import { useDraft } from "../components/use-draft";
 import { useCompleteTask, useDeleteTask, useUncompleteTask, useUpdateTask } from "../data/task-mutations";
 import type { Task } from "../data/types";
+import { ImageGallery } from "../images/ImageGallery";
 import { SubtaskList } from "./SubtaskList";
 import { TaskDetails } from "./TaskDetails";
 import { useOpenTask } from "./use-open-task";
@@ -67,6 +68,8 @@ function TaskEditor({ task, onDeleted }: { task: Task; onDeleted: () => void }) 
           {...notes.field}
         />
       </label>
+
+      <ImageGallery taskId={task.id} />
 
       <TaskDetails task={task} />
       <SubtaskList taskId={task.id} />

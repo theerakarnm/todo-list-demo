@@ -536,6 +536,15 @@
     "delete": "ลบงาน / delete task",
     "notFound": "ไม่พบงานนี้ อาจถูกลบไปแล้ว"
   },
+  "images": {
+    "heading": "รูปภาพ / images - {{count}}/{{limit}}",
+    "add": "เพิ่มรูป / add image",
+    "addHint": "drop / paste",
+    "image": "รูปที่ {{number}}",
+    "drop": "วางที่นี่ เพื่อแนบรูป / drop to attach",
+    "uploading": "กำลังอัปโหลดรูปที่ {{number}}",
+    "noPreview": "แสดงตัวอย่างไม่ได้"
+  },
   "dates": {
     "weekdayShort": [
       "อา",
