@@ -1,4 +1,3 @@
-import { generateKeyBetween } from "fractional-indexing";
 import type { ChangedRows, SyncStore } from "./sync-store";
 
 // Small immutable edits for optimistic updates. Unlike applyRows, these
@@ -32,9 +31,4 @@ export function removeRows(store: SyncStore, ids: Ids): SyncStore {
     projects: without(store.projects, ids.projects),
     subtasks: without(store.subtasks, ids.subtasks),
   };
-}
-
-/** A fractional-index position after the last of `sortedRows`, i.e. at the end of the list. */
-export function positionAtEnd(sortedRows: { position: string }[]) {
-  return generateKeyBetween(sortedRows.at(-1)?.position ?? null, null);
 }
