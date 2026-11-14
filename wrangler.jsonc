@@ -16,30 +16,28 @@
     {
       "binding": "DB",
       "database_name": "jotlist",
-      // TODO(owner): real D1 database_id before first deploy (`wrangler d1 create jotlist`).
-      // Local dev and tests ignore this value.
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      // Production D1 (created 2026-11-14). Local dev and tests ignore this value.
+      "database_id": "d4a29435-07e8-49bd-bcd7-d8e09aa0d5b2",
       "migrations_dir": "drizzle"
     }
   ],
   "r2_buckets": [
-    // TODO(owner): create the bucket before first deploy (`wrangler r2 bucket create jotlist-files`).
+    // Production bucket created 2026-11-14.
     {
       "binding": "FILES",
       "bucket_name": "jotlist-files"
     }
   ],
-  // TODO(owner): namespace_id must be a positive integer unique within the Cloudflare account;
-  // confirm 1001 and 1002 are free before first deploy.
+  // namespace_id must be unique within the Cloudflare account; 1001-1012 are used by other Workers.
   "ratelimits": [
     {
       "name": "RATE_LIMIT_AUTH",
-      "namespace_id": "1001",
+      "namespace_id": "4201",
       "simple": { "limit": 20, "period": 60 }
     },
     {
       "name": "RATE_LIMIT_API",
-      "namespace_id": "1002",
+      "namespace_id": "4202",
       "simple": { "limit": 120, "period": 60 }
     }
   ],

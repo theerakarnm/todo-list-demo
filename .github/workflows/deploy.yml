@@ -1,6 +1,6 @@
 # Deploys production (https://jotlist.eukron.com) on every push to main.
 # Needs repository secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID.
-# Before the first run, fill the TODO(owner) values in wrangler.jsonc.
+# Production ids (D1, R2, rate-limit namespaces) are set in wrangler.jsonc.
 name: Deploy
 
 on:
