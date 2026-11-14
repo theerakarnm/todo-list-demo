@@ -1,7 +1,5 @@
-import { useTranslation } from "react-i18next";
-import { PublicPlaceholder } from "../components/PublicPlaceholder";
+import { LegalPage } from "../legal/LegalPage";
 
 export default function TermsPage() {
-  const { t } = useTranslation();
-  return <PublicPlaceholder title={t("pages.terms.title")} />;
+  return <LegalPage document="terms" />;
 }
