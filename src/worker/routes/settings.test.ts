@@ -76,14 +76,15 @@ describe("PATCH /api/settings with a new time zone", () => {
     const userId = await createTestUser({ timezone });
     const subscription = await internet.push.subscribe();
     await apiAs(userId).post("/api/push/subscribe", subscription);
-    const response = await apiAs(userId).put(`/api/tasks/${newId()}`, {
+    const taskId = newId();
+    const response = await apiAs(userId).put(`/api/tasks/${taskId}`, {
       title: "ประชุม",
       position: "a0",
       dueDate,
       dueTime: "09:30",
     });
     expect(response.status).toBe(200);
-    return { userId, endpoint: subscription.endpoint };
+    return { userId, taskId, endpoint: subscription.endpoint };
   }
 
   it("moves reminders to the due time in the new time zone", async () => {
@@ -92,6 +93,30 @@ describe("PATCH /api/settings with a new time zone", () => {
     await apiAs(userId).patch("/api/settings", { timezone: "Asia/Tokyo" });
     // 09:30 in Tokyo (UTC+9).
     await runCronAt(Date.UTC(2030, 0, 10, 0, 30));
+
+    expect(internet.push.payloadsTo(endpoint)).toHaveLength(1);
+  });
+
+  it("moves the reminder of a completed task, so un-completing it reminds at the new zone's time", async () => {
+    const { userId, taskId, endpoint } = await userWithReminder("Asia/Bangkok", "2030-01-12");
+    await apiAs(userId).patch(`/api/tasks/${taskId}`, { completed: true });
+
+    await apiAs(userId).patch("/api/settings", { timezone: "Asia/Tokyo" });
+    await apiAs(userId).patch(`/api/tasks/${taskId}`, { completed: false });
+    // 09:30 in Tokyo (UTC+9).
+    await runCronAt(Date.UTC(2030, 0, 12, 0, 30));
+
+    expect(internet.push.payloadsTo(endpoint)).toHaveLength(1);
+  });
+
+  it("moves the reminder of a deleted task, so restoring it reminds at the new zone's time", async () => {
+    const { userId, taskId, endpoint } = await userWithReminder("Asia/Bangkok", "2030-01-13");
+    await apiAs(userId).delete(`/api/tasks/${taskId}`);
+
+    await apiAs(userId).patch("/api/settings", { timezone: "Asia/Tokyo" });
+    await apiAs(userId).post(`/api/tasks/${taskId}/restore`);
+    // 09:30 in Tokyo (UTC+9).
+    await runCronAt(Date.UTC(2030, 0, 13, 0, 30));
 
     expect(internet.push.payloadsTo(endpoint)).toHaveLength(1);
   });

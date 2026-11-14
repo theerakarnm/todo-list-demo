@@ -88,23 +88,18 @@ export async function setDueDates(db: Db, userId: string, timeZone: string, chan
 }
 
 /**
- * After the user's time zone changes, every active task with a due time gets
- * the remind_at of its due date and time in the new zone. A reminder already
- * sent is armed again when its new time is still ahead of `now`; one whose new
- * time has passed stays sent.
+ * After the user's time zone changes, every task with a due time gets the
+ * remind_at of its due date and time in the new zone. Completed and deleted
+ * tasks move too: un-complete and restore keep remind_at, so a task that comes
+ * back must already have the new zone's time. A reminder already sent is armed
+ * again when its new time is still ahead of `now`; one whose new time has
+ * passed stays sent.
  */
 export async function moveRemindersToTimeZone(db: Db, userId: string, timeZone: string, now: number) {
   const timed = await db
     .select({ id: tasks.id, dueDate: tasks.dueDate, dueTime: tasks.dueTime })
     .from(tasks)
-    .where(
-      and(
-        eq(tasks.userId, userId),
-        isNotNull(tasks.dueTime),
-        isNull(tasks.completedAt),
-        isNull(tasks.deletedAt),
-      ),
-    );
+    .where(and(eq(tasks.userId, userId), isNotNull(tasks.dueTime)));
   const rows = timed.flatMap(({ id, dueDate, dueTime }) =>
     dueDate && dueTime ? [{ id, remindAt: zonedDateTimeToUtcMs(dueDate, dueTime, timeZone) }] : [],
   );
