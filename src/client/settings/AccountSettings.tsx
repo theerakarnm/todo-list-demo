@@ -11,7 +11,7 @@ export function AccountSettings({ me }: { me: Me }) {
   return (
     <>
       <DisplayNameForm displayName={me.settings.displayName} />
-      <div className="field mb-6">
+      <div className="form-field mb-6">
         <label className="mono" htmlFor="account-email">
           {t("settingsAccount.emailLabel")}
         </label>
