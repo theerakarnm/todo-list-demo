@@ -3,8 +3,20 @@ import { app } from "../app";
 
 export const TEST_ORIGIN = "https://jotlist.test";
 
-/** The test env with a fake Resend key, so auth emails go to the fake internet (see fake-internet.ts). */
-export const testEnv: Env = { ...env, RESEND_API_KEY: "re_fake_test_key" };
+/** A rate limiter that always lets the request through. */
+export const unlimited: RateLimit = { limit: async () => ({ success: true }) };
+
+/**
+ * The test env: a fake Resend key, so auth emails go to the fake internet
+ * (see fake-internet.ts), and no rate limits, since every test request comes
+ * from the same address.
+ */
+export const testEnv: Env = {
+  ...env,
+  RESEND_API_KEY: "re_fake_test_key",
+  RATE_LIMIT_AUTH: unlimited,
+  RATE_LIMIT_API: unlimited,
+};
 
 type TestBrowserOptions = {
   bindings?: Env;
