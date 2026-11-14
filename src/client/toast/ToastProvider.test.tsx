@@ -52,4 +52,17 @@ describe("ToastProvider", () => {
     act(() => vi.advanceTimersByTime(200));
     expect(toasts.queryByText("ทำเสร็จแล้ว")).toBeNull();
   });
+
+  it("stays while the pointer is on it, so Undo can be reached", () => {
+    vi.useFakeTimers();
+    const toasts = renderWithToasts(vi.fn());
+
+    fireEvent.mouseEnter(toasts.getByText("ทำเสร็จแล้ว").parentElement as HTMLElement);
+    act(() => vi.advanceTimersByTime(10_000));
+    expect(toasts.queryByText("ทำเสร็จแล้ว")).toBeTruthy();
+
+    fireEvent.mouseLeave(toasts.getByText("ทำเสร็จแล้ว").parentElement as HTMLElement);
+    act(() => vi.advanceTimersByTime(5100));
+    expect(toasts.queryByText("ทำเสร็จแล้ว")).toBeNull();
+  });
 });
