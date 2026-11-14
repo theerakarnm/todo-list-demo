@@ -12,7 +12,11 @@ export default defineConfig({
           cloudflareTest(async () => ({
             wrangler: { configPath: "./wrangler.jsonc" },
             miniflare: {
-              bindings: { TEST_MIGRATIONS: await readD1Migrations(migrationsPath) },
+              bindings: {
+                TEST_MIGRATIONS: await readD1Migrations(migrationsPath),
+                // .dev.vars may hold a real key; tests must never send real email.
+                RESEND_API_KEY: "",
+              },
             },
           })),
         ],
