@@ -72,4 +72,20 @@ describe("routes", () => {
     await screen.findByRole("heading", { level: 1, name: th.pages.today.title });
     expect(router.state.location.pathname).toBe("/app/today");
   });
+
+  it("opens Today at /today, the address a digest notification carries", async () => {
+    const router = renderAt("/today");
+
+    await screen.findByRole("heading", { level: 1, name: th.pages.today.title });
+    expect(router.state.location.pathname).toBe("/app/today");
+  });
+
+  it("opens a task in the TaskDrawer at /task/:id, the address a reminder carries", async () => {
+    const router = renderAt("/task/t1");
+
+    await screen.findByRole("heading", { level: 1, name: th.pages.today.title });
+    expect(router.state.location.pathname).toBe("/app/today");
+    expect(router.state.location.search).toBe("?task=t1");
+    expect(await screen.findByRole("dialog", { name: th.drawer.label })).toBeTruthy();
+  });
 });
