@@ -1,12 +1,15 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
+import { useMe } from "../auth/use-me";
 import { Icon } from "../components/Icon";
-import { PLACEHOLDER_USER } from "./placeholder-user";
 
 /** Avatar, name and email, plus the Settings button (top of the sidebar). */
 export function SidebarUser({ collapsed }: { collapsed: boolean }) {
   const { t } = useTranslation();
-  const { name, email } = PLACEHOLDER_USER;
+  const { data: me } = useMe();
+  const name = me?.settings.displayName ?? "";
+  // LINE-only accounts have no email to show.
+  const email = me?.user.email;
   const initial = [...name][0];
 
   return (
@@ -17,7 +20,7 @@ export function SidebarUser({ collapsed }: { collapsed: boolean }) {
         </span>
         <span className={collapsed ? "sr-only" : "min-w-0"}>
           <span className="block truncate text-[15px] font-bold">{name}</span>
-          <span className="mono muted block truncate text-[11px] normal-case">{email}</span>
+          {email && <span className="mono muted block truncate text-[11px] normal-case">{email}</span>}
         </span>
       </div>
       <Link to="/app/settings" className="icon-button" aria-label={t("nav.settings")}>

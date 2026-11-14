@@ -1,5 +1,11 @@
 import { cleanup, configure } from "@testing-library/react";
-import { afterEach } from "vitest";
+import { afterEach, beforeEach } from "vitest";
+import { queryClient } from "../api/query-client";
+import { installFakeApi } from "./fake-api";
+
+// A fresh fake API server (signed in by default) and an empty query cache for every test.
+beforeEach(installFakeApi);
+afterEach(() => queryClient.clear());
 
 // Testing Library only cleans up by itself when Vitest globals are on; they are off here.
 afterEach(cleanup);
