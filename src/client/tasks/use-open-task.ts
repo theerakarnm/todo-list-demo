@@ -1,6 +1,4 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router";
-import { findInLogbook } from "../data/logbook-query";
 import { useSyncStore } from "../data/sync-query";
 
 /**
@@ -9,11 +7,9 @@ import { useSyncStore } from "../data/sync-query";
  */
 export function useOpenTask() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const queryClient = useQueryClient();
   const store = useSyncStore();
   const taskId = searchParams.get("task");
-
-  const task = taskId ? (store?.tasks[taskId] ?? findInLogbook(queryClient, taskId)) : undefined;
+  const task = taskId ? store?.tasks[taskId] : undefined;
 
   function close() {
     setSearchParams(

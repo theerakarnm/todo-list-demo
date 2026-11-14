@@ -1,6 +1,8 @@
 import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { aTask, storeWith } from "../data/test-rows";
+import { SYNC_QUERY_KEY } from "../data/sync-query";
+import type { SyncStore } from "../data/sync-store";
+import { aSubtask, aTask, storeWith } from "../data/test-rows";
 import th from "../i18n/th.json";
 import { stubApi } from "../test/fake-api";
 import { renderWithStore } from "../test/render";
@@ -21,8 +23,8 @@ describe("LogbookPage", () => {
     const calls = stubApi({
       "GET /api/logbook": (request) =>
         new URL(request.url).searchParams.has("before")
-          ? { tasks: pageOf(3, 50), next: null }
-          : { tasks: pageOf(50, 0), next: { before: completedAt - 49_000, beforeId: "done-49" } },
+          ? { tasks: pageOf(3, 50), subtasks: [], next: null }
+          : { tasks: pageOf(50, 0), subtasks: [], next: { before: completedAt - 49_000, beforeId: "done-49" } },
     });
     renderWithStore(<LogbookPage />, storeWith({}), "/app/logbook");
 
@@ -37,7 +39,7 @@ describe("LogbookPage", () => {
 
   it("unticking a task takes it out of the Logbook and restores it", async () => {
     const calls = stubApi({
-      "GET /api/logbook": () => ({ tasks: [aTask({ id: "done-1", title: "จ่ายค่าไฟ", completedAt })], next: null }),
+      "GET /api/logbook": () => ({ tasks: [aTask({ id: "done-1", title: "จ่ายค่าไฟ", completedAt })], subtasks: [], next: null }),
       "PATCH /api/tasks/:id": () => aTask({ id: "done-1", title: "จ่ายค่าไฟ", updatedAt: 9 }),
     });
     renderWithStore(<LogbookPage />, storeWith({}), "/app/logbook");
@@ -46,5 +48,19 @@ describe("LogbookPage", () => {
 
     await waitFor(() => expect(screen.queryByRole("link", { name: "จ่ายค่าไฟ" })).toBeNull());
     await waitFor(() => expect(calls.find((call) => call.method === "PATCH")?.body).toEqual({ completed: false }));
+  });
+
+  it("loads the subtasks of completed tasks, so their progress and drawer work", async () => {
+    stubApi({
+      "GET /api/logbook": () => ({
+        tasks: [aTask({ id: "done-1", title: "จ่ายค่าไฟ", completedAt })],
+        subtasks: [aSubtask({ id: "s1", taskId: "done-1", completedAt }), aSubtask({ id: "s2", taskId: "done-1" })],
+        next: null,
+      }),
+    });
+    const { queryClient } = renderWithStore(<LogbookPage />, storeWith({}), "/app/logbook");
+
+    expect(await screen.findByText("1/2")).toBeTruthy();
+    expect((queryClient.getQueryData(SYNC_QUERY_KEY) as SyncStore).tasks["done-1"]).toBeDefined();
   });
 });

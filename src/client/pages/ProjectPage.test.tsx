@@ -93,6 +93,7 @@ describe("ProjectPage", () => {
     stubApi({
       "GET /api/logbook": () => ({
         tasks: [aTask({ id: "done", title: "ส่งใบแจ้งหนี้เดือนตุลาคม", projectId: "p1", completedAt: 5 })],
+        subtasks: [],
         next: null,
       }),
     });
