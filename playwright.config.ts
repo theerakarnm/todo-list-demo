@@ -11,6 +11,7 @@ const PORT = 5199;
 const E2E_DEV_VARS = ".dev.vars.e2e";
 const e2eDevVars = [
   "APP_ENV=development",
+  "BETTER_AUTH_URL=",
   "BETTER_AUTH_SECRET=e2e-better-auth-secret-at-least-32-characters",
   "RESEND_API_KEY=",
   "EMAIL_FROM=no-reply@jotlist.test",
