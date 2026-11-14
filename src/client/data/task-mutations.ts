@@ -27,7 +27,13 @@ function endOfList(store: SyncStore | undefined, projectId: string | null) {
   return positionAtEnd(projectId ? projectTasks(store, projectId) : inboxTasks(store));
 }
 
-type NewTask = { title: string; projectId: string | null; dueDate: string | null; priority?: Priority };
+type NewTask = {
+  title: string;
+  projectId: string | null;
+  dueDate: string | null;
+  dueTime?: string | null;
+  priority?: Priority;
+};
 
 export function useCreateTask() {
   const snapshot = useStoreSnapshot();
@@ -51,7 +57,7 @@ export function useCreateTask() {
     confirm: (task) => ({ tasks: [task] }),
   });
 
-  return ({ title, projectId, dueDate, priority = "none" }: NewTask) => {
+  return ({ title, projectId, dueDate, dueTime = null, priority = "none" }: NewTask) => {
     const task: Task = {
       id: uuidv7(),
       title: title.trim(),
@@ -59,7 +65,7 @@ export function useCreateTask() {
       priority,
       projectId,
       dueDate,
-      dueTime: null,
+      dueTime,
       remindAt: null,
       reminderSentAt: null,
       position: endOfList(snapshot(), projectId),

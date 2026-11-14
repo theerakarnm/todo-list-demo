@@ -187,8 +187,7 @@
     "addTaskHint": {
       "today": "due: today",
       "inbox": "to: inbox",
-      "project": "to: {{name}}",
-      "date": "due: {{date}}"
+      "project": "to: {{name}}"
     }
   },
   "projectColors": {
@@ -259,6 +258,19 @@
     "hintOpen": "enter - เปิด",
     "hintClose": "esc - ปิด",
     "escKey": "Esc",
+    "enterKey": "Enter"
+  },
+  "quickAdd": {
+    "title": "quick add",
+    "titleField": "งานใหม่ / new task",
+    "placeholder": "เช่น โทรหาแม่ พรุ่งนี้ บ่ายสอง p1",
+    "chooseProject": "เลือกโปรเจกต์",
+    "chooseDate": "เลือกวันที่",
+    "choosePriority": "เลือกความสำคัญ",
+    "noDate": "ไม่มีวันที่",
+    "clearDate": "ล้างวันที่",
+    "cancel": "Cancel",
+    "add": "Add task",
     "enterKey": "Enter"
   }
 }

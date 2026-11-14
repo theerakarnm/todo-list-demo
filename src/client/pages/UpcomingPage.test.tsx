@@ -1,10 +1,20 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { fireEvent, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import type { SyncStore } from "../data/sync-store";
 import { aTask, storeWith } from "../data/test-rows";
 import th from "../i18n/th.json";
-import { echoCreatedRow, stubApi } from "../test/fake-api";
+import { QuickAddContext } from "../quick-add/quick-add-context";
 import { renderWithStore } from "../test/render";
 import UpcomingPage from "./UpcomingPage";
+
+function renderUpcoming(store: SyncStore, openQuickAdd = vi.fn()) {
+  return renderWithStore(
+    <QuickAddContext value={openQuickAdd}>
+      <UpcomingPage />
+    </QuickAddContext>,
+    store,
+  );
+}
 
 const dayHeadings = () => screen.getAllByRole("heading", { level: 2 }).map((heading) => heading.textContent);
 
@@ -21,10 +31,7 @@ describe("UpcomingPage", () => {
   });
 
   it("shows a section per day from tomorrow, with counts and free days", () => {
-    renderWithStore(
-      <UpcomingPage />,
-      storeWith({ tasks: [aTask({ id: "t1", title: "ซักผ้าห่ม", dueDate: "2026-11-15" })] }),
-    );
+    renderUpcoming(storeWith({ tasks: [aTask({ id: "t1", title: "ซักผ้าห่ม", dueDate: "2026-11-15" })] }));
 
     expect(dayHeadings()).toEqual([
       "พรุ่งนี้ - อาทิตย์ 15 พ.ย.",
@@ -41,7 +48,7 @@ describe("UpcomingPage", () => {
   });
 
   it("remembers the chosen range on this device", () => {
-    renderWithStore(<UpcomingPage />, storeWith({}));
+    renderUpcoming(storeWith({}));
 
     fireEvent.click(screen.getByRole("radio", { name: "30 วัน" }));
 
@@ -49,16 +56,12 @@ describe("UpcomingPage", () => {
     expect(localStorage.getItem("jotlist-upcoming-range")).toBe("30");
   });
 
-  it("adds a task to that day from its Add task button", async () => {
-    const calls = stubApi({ "PUT /api/tasks/:id": echoCreatedRow });
-    renderWithStore(<UpcomingPage />, storeWith({}));
+  it("opens Quick Add on that day from its Add task button", () => {
+    const openQuickAdd = vi.fn();
+    renderUpcoming(storeWith({}), openQuickAdd);
 
     fireEvent.click(screen.getByRole("button", { name: "เพิ่มงานวันจันทร์ 16 พ.ย." }));
-    const input = screen.getByRole("textbox", { name: th.task.addTask });
-    fireEvent.change(input, { target: { value: "จองตั๋วรถไฟกลับบ้าน" } });
-    fireEvent.keyDown(input, { key: "Enter" });
 
-    expect(await screen.findByRole("link", { name: "จองตั๋วรถไฟกลับบ้าน" })).toBeTruthy();
-    await waitFor(() => expect(calls[0]?.body).toMatchObject({ dueDate: "2026-11-16" }));
+    expect(openQuickAdd).toHaveBeenCalledWith({ dueDate: "2026-11-16" });
   });
 });

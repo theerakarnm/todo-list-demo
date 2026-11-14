@@ -64,4 +64,22 @@
     background: var(--highlight);
     color: var(--on-highlight);
   }
+
+  /* A Quick Add chip: the native select or date input lies invisibly on top of it. */
+  .quick-chip {
+    position: relative;
+  }
+
+  .quick-chip-control {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .quick-chip:has(.quick-chip-control:focus-visible) {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
+  }
 }

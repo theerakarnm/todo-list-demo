@@ -11,7 +11,7 @@ type AddTaskInputProps = {
 };
 
 /** The open "+ Add task" row: Enter saves and stays open for the next one, Esc closes. */
-export function AddTaskInput({ hint, onAdd, onClose }: AddTaskInputProps) {
+function AddTaskInput({ hint, onAdd, onClose }: AddTaskInputProps) {
   const { t } = useTranslation();
   const [title, setTitle] = useState("");
 

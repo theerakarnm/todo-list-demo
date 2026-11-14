@@ -1,15 +1,13 @@
-import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AppPage } from "../components/AppPage";
 import { Icon } from "../components/Icon";
 import { PageHeader } from "../components/PageHeader";
 import { upcomingDays } from "../data/selectors";
 import { useSyncStore } from "../data/sync-query";
-import { useCreateTask } from "../data/task-mutations";
 import type { Task } from "../data/types";
 import { useNow } from "../data/use-now";
-import { formatDayMonth, formatLocalDate } from "../i18n/format-date";
-import { AddTaskInput } from "../tasks/AddTaskRow";
+import { formatLocalDate } from "../i18n/format-date";
+import { useOpenQuickAdd } from "../quick-add/quick-add-context";
 import { LoadBar } from "../tasks/LoadBar";
 import { TaskList } from "../tasks/TaskList";
 import { UPCOMING_RANGES, useUpcomingRange } from "./use-upcoming-range";
@@ -18,8 +16,7 @@ type Day = { date: string; tasks: Task[] };
 
 function DaySection({ day, isTomorrow }: { day: Day; isTomorrow: boolean }) {
   const { t } = useTranslation();
-  const createTask = useCreateTask();
-  const [adding, setAdding] = useState(false);
+  const openQuickAdd = useOpenQuickAdd();
   const dateLabel = formatLocalDate(day.date);
 
   return (
@@ -41,7 +38,7 @@ function DaySection({ day, isTomorrow }: { day: Day; isTomorrow: boolean }) {
             type="button"
             className="btn btn-outline btn-small"
             aria-label={t("pages.upcoming.addTaskLabel", { date: dateLabel })}
-            onClick={() => setAdding(true)}
+            onClick={() => openQuickAdd({ dueDate: day.date })}
           >
             <Icon name="plus" size={16} /> {t("pages.upcoming.addTask")}
           </button>
@@ -53,13 +50,6 @@ function DaySection({ day, isTomorrow }: { day: Day; isTomorrow: boolean }) {
         <div className="task-row min-h-12">
           <span className="mono muted pl-4">{t("pages.upcoming.free")}</span>
         </div>
-      )}
-      {adding && (
-        <AddTaskInput
-          hint={t("task.addTaskHint.date", { date: formatDayMonth(day.date) })}
-          onAdd={(title) => createTask({ title, projectId: null, dueDate: day.date })}
-          onClose={() => setAdding(false)}
-        />
       )}
     </div>
   );

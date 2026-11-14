@@ -43,7 +43,7 @@ describe("mobile bottom bar", () => {
 
     act(() => bottomBar.getByRole("button", { name: th.bottomBar.add }).click());
 
-    expect(screen.getByRole("dialog", { name: th.nav.addTask })).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: th.quickAdd.title })).toBeTruthy();
   });
 });
 
