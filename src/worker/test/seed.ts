@@ -43,3 +43,16 @@ export async function insertSubtask(userId: string, taskId: string) {
     .run();
   return id;
 }
+
+/** Inserts `count` projects in one statement, for the project limit test. */
+export async function seedProjects(userId: string, count: number) {
+  const prefix = crypto.randomUUID();
+  const now = Date.now();
+  await env.DB.prepare(
+    `WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < ?1)
+     INSERT INTO projects (id, user_id, name, color, position, created_at, updated_at)
+     SELECT ?2 || '-' || i, ?3, 'โปรเจกต์', 'blue', 'a0', ?4, ?4 FROM n`,
+  )
+    .bind(count, prefix, userId, now)
+    .run();
+}
