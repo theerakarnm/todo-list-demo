@@ -1,7 +1,8 @@
-import { type KeyboardEvent, useEffect, useState } from "react";
+import { type KeyboardEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { LIMITS } from "../../shared/constants";
 import { Icon } from "../components/Icon";
+import { useDraft } from "../components/use-draft";
 import { subtasksOf } from "../data/selectors";
 import { useCreateSubtask, useDeleteSubtask, useUpdateSubtask } from "../data/subtask-mutations";
 import { useSyncStore } from "../data/sync-query";
@@ -16,16 +17,12 @@ function SubtaskRow({ subtask }: { subtask: Subtask }) {
   const { t } = useTranslation();
   const updateSubtask = useUpdateSubtask();
   const deleteSubtask = useDeleteSubtask();
-  const [title, setTitle] = useState(subtask.title);
   const done = subtask.completedAt !== null;
-
-  useEffect(() => setTitle(subtask.title), [subtask.title]);
-
-  function saveTitle() {
-    const trimmed = title.trim();
-    if (trimmed && trimmed !== subtask.title) updateSubtask(subtask, { title: trimmed });
-    else setTitle(subtask.title);
-  }
+  const title = useDraft(subtask.title, (text) => {
+    if (!text.trim()) return false;
+    updateSubtask(subtask, { title: text.trim() });
+    return true;
+  });
 
   return (
     <li className="subtask-row" data-done={done}>
@@ -43,9 +40,7 @@ function SubtaskRow({ subtask }: { subtask: Subtask }) {
         className="subtask-title"
         aria-label={t("drawer.subtaskTitle")}
         maxLength={LIMITS.subtaskTitleLength}
-        value={title}
-        onChange={(event) => setTitle(event.target.value)}
-        onBlur={saveTitle}
+        {...title.field}
         onKeyDown={(event) => isEnter(event) && event.currentTarget.blur()}
       />
       <button

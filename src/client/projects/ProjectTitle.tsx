@@ -1,6 +1,7 @@
-import { type KeyboardEvent, useEffect, useState } from "react";
+import type { KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { LIMITS, PROJECT_COLOR_HEX } from "../../shared/constants";
+import { useDraft } from "../components/use-draft";
 import { useUpdateProject } from "../data/project-mutations";
 import type { Project } from "../data/types";
 
@@ -8,26 +9,16 @@ import type { Project } from "../data/types";
 export function ProjectTitle({ project }: { project: Project }) {
   const { t } = useTranslation();
   const updateProject = useUpdateProject();
-  const [name, setName] = useState(project.name);
-
-  // Another device (or Undo) renamed it.
-  useEffect(() => setName(project.name), [project.name]);
-
-  function save() {
-    const trimmed = name.trim();
-    if (trimmed && trimmed !== project.name) updateProject(project, { name: trimmed });
-    else setName(project.name);
-  }
+  const name = useDraft(project.name, (text) => {
+    if (!text.trim()) return false;
+    updateProject(project, { name: text.trim() });
+    return true;
+  });
 
   function onKeyDown(event: KeyboardEvent<HTMLInputElement>) {
     if (event.nativeEvent.isComposing) return;
-    if (event.key === "Enter") event.currentTarget.blur();
-    if (event.key === "Escape") {
-      setName(project.name);
-      // Blur after the reset has rendered, so save() sees the old name.
-      const input = event.currentTarget;
-      requestAnimationFrame(() => input.blur());
-    }
+    if (event.key === "Escape") name.reset();
+    if (event.key === "Enter" || event.key === "Escape") event.currentTarget.blur();
   }
 
   return (
@@ -39,9 +30,7 @@ export function ProjectTitle({ project }: { project: Project }) {
             className="project-title"
             aria-label={t("pages.project.nameLabel")}
             maxLength={LIMITS.projectNameLength}
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            onBlur={save}
+            {...name.field}
             onKeyDown={onKeyDown}
           />
         </h1>

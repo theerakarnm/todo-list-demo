@@ -57,6 +57,19 @@ describe("ProjectPage", () => {
     expect(projectIn(queryClient)?.name).toBe("งานบริษัท");
   });
 
+  it("Esc throws a rename away", () => {
+    const calls = stubApi({});
+    renderProject();
+
+    const title = screen.getByRole("textbox", { name: th.pages.project.nameLabel });
+    fireEvent.change(title, { target: { value: "ชื่อผิด" } });
+    fireEvent.keyDown(title, { key: "Escape" });
+    fireEvent.blur(title);
+
+    expect(title).toHaveProperty("value", "งาน");
+    expect(calls).toEqual([]);
+  });
+
   it("changes colour from the project menu", async () => {
     const calls = stubApi({ "PATCH /api/projects/:id": () => aProject({ id: "p1", color: "orange", updatedAt: 9 }) });
     renderProject();

@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { aProject, aSubtask, aTask, storeWith } from "../data/test-rows";
 import th from "../i18n/th.json";
@@ -75,5 +75,15 @@ describe("TaskDrawer", () => {
     fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
 
     await waitFor(() => expect(router.state.location.search).toBe(""));
+  });
+
+  it("keeps typed notes when Back closes the drawer before the field loses focus", async () => {
+    const calls = stubApi({ "PATCH /api/tasks/:id": () => aTask({ id: "t1", updatedAt: 0 }) });
+    const { drawer, router } = renderDrawer();
+
+    fireEvent.change(drawer.getByRole("textbox", { name: th.drawer.notes }), { target: { value: "แนบราคาใหม่" } });
+    await act(() => router.navigate("/app/today"));
+
+    await waitFor(() => expect(calls[0]?.body).toEqual({ notes: "แนบราคาใหม่" }));
   });
 });

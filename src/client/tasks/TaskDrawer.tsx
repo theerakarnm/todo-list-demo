@@ -1,29 +1,14 @@
-import { type KeyboardEvent, useEffect, useState } from "react";
+import type { KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { LIMITS } from "../../shared/constants";
 import { Dialog } from "../components/Dialog";
 import { Icon } from "../components/Icon";
+import { useDraft } from "../components/use-draft";
 import { useCompleteTask, useDeleteTask, useUncompleteTask, useUpdateTask } from "../data/task-mutations";
 import type { Task } from "../data/types";
 import { SubtaskList } from "./SubtaskList";
 import { TaskDetails } from "./TaskDetails";
 import { useOpenTask } from "./use-open-task";
-
-/**
- * A text field that saves when it loses focus, if its text changed.
- * `save` returns false to refuse the text (e.g. an empty title), which puts the saved text back.
- */
-function useDraft(saved: string, save: (text: string) => boolean) {
-  const [draft, setDraft] = useState(saved);
-  useEffect(() => setDraft(saved), [saved]);
-  return {
-    value: draft,
-    onChange: (event: { target: { value: string } }) => setDraft(event.target.value),
-    onBlur: () => {
-      if (draft !== saved && !save(draft)) setDraft(saved);
-    },
-  };
-}
 
 function TaskEditor({ task, onDeleted }: { task: Task; onDeleted: () => void }) {
   const { t } = useTranslation();
@@ -69,7 +54,7 @@ function TaskEditor({ task, onDeleted }: { task: Task; onDeleted: () => void }) 
           rows={1}
           maxLength={LIMITS.taskTitleLength}
           onKeyDown={onTitleKeyDown}
-          {...title}
+          {...title.field}
         />
       </div>
 
@@ -79,7 +64,7 @@ function TaskEditor({ task, onDeleted }: { task: Task; onDeleted: () => void }) 
           className="field min-h-28 py-3 leading-[1.6]"
           placeholder={t("drawer.notesPlaceholder")}
           maxLength={LIMITS.taskNotesLength}
-          {...notes}
+          {...notes.field}
         />
       </label>
 
