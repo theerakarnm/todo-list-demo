@@ -1,5 +1,6 @@
 import { createDb } from "./db/client";
 import { sendDigests } from "./cron/digests";
+import { purgeDeletedRows } from "./cron/purge";
 import { sendDueReminders } from "./cron/reminders";
 import { vapidFrom } from "./push/vapid";
 
@@ -7,12 +8,14 @@ type Counts = Record<string, number>;
 
 /**
  * Runs one job and writes one JSON line for Workers Logs: counts only, never
- * endpoints, keys, task text, emails or user ids. A failing job is logged and
+ * endpoints, keys, task text, emails or user ids. A job that had nothing to
+ * do that minute returns null and logs nothing. A failing job is logged and
  * the next one still runs.
  */
-async function runJob(job: string, work: () => Promise<Counts>) {
+async function runJob(job: string, work: () => Promise<Counts | null>) {
   try {
-    console.log(JSON.stringify({ level: "info", event: "cron", job, ...(await work()) }));
+    const counts = await work();
+    if (counts) console.log(JSON.stringify({ level: "info", event: "cron", job, ...counts }));
   } catch (error) {
     // Only the error's name: a D1 message can quote the values in the statement.
     const name = error instanceof Error ? error.name : "unknown";
@@ -35,4 +38,5 @@ export async function handleScheduled(controller: ScheduledController, env: Env)
     // Without the keys nothing can be sent; reminders and digests stay unclaimed until they are set.
     console.warn(JSON.stringify({ level: "warn", event: "cron", job: "push", skipped: "no VAPID keys" }));
   }
+  await runJob("purge", () => purgeDeletedRows(db, env.FILES, now));
 }
