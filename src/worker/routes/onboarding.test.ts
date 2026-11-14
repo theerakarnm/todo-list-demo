@@ -87,6 +87,26 @@ describe("POST /api/onboarding/complete", () => {
     expect((await projectsOf(browser)).map(({ name, color }) => ({ name, color }))).toEqual([{ name: "Personal", color: "orange" }]);
   });
 
+  it("creates the three extra projects with the mockup colours, after the first three", async () => {
+    const browser = await signUpVerifiedUser(internet);
+
+    await completeOnboarding(browser, {
+      displayName: "แจม",
+      theme: "system",
+      starterProjects: [
+        { key: "finance", name: "การเงิน" },
+        { key: "family", name: "ครอบครัว" },
+        { key: "learning", name: "เรียนรู้" },
+      ],
+    });
+
+    expect((await projectsOf(browser)).map(({ name, color }) => ({ name, color }))).toEqual([
+      { name: "เรียนรู้", color: "green" },
+      { name: "ครอบครัว", color: "black" },
+      { name: "การเงิน", color: "blue" },
+    ]);
+  });
+
   it("creates nothing on Skip, but still marks onboarding done", async () => {
     const browser = await signUpVerifiedUser(internet);
 
@@ -118,7 +138,7 @@ describe("POST /api/onboarding/complete", () => {
 
   it.each([
     ["a key outside the fixed list", { starterProjects: [{ key: "chores", name: "งานบ้าน" }] }],
-    ["more than three projects", { starterProjects: [...allStarterProjects, allStarterProjects[0]] }],
+    ["more than six projects", { starterProjects: Array(7).fill(allStarterProjects[0]) }],
     ["an empty display name", { displayName: " " }],
   ])("answers 400 VALIDATION_ERROR for %s", async (_case, override) => {
     const browser = await signUpVerifiedUser(internet);

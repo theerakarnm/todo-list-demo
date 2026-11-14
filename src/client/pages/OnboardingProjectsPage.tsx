@@ -3,7 +3,7 @@ import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 import { PROJECT_COLOR_HEX } from "../../shared/constants";
-import { STARTER_PROJECT_COLORS, STARTER_PROJECT_KEYS, type StarterProjectKey } from "../../shared/schemas/onboarding";
+import { STARTER_PROJECT_COLORS, STARTER_PROJECT_KEYS, type StarterProjectKey, TICKED_BY_DEFAULT } from "../../shared/schemas/onboarding";
 import { errorMessage } from "../auth/error-message";
 import { FormError } from "../auth/FormError";
 import { useMe } from "../auth/use-me";
@@ -11,7 +11,7 @@ import { completeOnboarding } from "../onboarding/complete-onboarding";
 import { OnboardingLayout } from "../onboarding/OnboardingLayout";
 import { useTheme } from "../theme/ThemeProvider";
 
-/** Step 2: starter projects, all ticked. "Skip" creates none. Either way onboarding is done. */
+/** Step 2: starter projects, first three ticked. "Skip" creates none. Either way onboarding is done. */
 export default function OnboardingProjectsPage() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -19,7 +19,7 @@ export default function OnboardingProjectsPage() {
   const { preference: theme } = useTheme();
   // From step 1; after a reload the saved name is used instead.
   const displayName = (useLocation().state as { displayName?: string } | null)?.displayName ?? me?.settings.displayName ?? "";
-  const [picked, setPicked] = useState<StarterProjectKey[]>([...STARTER_PROJECT_KEYS]);
+  const [picked, setPicked] = useState<StarterProjectKey[]>([...TICKED_BY_DEFAULT]);
 
   const finish = useMutation({
     mutationFn: (keys: StarterProjectKey[]) =>

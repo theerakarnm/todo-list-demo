@@ -17,10 +17,10 @@ describe("completeOnboardingSchema", () => {
     expect(completeOnboardingSchema.parse({ ...valid, timezone: "Asia/Tokyo" }).timezone).toBe("Asia/Tokyo");
   });
 
-  it("rejects unknown keys, empty names and more than three", () => {
+  it("rejects unknown keys, empty names and more than six", () => {
     const work = { key: "work", name: "งาน" };
     expect(completeOnboardingSchema.safeParse({ ...valid, starterProjects: [{ key: "Work", name: "งาน" }] }).success).toBe(false);
     expect(completeOnboardingSchema.safeParse({ ...valid, starterProjects: [{ key: "work", name: " " }] }).success).toBe(false);
-    expect(completeOnboardingSchema.safeParse({ ...valid, starterProjects: [work, work, work, work] }).success).toBe(false);
+    expect(completeOnboardingSchema.safeParse({ ...valid, starterProjects: Array(7).fill(work) }).success).toBe(false);
   });
 });

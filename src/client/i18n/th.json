@@ -272,7 +272,10 @@
     "starterProjects": {
       "work": "งาน",
       "personal": "ส่วนตัว",
-      "yearGoals": "เป้าหมายปีนี้"
+      "yearGoals": "เป้าหมายปีนี้",
+      "learning": "เรียนรู้",
+      "family": "ครอบครัว",
+      "finance": "การเงิน"
     },
     "projectsHint": "เลือกได้หลายอัน เปลี่ยนหรือเพิ่มทีหลังได้",
     "createWorkspace": "Create workspace",

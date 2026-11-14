@@ -1,5 +1,5 @@
 import { act, fireEvent, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import th from "../i18n/th.json";
 import { answer, apiError, lastJsonSentTo, signedInAs, signedOut, testMe } from "../test/fake-api";
 import { openPage } from "../test/render-app";
@@ -43,13 +43,31 @@ describe("onboarding step 1", () => {
 });
 
 describe("onboarding step 2", () => {
-  it("has the three starter projects ticked", async () => {
+  it("offers six starter projects in the mockup order, the first three ticked", async () => {
     await finishStepOne();
 
     const projects = within(screen.getByRole("group", { name: th.onboarding.projectsCaption }));
-    for (const name of ["งาน", "ส่วนตัว", "เป้าหมายปีนี้"]) {
-      expect(projects.getByRole<HTMLInputElement>("checkbox", { name }).checked).toBe(true);
-    }
+    const boxes = projects.getAllByRole<HTMLInputElement>("checkbox");
+    expect(boxes.map((box) => [box.closest("label")?.textContent, box.checked])).toEqual([
+      ["งาน", true],
+      ["ส่วนตัว", true],
+      ["เป้าหมายปีนี้", true],
+      ["เรียนรู้", false],
+      ["ครอบครัว", false],
+      ["การเงิน", false],
+    ]);
+  });
+
+  it("sends an extra project once it is ticked", async () => {
+    answer("POST /api/onboarding/complete", { body: { settings: {} } });
+    await finishStepOne();
+    act(() => screen.getByRole("checkbox", { name: "การเงิน" }).click());
+
+    click(th.onboarding.createWorkspace);
+
+    await vi.waitFor(async () =>
+      expect((await lastJsonSentTo("POST /api/onboarding/complete")).starterProjects.at(-1)).toEqual({ key: "finance", name: "การเงิน" }),
+    );
   });
 
   it("creates the ticked projects with the name, theme and browser time zone, then opens the start page", async () => {

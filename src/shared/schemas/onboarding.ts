@@ -3,14 +3,18 @@ import { LIMITS, type ProjectColor, THEMES } from "../constants";
 import { titleSchema } from "./fields";
 import { timezoneSchema } from "./settings";
 
-/** Onboarding step 2 offers these projects, created in this order. Labels live in th.json. */
-export const STARTER_PROJECT_KEYS = ["work", "personal", "yearGoals"] as const;
+/** Onboarding step 2 offers these projects, created in this order. The first three start ticked. Labels live in th.json. */
+export const STARTER_PROJECT_KEYS = ["work", "personal", "yearGoals", "learning", "family", "finance"] as const;
 export type StarterProjectKey = (typeof STARTER_PROJECT_KEYS)[number];
+export const TICKED_BY_DEFAULT: StarterProjectKey[] = ["work", "personal", "yearGoals"];
 
 export const STARTER_PROJECT_COLORS: Record<StarterProjectKey, ProjectColor> = {
   work: "blue",
   personal: "orange",
   yearGoals: "violet",
+  learning: "green",
+  family: "black",
+  finance: "blue",
 };
 
 /** The client sends the translated name with each key. */
