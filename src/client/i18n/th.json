@@ -269,6 +269,11 @@
     "themeLegend": "ธีมสี / theme",
     "continue": "Continue",
     "projectsCaption": "starter projects",
+    "starterProjects": {
+      "work": "งาน",
+      "personal": "ส่วนตัว",
+      "yearGoals": "เป้าหมายปีนี้"
+    },
     "projectsHint": "เลือกได้หลายอัน เปลี่ยนหรือเพิ่มทีหลังได้",
     "createWorkspace": "Create workspace",
     "skip": "Skip"

@@ -3,7 +3,7 @@ import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 import { PROJECT_COLOR_HEX } from "../../shared/constants";
-import { STARTER_PROJECT_COLORS, STARTER_PROJECT_NAMES, type StarterProjectName } from "../../shared/schemas/onboarding";
+import { STARTER_PROJECT_COLORS, STARTER_PROJECT_KEYS, type StarterProjectKey } from "../../shared/schemas/onboarding";
 import { errorMessage } from "../auth/error-message";
 import { FormError } from "../auth/FormError";
 import { useMe } from "../auth/use-me";
@@ -19,16 +19,21 @@ export default function OnboardingProjectsPage() {
   const { preference: theme } = useTheme();
   // From step 1; after a reload the saved name is used instead.
   const displayName = (useLocation().state as { displayName?: string } | null)?.displayName ?? me?.settings.displayName ?? "";
-  const [picked, setPicked] = useState<StarterProjectName[]>([...STARTER_PROJECT_NAMES]);
+  const [picked, setPicked] = useState<StarterProjectKey[]>([...STARTER_PROJECT_KEYS]);
 
   const finish = useMutation({
-    mutationFn: (starterProjects: StarterProjectName[]) => completeOnboarding({ displayName, theme, starterProjects }),
+    mutationFn: (keys: StarterProjectKey[]) =>
+      completeOnboarding({
+        displayName,
+        theme,
+        starterProjects: keys.map((key) => ({ key, name: t(`onboarding.starterProjects.${key}`) })),
+      }),
     // Fresh settings and projects; the route guard then moves on to the start page.
     onSuccess: () => queryClient.invalidateQueries(),
   });
 
-  function toggle(name: StarterProjectName) {
-    setPicked(picked.includes(name) ? picked.filter((item) => item !== name) : [...picked, name]);
+  function toggle(key: StarterProjectKey) {
+    setPicked(picked.includes(key) ? picked.filter((item) => item !== key) : [...picked, key]);
   }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -42,14 +47,14 @@ export default function OnboardingProjectsPage() {
       <form onSubmit={handleSubmit}>
         <fieldset className="m-0 mb-9 flex flex-wrap border-0 p-0">
           <legend className="sr-only">{t("onboarding.projectsCaption")}</legend>
-          {STARTER_PROJECT_NAMES.map((name) => (
-            <label key={name} className="segment-option -mb-[1.5px] min-h-[52px]">
-              <input type="checkbox" checked={picked.includes(name)} onChange={() => toggle(name)} />
+          {STARTER_PROJECT_KEYS.map((key) => (
+            <label key={key} className="segment-option -mb-[1.5px] min-h-[52px]">
+              <input type="checkbox" checked={picked.includes(key)} onChange={() => toggle(key)} />
               <i
                 className="swatch border-[1.5px] border-ink-black"
-                style={{ background: PROJECT_COLOR_HEX[STARTER_PROJECT_COLORS[name]] }}
+                style={{ background: PROJECT_COLOR_HEX[STARTER_PROJECT_COLORS[key]] }}
               />
-              <span>{name}</span>
+              <span>{t(`onboarding.starterProjects.${key}`)}</span>
             </label>
           ))}
         </fieldset>

@@ -66,7 +66,10 @@ describe("onboarding step 2", () => {
       displayName: "นรินทร์",
       theme: "system",
       timezone: browserTimeZone,
-      starterProjects: ["งาน", "เป้าหมายปีนี้"],
+      starterProjects: [
+        { key: "work", name: "งาน" },
+        { key: "yearGoals", name: "เป้าหมายปีนี้" },
+      ],
     });
   });
 

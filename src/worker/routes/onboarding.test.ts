@@ -6,7 +6,11 @@ import { type TestBrowser, testBrowser } from "../test/test-browser";
 
 const UUID_V7 = /^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
-const allStarterProjects = ["งาน", "ส่วนตัว", "เป้าหมายปีนี้"];
+const allStarterProjects = [
+  { key: "work", name: "งาน" },
+  { key: "personal", name: "ส่วนตัว" },
+  { key: "yearGoals", name: "เป้าหมายปีนี้" },
+];
 
 let internet: FakeInternet;
 
@@ -70,9 +74,17 @@ describe("POST /api/onboarding/complete", () => {
   it("creates only the ticked projects", async () => {
     const browser = await signUpVerifiedUser(internet);
 
-    await completeOnboarding(browser, { displayName: "แจม", theme: "system", starterProjects: ["เป้าหมายปีนี้"] });
+    await completeOnboarding(browser, { displayName: "แจม", theme: "system", starterProjects: [allStarterProjects[2]] });
 
     expect((await projectsOf(browser)).map((project) => project.name)).toEqual(["เป้าหมายปีนี้"]);
+  });
+
+  it("names each project as the client sent it, with the colour of its key", async () => {
+    const browser = await signUpVerifiedUser(internet);
+
+    await completeOnboarding(browser, { displayName: "แจม", theme: "system", starterProjects: [{ key: "personal", name: "Personal" }] });
+
+    expect((await projectsOf(browser)).map(({ name, color }) => ({ name, color }))).toEqual([{ name: "Personal", color: "orange" }]);
   });
 
   it("creates nothing on Skip, but still marks onboarding done", async () => {
@@ -105,8 +117,8 @@ describe("POST /api/onboarding/complete", () => {
   });
 
   it.each([
-    ["a project outside the fixed list", { starterProjects: ["งานบ้าน"] }],
-    ["more than three projects", { starterProjects: [...allStarterProjects, "งาน"] }],
+    ["a key outside the fixed list", { starterProjects: [{ key: "chores", name: "งานบ้าน" }] }],
+    ["more than three projects", { starterProjects: [...allStarterProjects, allStarterProjects[0]] }],
     ["an empty display name", { displayName: " " }],
   ])("answers 400 VALIDATION_ERROR for %s", async (_case, override) => {
     const browser = await signUpVerifiedUser(internet);

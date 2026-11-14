@@ -3,7 +3,7 @@ import { v7 as uuidv7 } from "uuid";
 import {
   type CompleteOnboardingInput,
   STARTER_PROJECT_COLORS,
-  STARTER_PROJECT_NAMES,
+  STARTER_PROJECT_KEYS,
 } from "../../shared/schemas/onboarding";
 
 // Every statement below only acts while `onboarded_at` is still empty. D1 runs a
@@ -14,16 +14,16 @@ const WHILE_NOT_ONBOARDED = "EXISTS (SELECT 1 FROM user_settings WHERE user_id =
 export async function completeOnboarding(db: D1Database, userId: string, input: CompleteOnboardingInput) {
   const now = Date.now();
   // The fixed list order, without duplicates.
-  const names = STARTER_PROJECT_NAMES.filter((name) => input.starterProjects.includes(name));
-  const positions = generateNKeysBetween(null, null, names.length);
+  const starters = STARTER_PROJECT_KEYS.flatMap((key) => input.starterProjects.find((project) => project.key === key) ?? []);
+  const positions = generateNKeysBetween(null, null, starters.length);
 
-  const createProjects = names.map((name, index) =>
+  const createProjects = starters.map(({ key, name }, index) =>
     db
       .prepare(
         `INSERT INTO projects (id, user_id, name, color, position, created_at, updated_at)
          SELECT ?, ?, ?, ?, ?, ?, ? WHERE ${WHILE_NOT_ONBOARDED}`,
       )
-      .bind(uuidv7(), userId, name, STARTER_PROJECT_COLORS[name], positions[index], now, now, userId),
+      .bind(uuidv7(), userId, name, STARTER_PROJECT_COLORS[key], positions[index], now, now, userId),
   );
 
   const saveSettings = db

@@ -1,11 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { completeOnboardingSchema } from "./onboarding";
 
-const valid = { displayName: " แจม ", theme: "dark", starterProjects: ["งาน", "ส่วนตัว"] };
+const valid = { displayName: " แจม ", theme: "dark", starterProjects: [{ key: "work", name: " งาน " }, { key: "personal", name: "ส่วนตัว" }] };
 
 describe("completeOnboardingSchema", () => {
-  it("accepts names from the fixed list and trims the display name", () => {
-    expect(completeOnboardingSchema.parse(valid)).toEqual({ ...valid, displayName: "แจม" });
+  it("accepts keys from the fixed list and trims the names", () => {
+    expect(completeOnboardingSchema.parse(valid)).toEqual({
+      ...valid,
+      displayName: "แจม",
+      starterProjects: [{ key: "work", name: "งาน" }, { key: "personal", name: "ส่วนตัว" }],
+    });
   });
 
   it("drops an unknown time zone instead of failing", () => {
@@ -13,8 +17,10 @@ describe("completeOnboardingSchema", () => {
     expect(completeOnboardingSchema.parse({ ...valid, timezone: "Asia/Tokyo" }).timezone).toBe("Asia/Tokyo");
   });
 
-  it("rejects other project names and more than three", () => {
-    expect(completeOnboardingSchema.safeParse({ ...valid, starterProjects: ["Work"] }).success).toBe(false);
-    expect(completeOnboardingSchema.safeParse({ ...valid, starterProjects: ["งาน", "งาน", "งาน", "งาน"] }).success).toBe(false);
+  it("rejects unknown keys, empty names and more than three", () => {
+    const work = { key: "work", name: "งาน" };
+    expect(completeOnboardingSchema.safeParse({ ...valid, starterProjects: [{ key: "Work", name: "งาน" }] }).success).toBe(false);
+    expect(completeOnboardingSchema.safeParse({ ...valid, starterProjects: [{ key: "work", name: " " }] }).success).toBe(false);
+    expect(completeOnboardingSchema.safeParse({ ...valid, starterProjects: [work, work, work, work] }).success).toBe(false);
   });
 });
