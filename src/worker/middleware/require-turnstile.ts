@@ -2,6 +2,7 @@ import { createMiddleware } from "hono/factory";
 import { verifyTurnstile } from "../auth/turnstile";
 import { ApiError } from "../errors";
 import type { AppEnv } from "../types";
+import { clientIp } from "./client-ip";
 
 /** The client sends the Turnstile widget's token in this header. */
 export const TURNSTILE_TOKEN_HEADER = "x-turnstile-token";
@@ -12,7 +13,7 @@ export const requireTurnstile = createMiddleware<AppEnv>(async (c, next) => {
   if (!secret) throw new Error("TURNSTILE_SECRET_KEY is not set: add it to .dev.vars locally or as a Worker secret");
 
   const token = c.req.header(TURNSTILE_TOKEN_HEADER);
-  const ip = c.req.header("CF-Connecting-IP") ?? null;
+  const ip = clientIp(c) ?? null;
   if (!token || !(await verifyTurnstile(secret, token, ip))) throw new ApiError("TURNSTILE_FAILED");
 
   await next();

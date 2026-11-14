@@ -1,5 +1,6 @@
 import { Hono } from "hono";
 import { isLinePlaceholderEmail } from "../auth/line-linking";
+import { CREDENTIAL_PROVIDER, LINE_PROVIDER } from "../auth/providers";
 import { findProvidersOfUser } from "../auth/user-queries";
 import { findUserSettings } from "../db/user-settings";
 import { ApiError } from "../errors";
@@ -21,8 +22,8 @@ export const meRoutes = new Hono<SessionEnv>().use(requireSession).get("/", asyn
       name,
       email: isLinePlaceholderEmail(email) ? null : email,
       image: image ?? null,
-      hasPassword: providers.includes("credential"),
-      hasLine: providers.includes("line"),
+      hasPassword: providers.includes(CREDENTIAL_PROVIDER),
+      hasLine: providers.includes(LINE_PROVIDER),
     },
     settings,
   });

@@ -1,13 +1,14 @@
 import { createMiddleware } from "hono/factory";
 import { ApiError } from "../errors";
 import type { AppEnv } from "../types";
+import { clientIp } from "./client-ip";
 
 /**
  * Auth endpoints: 20 requests/min per IP (RATE_LIMIT_AUTH in wrangler.jsonc).
  * Keeps bots from burning the daily email quota or guessing passwords.
  */
 export const rateLimitAuthByIp = createMiddleware<AppEnv>(async (c, next) => {
-  const ip = c.req.header("CF-Connecting-IP") ?? "unknown";
+  const ip = clientIp(c) ?? "unknown";
   const { success } = await c.env.RATE_LIMIT_AUTH.limit({ key: ip });
   if (!success) throw new ApiError("RATE_LIMITED");
   await next();

@@ -1,5 +1,6 @@
 import { createMiddleware } from "hono/factory";
 import { isLinePlaceholderEmail } from "../auth/line-linking";
+import { CREDENTIAL_PROVIDER } from "../auth/providers";
 import { findSignInMethods } from "../auth/user-queries";
 import { ApiError } from "../errors";
 import type { AppEnv } from "../types";
@@ -22,7 +23,7 @@ export const rejectTakenEmail = createMiddleware<AppEnv>(async (c, next) => {
   if (isLinePlaceholderEmail(body.email)) throw new ApiError("VALIDATION_ERROR");
 
   const signInMethods = await findSignInMethods(c.env.DB, body.email);
-  if (signInMethods?.includes("credential")) throw new ApiError("EMAIL_TAKEN");
+  if (signInMethods?.includes(CREDENTIAL_PROVIDER)) throw new ApiError("EMAIL_TAKEN");
   if (signInMethods) throw new ApiError("EMAIL_TAKEN_LINE");
 
   await next();
