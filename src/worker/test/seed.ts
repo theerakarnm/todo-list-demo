@@ -56,3 +56,16 @@ export async function seedProjects(userId: string, count: number) {
     .bind(count, prefix, userId, now)
     .run();
 }
+
+/** Inserts `count` subtasks under one task in one statement, for the subtask limit test. */
+export async function seedSubtasks(userId: string, taskId: string, count: number) {
+  const prefix = crypto.randomUUID();
+  const now = Date.now();
+  await env.DB.prepare(
+    `WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < ?1)
+     INSERT INTO subtasks (id, task_id, user_id, title, position, created_at, updated_at)
+     SELECT ?2 || '-' || i, ?3, ?4, 'ขั้นตอน', 'a0', ?5, ?5 FROM n`,
+  )
+    .bind(count, prefix, taskId, userId, now)
+    .run();
+}
