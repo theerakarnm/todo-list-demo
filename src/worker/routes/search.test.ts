@@ -4,7 +4,11 @@ import { newId } from "../test/ids";
 import { seedTasks } from "../test/seed";
 import { createTestUser } from "../test/users";
 
-type Results = { tasks: { id: string; title: string }[]; projects: { id: string; name: string }[] };
+type Results = {
+  tasks: { id: string; title: string }[];
+  projects: { id: string; name: string }[];
+  subtasks: { id: string; taskId: string }[];
+};
 
 async function createTask(userId: string, title: string, notes = "") {
   const id = newId();
@@ -86,7 +90,21 @@ describe("GET /api/search", () => {
     await createTask(otherUserId, "ช่างแอร์ของคนอื่น");
     await apiAs(otherUserId).put(`/api/projects/${newId()}`, { name: "ช่างแอร์", position: "a0" });
 
-    expect(await search(userId, "ช่างแอร์")).toEqual({ tasks: [], projects: [] });
+    expect(await search(userId, "ช่างแอร์")).toEqual({ tasks: [], projects: [], subtasks: [] });
+  });
+
+  it("brings the subtasks of the tasks it found, so a completed task opens whole", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId, "ล้างแอร์");
+    const otherTaskId = await createTask(userId, "ซื้อนม");
+    const subtaskId = newId();
+    await apiAs(userId).put(`/api/subtasks/${subtaskId}`, { taskId, title: "ถอดฟิลเตอร์", position: "a0" });
+    await apiAs(userId).put(`/api/subtasks/${newId()}`, { taskId: otherTaskId, title: "นมจืด", position: "a0" });
+    await apiAs(userId).patch(`/api/tasks/${taskId}`, { completed: true });
+
+    const results = await search(userId, "แอร์");
+
+    expect(results.subtasks).toEqual([expect.objectContaining({ id: subtaskId, taskId })]);
   });
 
   it("rejects an empty query", async () => {

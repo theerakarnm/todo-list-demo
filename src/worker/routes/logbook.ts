@@ -1,10 +1,11 @@
-import { and, desc, eq, inArray, isNotNull, isNull, lt, or, sql } from "drizzle-orm";
+import { and, desc, eq, isNotNull, isNull, lt, or } from "drizzle-orm";
 import { Hono } from "hono";
 import { LIMITS } from "../../shared/constants";
 import { logbookQuerySchema } from "../../shared/schemas/queries";
 import { createDb } from "../db/client";
-import { subtaskColumns, taskColumns } from "../db/columns";
-import { subtasks, tasks } from "../db/schema";
+import { taskColumns } from "../db/columns";
+import { tasks } from "../db/schema";
+import { subtasksOfTasks } from "../db/task-queries";
 import { apiRateLimit } from "../middleware/api-rate-limit";
 import { currentUser } from "../middleware/current-user";
 import type { AppEnv } from "../types";
@@ -49,16 +50,6 @@ export const logbookRoutes = new Hono<AppEnv>()
       rows.length > LIMITS.logbookPageSize && last?.completedAt
         ? { before: last.completedAt, beforeId: last.id }
         : null;
-    const pageIds = JSON.stringify(pageRows.map((task) => task.id));
-    const subtaskRows = await db
-      .select(subtaskColumns)
-      .from(subtasks)
-      .where(
-        and(
-          eq(subtasks.userId, c.get("userId")),
-          isNull(subtasks.deletedAt),
-          inArray(subtasks.taskId, sql`(SELECT value FROM json_each(${pageIds}))`),
-        ),
-      );
+    const subtaskRows = await subtasksOfTasks(db, c.get("userId"), pageRows.map((task) => task.id));
     return c.json({ tasks: pageRows, subtasks: subtaskRows, next }, 200);
   });

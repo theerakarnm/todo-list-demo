@@ -1,11 +1,11 @@
-import { and, eq, isNull, max, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, max, sql } from "drizzle-orm";
 import { generateKeyBetween } from "fractional-indexing";
 import { zonedDateTimeToUtcMs } from "../../shared/time-zone";
 import { ApiError } from "../errors";
 import type { Db } from "./client";
-import { taskColumns } from "./columns";
+import { subtaskColumns, taskColumns } from "./columns";
 import { getViewSettings } from "./settings-queries";
-import { tasks } from "./schema";
+import { subtasks, tasks } from "./schema";
 
 /** The user's task with this id, deleted or not. 404 when it is missing or someone else's. */
 export async function findOwnTask(db: Db, userId: string, id: string) {
@@ -16,6 +16,20 @@ export async function findOwnTask(db: Db, userId: string, id: string) {
     .get();
   if (!task) throw new ApiError("NOT_FOUND");
   return task;
+}
+
+/** The live subtasks of these tasks of the user's (any number of ids: they travel as one JSON parameter). */
+export function subtasksOfTasks(db: Db, userId: string, taskIds: string[]) {
+  return db
+    .select(subtaskColumns)
+    .from(subtasks)
+    .where(
+      and(
+        eq(subtasks.userId, userId),
+        isNull(subtasks.deletedAt),
+        inArray(subtasks.taskId, sql`(SELECT value FROM json_each(${JSON.stringify(taskIds)}))`),
+      ),
+    );
 }
 
 /** A position after every task in the project (or the Inbox when projectId is null). */

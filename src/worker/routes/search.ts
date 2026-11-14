@@ -6,6 +6,7 @@ import { searchQuerySchema } from "../../shared/schemas/queries";
 import { createDb } from "../db/client";
 import { projectColumns, taskColumns } from "../db/columns";
 import { projects, tasks } from "../db/schema";
+import { subtasksOfTasks } from "../db/task-queries";
 import { apiRateLimit } from "../middleware/api-rate-limit";
 import { currentUser } from "../middleware/current-user";
 import type { AppEnv } from "../types";
@@ -25,6 +26,7 @@ export const searchRoutes = new Hono<AppEnv>()
   .use(currentUser, apiRateLimit)
 
   // Active and completed tasks (title or notes) plus projects (name). Active tasks first.
+  // The tasks' subtasks come too: a completed task is not in the client's store yet.
   .get("/", validate("query", searchQuerySchema), async (c) => {
     const db = createDb(c.env.DB);
     const userId = c.get("userId");
@@ -46,5 +48,6 @@ export const searchRoutes = new Hono<AppEnv>()
         .orderBy(asc(projects.position))
         .limit(LIMITS.searchResults),
     ]);
-    return c.json({ tasks: taskRows, projects: projectRows }, 200);
+    const subtaskRows = await subtasksOfTasks(db, userId, taskRows.map((task) => task.id));
+    return c.json({ tasks: taskRows, projects: projectRows, subtasks: subtaskRows }, 200);
   });
