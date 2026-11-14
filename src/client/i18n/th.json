@@ -39,7 +39,9 @@
     },
     "inbox": {
       "eyebrow": "02 - กล่องรับงาน / inbox",
-      "title": "Inbox"
+      "title": "Inbox",
+      "subtitle": "ที่พักไอเดียและธุระที่นึกออกทันที ยังไม่ต้องเลือกโปรเจกต์หรือวันที่",
+      "group": "ยังไม่จัด / unsorted - {{count}}"
     },
     "upcoming": {
       "eyebrow": "03 - กำลังมา / upcoming",
@@ -131,5 +133,23 @@
     "deleted": "ลบงานแล้ว: {{title}}",
     "rescheduled": "ย้าย {{count}} งานมาเป็นวันนี้แล้ว",
     "projectDeleted": "ลบโปรเจกต์ {{name}} แล้ว"
+  },
+  "task": {
+    "complete": "ทำเครื่องหมายว่าเสร็จ: {{title}}",
+    "uncomplete": "ทำเครื่องหมายว่ายังไม่เสร็จ: {{title}}",
+    "today": "วันนี้",
+    "tomorrow": "พรุ่งนี้",
+    "overdueDate": "▲ {{date}}",
+    "subtaskProgress": "{{done}}/{{total}}",
+    "subtaskProgressLabel": "งานย่อยเสร็จ {{done}} จาก {{total}}",
+    "priorityLabel": "ความสำคัญ {{badge}}",
+    "addTask": "Add task",
+    "addTaskPlaceholder": "พิมพ์ชื่องาน แล้วกด Enter",
+    "addTaskHint": {
+      "today": "due: today",
+      "inbox": "to: inbox",
+      "project": "to: {{name}}",
+      "date": "due: {{date}}"
+    }
   }
 }

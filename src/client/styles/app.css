@@ -2,6 +2,7 @@
 @import "./fonts.css";
 @import "./tokens.css";
 @import "./components.css";
+@import "./tasks.css";
 
 /* Dark mode follows the data-theme attribute set by theme-init.js and ThemeProvider. */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
