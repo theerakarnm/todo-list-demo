@@ -1,9 +1,10 @@
 import { env } from "cloudflare:test";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { LIMITS } from "../../shared/constants";
 import type { projects } from "../db/schema";
 import { apiAs, bodyOf } from "../test/api";
 import { newId } from "../test/ids";
-import { attachmentForm, pngFile } from "../test/images";
+import { attachmentForm, pngFile, seedAttachments } from "../test/images";
 import { insertSubtask, seedProjects, seedTasks } from "../test/seed";
 import { createTestUser } from "../test/users";
 
@@ -138,6 +139,24 @@ describe("DELETE /api/projects/:id and restore", () => {
     await apiAs(userId).post(`/api/projects/${project.id}/restore`);
     expect(await deletedAtOf("attachments", imageId)).toBeNull();
     expect(await deletedAtOf("attachments", deletedEarlierId)).toBe(earlierDeletedAt);
+  });
+
+  it("restores the project and its tasks without their images when they no longer fit in the 200 MB", async () => {
+    const userId = await createTestUser();
+    const project = await createProject(userId);
+    const taskId = await createTask(userId, project.id);
+    const response = await apiAs(userId).postForm(`/api/tasks/${taskId}/attachments`, attachmentForm(pngFile()));
+    const image = await bodyOf<{ id: string; bytes: number }>(response);
+    const deleted = await bodyOf<Project>(await apiAs(userId).delete(`/api/projects/${project.id}`));
+    await seedAttachments(userId, await createTask(userId, null), 1, {
+      bytes: LIMITS.storageBytesPerUser - image.bytes + 1,
+    });
+
+    const restored = await apiAs(userId).post(`/api/projects/${project.id}/restore`);
+
+    expect(restored.status).toBe(200);
+    expect(await deletedAtOf("tasks", taskId)).toBeNull();
+    expect(await deletedAtOf("attachments", image.id)).toBe(deleted.deletedAt);
   });
 
   it("refuses the restore when its active tasks would pass 1,000", async () => {

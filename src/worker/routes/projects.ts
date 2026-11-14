@@ -1,4 +1,4 @@
-import { and, count, eq, inArray, isNull } from "drizzle-orm";
+import { and, count, eq, inArray, isNull, sum } from "drizzle-orm";
 import { Hono } from "hono";
 import { idParamSchema } from "../../shared/schemas/fields";
 import { createProjectSchema, updateProjectSchema } from "../../shared/schemas/project";
@@ -7,7 +7,7 @@ import { projectColumns } from "../db/columns";
 import { findOwnProject } from "../db/project-queries";
 import { attachments, projects, subtasks, tasks } from "../db/schema";
 import { ApiError } from "../errors";
-import { assertRoomForActiveTasks, assertRoomForProject } from "../limits";
+import { assertRoomForActiveTasks, assertRoomForProject, hasRoomInStorage } from "../limits";
 import { requireSession } from "../middleware/require-session";
 import type { SessionEnv } from "../types";
 import { validate } from "../validate";
@@ -109,9 +109,20 @@ export const projectRoutes = new Hono<SessionEnv>()
     await assertRoomForProject(db, userId);
     await assertRoomForActiveTasks(db, userId, comingBack?.active ?? 0);
 
+    const taskIds = db.select({ id: tasks.id }).from(tasks).where(deletedWithProject);
+    // As for a task: images that no longer fit in the storage limit stay deleted, with a new updated_at for sync.
+    const imagesDeletedWithProject = and(
+      inArray(attachments.taskId, taskIds),
+      eq(attachments.deletedAt, project.deletedAt),
+    );
+    const [images] = await db
+      .select({ bytes: sum(attachments.bytes).mapWith(Number) })
+      .from(attachments)
+      .where(imagesDeletedWithProject);
+    const imagesFit = await hasRoomInStorage(db, userId, images?.bytes ?? 0);
+
     const now = Date.now();
     const alive = { deletedAt: null, updatedAt: now };
-    const taskIds = db.select({ id: tasks.id }).from(tasks).where(deletedWithProject);
 
     const [, , , restored] = await db.batch([
       db
@@ -120,8 +131,8 @@ export const projectRoutes = new Hono<SessionEnv>()
         .where(and(inArray(subtasks.taskId, taskIds), eq(subtasks.deletedAt, project.deletedAt))),
       db
         .update(attachments)
-        .set(alive)
-        .where(and(inArray(attachments.taskId, taskIds), eq(attachments.deletedAt, project.deletedAt))),
+        .set(imagesFit ? alive : { updatedAt: now })
+        .where(imagesDeletedWithProject),
       db.update(tasks).set(alive).where(deletedWithProject),
       db.update(projects).set(alive).where(eq(projects.id, id)).returning(projectColumns),
     ]);
