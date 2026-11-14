@@ -40,6 +40,16 @@ describe("ThemeProvider", () => {
     expect(document.documentElement.dataset.theme).toBe("dark");
   });
 
+  it("colours the browser and phone status bar to match the theme", () => {
+    stubSystemPrefersDark(false);
+    document.head.innerHTML = '<meta name="theme-color" content="#f2ede1">';
+    render(<ThemeProvider><ThemeProbe /></ThemeProvider>);
+
+    act(() => screen.getByRole("button").click());
+
+    expect(document.querySelector('meta[name="theme-color"]')?.getAttribute("content")).toBe("#0b0b0e");
+  });
+
   it("follows the system setting live when the preference is system", () => {
     const system = stubSystemPrefersDark(false);
     render(<ThemeProvider><ThemeProbe /></ThemeProvider>);

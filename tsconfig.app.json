@@ -7,5 +7,6 @@
     "outDir": ".tsbuild/app"
   },
   "include": ["src/client", "src/client/**/*.json"],
+  "exclude": ["src/client/sw.ts"],
   "references": [{ "path": "./tsconfig.shared.json" }, { "path": "./tsconfig.worker.json" }]
 }

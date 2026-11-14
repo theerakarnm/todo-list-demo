@@ -1,6 +1,12 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { Theme } from "../../shared/constants";
-import { parseThemePreference, type ResolvedTheme, resolveTheme, THEME_STORAGE_KEY } from "./resolve-theme";
+import {
+  parseThemePreference,
+  type ResolvedTheme,
+  resolveTheme,
+  THEME_COLORS,
+  THEME_STORAGE_KEY,
+} from "./resolve-theme";
 import { useSystemPrefersDark } from "./use-system-prefers-dark";
 
 type ThemeContextValue = {
@@ -26,6 +32,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     document.documentElement.dataset.theme = resolvedTheme;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", THEME_COLORS[resolvedTheme]);
   }, [resolvedTheme]);
 
   const setPreference = useCallback((nextPreference: Theme) => {
