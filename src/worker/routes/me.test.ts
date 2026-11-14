@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type FakeInternet, fakeInternet } from "../test/fake-internet";
 import { newLineProfile, signInWithLine } from "../test/line-sign-in";
-import { newTestEmail, signUpVerifiedUser } from "../test/sign-up-user";
+import { newTestEmail, PASSES_TURNSTILE, signUpVerifiedUser, TEST_PASSWORD } from "../test/sign-up-user";
 import { type TestBrowser, testBrowser } from "../test/test-browser";
 
 let internet: FakeInternet;
@@ -52,6 +52,20 @@ describe("GET /api/me", () => {
       digestTime: "08:00",
       onboardedAt: null,
     });
+  });
+
+  it("uses the part of the email before the @ as the display name when sign-up sent no name", async () => {
+    const email = newTestEmail("malee");
+    const browser = testBrowser();
+    // The Signup page has no name field, so it sends an empty name.
+    await browser.postJson("/api/auth/sign-up/email", { name: "", email, password: TEST_PASSWORD }, PASSES_TURNSTILE);
+    const link = new URL(internet.linkInLastEmailTo(email));
+    await testBrowser().request(link.pathname + link.search);
+    await browser.postJson("/api/auth/sign-in/email", { email, password: TEST_PASSWORD });
+
+    const { body } = await getMe(browser);
+
+    expect(body.settings).toMatchObject({ displayName: email.split("@")[0] });
   });
 
   it("returns a LINE user with the LINE name and picture", async () => {
