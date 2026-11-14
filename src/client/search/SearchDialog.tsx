@@ -83,6 +83,7 @@ export function SearchDialog({ onClose }: SearchDialogProps) {
           items={items}
           query={query}
           activeIndex={active}
+          projects={store?.projects ?? {}}
           projectTaskCounts={counts?.projects ?? {}}
           onHover={setActiveIndex}
           onOpen={open}

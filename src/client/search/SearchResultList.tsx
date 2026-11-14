@@ -12,6 +12,8 @@ type SearchResultListProps = {
   items: SearchItem[];
   query: string;
   activeIndex: number;
+  /** Every project, for the name next to a task (its project may not match the query). */
+  projects: Record<string, Project>;
   projectTaskCounts: Record<string, number>;
   onHover: (index: number) => void;
   onOpen: (item: SearchItem) => void;
@@ -36,16 +38,16 @@ export function SearchResultList({
   items,
   query,
   activeIndex,
+  projects,
   projectTaskCounts,
   onHover,
   onOpen,
 }: SearchResultListProps) {
   const { t } = useTranslation();
-  const projectsById = new Map(results.projects.map((project) => [project.id, project]));
 
   function taskMeta(task: Task) {
     if (task.completedAt) return t("search.completed");
-    const place = task.projectId ? (projectsById.get(task.projectId)?.name ?? "") : t("nav.inbox");
+    const place = task.projectId ? (projects[task.projectId]?.name ?? "") : t("nav.inbox");
     return task.dueDate ? t("search.taskMeta", { place, date: formatWeekdayDayMonth(task.dueDate) }) : place;
   }
 

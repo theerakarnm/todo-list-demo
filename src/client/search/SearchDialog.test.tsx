@@ -9,16 +9,18 @@ import { renderWithStore } from "../test/render";
 import { SearchDialog } from "./SearchDialog";
 
 const work = aProject({ id: "p-work", name: "งาน" });
+const goals = aProject({ id: "p-goals", name: "เป้าหมายปีนี้" });
 const sendWork = aTask({ id: "t-send", title: "ส่งงานให้ลูกค้า", projectId: work.id, dueDate: "2026-11-20" });
 const doneTask = aTask({ id: "t-done", title: "งานเก่า", completedAt: 5 });
+const planTask = aTask({ id: "t-plan", title: "วางแผนงาน", projectId: goals.id, dueDate: "2026-11-16" });
 const doneSubtask = aSubtask({ id: "s-done", taskId: doneTask.id });
 
 function renderSearch() {
   const calls = stubApi({
-    "GET /api/search": () => ({ tasks: [sendWork, doneTask], projects: [work], subtasks: [doneSubtask] }),
+    "GET /api/search": () => ({ tasks: [sendWork, doneTask, planTask], projects: [work], subtasks: [doneSubtask] }),
   });
   const onClose = vi.fn();
-  const store = storeWith({ tasks: [sendWork], projects: [work] });
+  const store = storeWith({ tasks: [sendWork, planTask], projects: [work, goals] });
   const rendered = renderWithStore(<SearchDialog onClose={onClose} />, store, "/app/today");
   const input = screen.getByRole("combobox", { name: th.nav.search });
   fireEvent.change(input, { target: { value: "งาน" } });
@@ -31,12 +33,15 @@ describe("SearchDialog", () => {
   it("groups tasks and projects and marks the matched text", async () => {
     const { calls } = renderSearch();
 
-    const tasks = await screen.findByRole("group", { name: "tasks - 2" });
+    const tasks = await screen.findByRole("group", { name: "tasks - 3" });
     const projects = screen.getByRole("group", { name: "projects - 1" });
 
     expect(calls.at(-1)?.search.get("q")).toBe("งาน");
-    expect(within(tasks).getAllByRole("option")).toHaveLength(2);
-    expect(within(tasks).getAllByRole("option")[0]?.textContent).toContain("งาน - ศ 20 พ.ย.");
+    const options = within(tasks).getAllByRole("option");
+    expect(options).toHaveLength(3);
+    expect(options[0]?.textContent).toContain("งาน - ศ 20 พ.ย.");
+    // A task's project is named even when the project itself did not match.
+    expect(options[2]?.textContent).toContain("เป้าหมายปีนี้ - จ 16 พ.ย.");
     expect(within(tasks).getAllByRole("option")[0]?.querySelector("mark")?.textContent).toBe("งาน");
     expect(within(projects).getByRole("option").textContent).toContain("1 งาน");
   });
@@ -56,7 +61,7 @@ describe("SearchDialog", () => {
 
     expect(screen.getAllByRole("option")[0]?.getAttribute("aria-selected")).toBe("true");
     fireEvent.keyDown(input, { key: "ArrowUp" });
-    expect(screen.getAllByRole("option")[2]?.getAttribute("aria-selected")).toBe("true");
+    expect(screen.getAllByRole("option")[3]?.getAttribute("aria-selected")).toBe("true");
     fireEvent.keyDown(input, { key: "Enter" });
 
     expect(router.state.location.pathname).toBe("/app/projects/p-work");
@@ -65,7 +70,7 @@ describe("SearchDialog", () => {
 
   it("opens a completed task in the TaskDrawer, with its subtasks in the store", async () => {
     const { input, router, queryClient } = renderSearch();
-    await screen.findByRole("group", { name: "tasks - 2" });
+    await screen.findByRole("group", { name: "tasks - 3" });
 
     fireEvent.keyDown(input, { key: "ArrowDown" });
     fireEvent.keyDown(input, { key: "Enter" });
