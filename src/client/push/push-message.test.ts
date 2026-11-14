@@ -20,7 +20,12 @@ describe("readPushMessage", () => {
   it("reads title, body, url and tag", () => {
     const text = JSON.stringify({ title: "ส่งรายงาน", body: "งาน · วันนี้", url: "/task/t1", tag: "task-t1" });
 
-    expect(readPushMessage(text)).toEqual({ title: "ส่งรายงาน", body: "งาน · วันนี้", url: "/task/t1", tag: "task-t1" });
+    expect(readPushMessage(text)).toEqual({
+      title: "ส่งรายงาน",
+      body: "งาน · วันนี้",
+      url: "/task/t1",
+      tag: "task-t1",
+    });
   });
 
   it("falls back to Today for a missing or foreign url", () => {
@@ -29,7 +34,9 @@ describe("readPushMessage", () => {
   });
 
   it("keeps a message with a title but no body or tag", () => {
-    expect(readPushMessage(JSON.stringify({ title: "a" }))).toEqual({ title: "a", body: "", url: "/today", tag: undefined });
+    const message = readPushMessage(JSON.stringify({ title: "a" }));
+
+    expect(message).toEqual({ title: "a", body: "", url: "/today", tag: undefined });
   });
 
   it.each([
