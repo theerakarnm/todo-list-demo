@@ -39,6 +39,7 @@ export function createAuth(env: Env, request: Request) {
       enabled: true,
       requireEmailVerification: true,
       minPasswordLength: 8,
+      revokeSessionsOnPasswordReset: true,
       async sendResetPassword({ user, token }) {
         const link = `${origin}${RESET_PASSWORD_PAGE}?token=${encodeURIComponent(token)}`;
         await sendEmail(env, { to: user.email, ...resetPasswordTemplate(link) });
