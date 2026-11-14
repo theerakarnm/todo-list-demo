@@ -47,6 +47,8 @@ export function createAuth(env: Env, request: Request) {
     },
     emailVerification: {
       autoSignInAfterVerification: true,
+      // An unverified user who tries to sign in gets a fresh link (the old one may be lost or expired).
+      sendOnSignIn: true,
       async sendVerificationEmail({ user, url }) {
         const link = new URL(url);
         link.searchParams.set("callbackURL", VERIFY_EMAIL_PAGE);
