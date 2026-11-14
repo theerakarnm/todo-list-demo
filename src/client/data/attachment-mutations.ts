@@ -1,7 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { LIMITS } from "../../shared/constants";
+import { api } from "../api/client";
 import { errorCodeMessage } from "../api/error-message";
+import { request } from "../api/request";
 import { uploadForm } from "../api/upload";
 import { isImageFile, prepareImage } from "../images/prepare-image";
 import { useToast } from "../toast/ToastProvider";
@@ -9,7 +11,7 @@ import { endLocalUpload, setUploadProgress, startLocalUpload } from "./local-upl
 import { useOptimisticMutation } from "./optimistic";
 import { positionAtEnd } from "./positions";
 import { attachmentsOfTask } from "./selectors";
-import { putRows } from "./store-updates";
+import { putRows, removeRows } from "./store-updates";
 import { SYNC_QUERY_KEY } from "./sync-query";
 import type { SyncStore } from "./sync-store";
 import type { Attachment } from "./types";
@@ -82,4 +84,18 @@ export function useUploadImages() {
       upload.mutate({ attachment, file });
     }
   };
+}
+
+/**
+ * Deletes an image. There is no Undo: the server removes the file right away
+ * (ARCHITECTURE §16). A failed delete puts the image back with a Thai toast.
+ */
+export function useDeleteImage() {
+  const remove = useOptimisticMutation({
+    request: (attachment: Attachment) => request(api.api.attachments[":id"].$delete({ param: { id: attachment.id } })),
+    apply: (store, attachment) => removeRows(store, { attachments: [attachment.id] }),
+    // The tombstone also removes a copy an upload still on its way brings back.
+    confirm: (tombstone) => ({ attachments: [tombstone] }),
+  });
+  return (attachment: Attachment) => remove.mutate(attachment);
 }

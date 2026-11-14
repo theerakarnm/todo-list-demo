@@ -4,7 +4,7 @@ import th from "../i18n/th.json";
 import { answerLater, apiError, requestsTo, stubApi } from "../test/fake-api";
 import { aFile, stubBrowserImages } from "../test/fake-images";
 import { renderHookWithStore } from "../test/render";
-import { useUploadImages } from "./attachment-mutations";
+import { useDeleteImage, useUploadImages } from "./attachment-mutations";
 import { localUpload } from "./local-uploads";
 import { SYNC_QUERY_KEY } from "./sync-query";
 import type { SyncStore } from "./sync-store";
@@ -117,5 +117,53 @@ describe("useUploadImages", () => {
     expect(await screen.findByText(th.errors.api.ATTACHMENT_LIMIT.replace("{{limit}}", "10"))).toBeTruthy();
     expect(imagesIn(queryClient)).toHaveLength(10);
     await waitFor(() => expect(requestsTo("POST /api/tasks/t1/attachments")).toHaveLength(1));
+  });
+});
+
+describe("useDeleteImage", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("takes the image off at once and deletes it on the server", async () => {
+    const calls = stubApi({ "DELETE /api/attachments/:id": anAttachment({ id: "a1", taskId: "t1", deletedAt: 5 }) });
+    const image = anAttachment({ id: "a1", taskId: "t1" });
+    const { result, queryClient } = renderHookWithStore(useDeleteImage, storeWith({ attachments: [image] }));
+
+    act(() => result.current(image));
+
+    await waitFor(() => expect(imagesIn(queryClient)).toEqual([]));
+    await waitFor(() => expect(calls.map((call) => `${call.method} ${call.path}`)).toEqual(["DELETE /api/attachments/a1"]));
+  });
+
+  it("an image deleted while it is still uploading does not come back", async () => {
+    stubBrowserImages();
+    const upload = answerLater(UPLOAD);
+    stubApi({
+      "DELETE /api/attachments/:id": (_request, { id = "" }) =>
+        anAttachment({ id, taskId: "t1", deletedAt: 10, updatedAt: 10 }),
+    });
+    const { result, queryClient } = renderHookWithStore(
+      () => ({ upload: useUploadImages(), remove: useDeleteImage() }),
+      storeWith({ tasks: [aTask({ id: "t1" })] }),
+    );
+
+    act(() => result.current.upload("t1", [aFile("receipt.jpg", "image/jpeg")]));
+    await waitFor(() => expect(imagesIn(queryClient)).toHaveLength(1));
+    const [local] = imagesIn(queryClient);
+    act(() => local && result.current.remove(local));
+    upload.reply(Response.json(anAttachment({ id: local?.id ?? "", taskId: "t1", updatedAt: 9 }), { status: 201 }));
+
+    await waitFor(() => expect(requestsTo(`DELETE /api/attachments/${local?.id}`)).toHaveLength(1));
+    await waitFor(() => expect(imagesIn(queryClient)).toEqual([]));
+  });
+
+  it("puts the image back and explains when the delete fails", async () => {
+    stubApi({ "DELETE /api/attachments/:id": () => new Promise((_, reject) => reject(new TypeError("offline"))) });
+    const image = anAttachment({ id: "a1", taskId: "t1" });
+    const { result, queryClient } = renderHookWithStore(useDeleteImage, storeWith({ attachments: [image] }));
+
+    act(() => result.current(image));
+
+    expect(await screen.findByText(th.errors.network)).toBeTruthy();
+    expect(imagesIn(queryClient)).toEqual([image]);
   });
 });
