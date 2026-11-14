@@ -92,6 +92,13 @@ export function subtasksOf(store: SyncStore, taskId: string) {
     .sort(compareByPosition);
 }
 
+/** The images of one task, in gallery order. */
+export function attachmentsOfTask(store: SyncStore, taskId: string) {
+  return Object.values(store.attachments)
+    .filter((attachment) => attachment.taskId === taskId)
+    .sort(compareByPosition);
+}
+
 /** "2/5" on a task row: done and total subtasks per task id. Tasks without subtasks are left out. */
 export function subtaskProgress(store: SyncStore) {
   const progress = new Map<string, { done: number; total: number }>();

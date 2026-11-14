@@ -12,10 +12,11 @@ export function putRows(store: SyncStore, rows: ChangedRows): SyncStore {
     tasks: byId(store.tasks, rows.tasks),
     projects: byId(store.projects, rows.projects),
     subtasks: byId(store.subtasks, rows.subtasks),
+    attachments: byId(store.attachments, rows.attachments),
   };
 }
 
-type Ids = { tasks?: string[]; projects?: string[]; subtasks?: string[] };
+type Ids = { tasks?: string[]; projects?: string[]; subtasks?: string[]; attachments?: string[] };
 
 /** Takes these rows out of the store (an optimistic delete). */
 export function removeRows(store: SyncStore, ids: Ids): SyncStore {
@@ -30,5 +31,6 @@ export function removeRows(store: SyncStore, ids: Ids): SyncStore {
     tasks: without(store.tasks, ids.tasks),
     projects: without(store.projects, ids.projects),
     subtasks: without(store.subtasks, ids.subtasks),
+    attachments: without(store.attachments, ids.attachments),
   };
 }

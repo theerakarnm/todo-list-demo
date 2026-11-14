@@ -5,7 +5,7 @@ import { useToast } from "../toast/ToastProvider";
 import { SYNC_QUERY_KEY } from "./sync-query";
 import { applyRows, type ChangedRows, type SyncStore } from "./sync-store";
 
-const TABLES = ["tasks", "projects", "subtasks"] as const;
+const TABLES = ["tasks", "projects", "subtasks", "attachments"] as const;
 type Table = (typeof TABLES)[number];
 /** A row a mutation changed: its value before (undefined = it created the row) and the value it wrote. */
 type RowChange = { table: Table; id: string; previous: unknown; written: unknown };
@@ -33,7 +33,13 @@ function changedRows(before: SyncStore, after: SyncStore): RowChange[] {
 function rollBack(queryClient: QueryClient, changes: RowChange[]) {
   queryClient.setQueryData<SyncStore>(SYNC_QUERY_KEY, (store) => {
     if (!store) return store;
-    const next = { ...store, tasks: { ...store.tasks }, projects: { ...store.projects }, subtasks: { ...store.subtasks } };
+    const next = {
+      ...store,
+      tasks: { ...store.tasks },
+      projects: { ...store.projects },
+      subtasks: { ...store.subtasks },
+      attachments: { ...store.attachments },
+    };
     for (const { table, id, previous, written } of changes) {
       const rows = next[table] as Record<string, unknown>;
       if (previous === undefined) delete rows[id];

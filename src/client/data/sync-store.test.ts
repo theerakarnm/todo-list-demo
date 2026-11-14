@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { mergeSync } from "./sync-store";
-import { aProject, aSubtask, aTask } from "./test-rows";
+import { anAttachment, aProject, aSubtask, aTask } from "./test-rows";
 import type { SyncResponse } from "./types";
 
 const settings = { timezone: "Asia/Bangkok", weekStart: "mon" } as const;
@@ -17,12 +17,14 @@ describe("mergeSync", () => {
         tasks: [aTask({ id: "t1" })],
         projects: [aProject({ id: "p1" })],
         subtasks: [aSubtask({ id: "s1", taskId: "t1" })],
+        attachments: [anAttachment({ id: "a1", taskId: "t1" })],
       }),
     );
 
     expect(Object.keys(store.tasks)).toEqual(["t1"]);
     expect(Object.keys(store.projects)).toEqual(["p1"]);
     expect(Object.keys(store.subtasks)).toEqual(["s1"]);
+    expect(Object.keys(store.attachments)).toEqual(["a1"]);
     expect(store.cursor).toBe(100);
     expect(store.settings).toEqual(settings);
   });
@@ -43,7 +45,11 @@ describe("mergeSync", () => {
   it("removes rows that come back as tombstones", () => {
     const store = mergeSync(
       undefined,
-      response({ tasks: [aTask({ id: "t1" })], subtasks: [aSubtask({ id: "s1", taskId: "t1" })] }),
+      response({
+        tasks: [aTask({ id: "t1" })],
+        subtasks: [aSubtask({ id: "s1", taskId: "t1" })],
+        attachments: [anAttachment({ id: "a1", taskId: "t1" })],
+      }),
     );
 
     const next = mergeSync(
@@ -51,11 +57,13 @@ describe("mergeSync", () => {
       response({
         tasks: [aTask({ id: "t1", deletedAt: 5, updatedAt: 5 })],
         subtasks: [aSubtask({ id: "s1", taskId: "t1", deletedAt: 5, updatedAt: 5 })],
+        attachments: [anAttachment({ id: "a1", taskId: "t1", deletedAt: 5, updatedAt: 5 })],
       }),
     );
 
     expect(next.tasks.t1).toBeUndefined();
     expect(next.subtasks.s1).toBeUndefined();
+    expect(next.attachments.a1).toBeUndefined();
   });
 
   it("keeps the newer row when the overlapping cursor sends an older copy", () => {
