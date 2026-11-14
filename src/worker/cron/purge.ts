@@ -1,14 +1,12 @@
 import { and, eq, inArray, lt, notExists, or } from "drizzle-orm";
 import { todayInTimeZone } from "../../shared/time-zone";
 import type { Db } from "../db/client";
-import { inJsonList } from "../db/in-list";
 import { attachments, cronRuns, projects, subtasks, tasks } from "../db/schema";
+import { purgeDeletedAttachments } from "../files/purge-attachment-files";
 
 /** Soft-deleted rows stay this long, so Undo and restore keep working (ARCHITECTURE section 4). */
 const KEEP_DELETED_MS = 7 * 24 * 60 * 60 * 1000;
 const PURGE_HOUR_UTC = 3;
-/** R2 deletes at most 1,000 keys per call. */
-const R2_DELETE_LIMIT = 1000;
 
 /**
  * Claims today's purge: true for the first run at or after 03:00 UTC, false
@@ -46,36 +44,21 @@ type Limits = {
  * 10 pages keep one run to about 20 D1 queries, well inside the Workers Free
  * limit of 50 per invocation that the reminder and digest jobs share.
  */
-const DEFAULT_LIMITS: Limits = { pageSize: R2_DELETE_LIMIT, pagesPerRun: 10 };
+const DEFAULT_LIMITS: Limits = { pageSize: 1000, pagesPerRun: 10 };
 
 type Counts = { attachments: number; subtasks: number; tasks: number; projects: number };
 
 /** One kind of old row: deletes up to `limit` of them and says how many went. */
 type PurgePage = (limit: number) => Promise<number>;
 
-function purgePages(db: Db, files: R2Bucket, cutoff: number): [keyof Counts, PurgePage][] {
+/** The pages after the attachments, in the order they must run. */
+function purgePages(db: Db, cutoff: number): [Exclude<keyof Counts, "attachments">, PurgePage][] {
   const oldTaskIds = db.select({ id: tasks.id }).from(tasks).where(lt(tasks.deletedAt, cutoff));
-  const oldAttachments = or(lt(attachments.deletedAt, cutoff), inArray(attachments.taskId, oldTaskIds));
   const oldSubtasks = or(lt(subtasks.deletedAt, cutoff), inArray(subtasks.taskId, oldTaskIds));
   const attachmentOfTask = db.select({ id: attachments.id }).from(attachments).where(eq(attachments.taskId, tasks.id));
   const taskOfProject = db.select({ id: tasks.id }).from(tasks).where(eq(tasks.projectId, projects.id));
 
   return [
-    [
-      "attachments",
-      async (limit) => {
-        const page = await db
-          .select({ id: attachments.id, key: attachments.r2Key })
-          .from(attachments)
-          .where(oldAttachments)
-          .limit(limit);
-        if (page.length === 0) return 0;
-        // The R2 objects first: if the rows delete then fails, the next purge finds them again.
-        await files.delete(page.map((file) => file.key));
-        await db.delete(attachments).where(inJsonList(attachments.id, page.map((file) => file.id)));
-        return page.length;
-      },
-    ],
     [
       "subtasks",
       async (limit) => {
@@ -115,16 +98,23 @@ function purgePages(db: Db, files: R2Bucket, cutoff: number): [keyof Counts, Pur
 }
 
 /**
- * Once a day, hard-deletes rows soft-deleted more than 7 days ago: attachments
- * with their R2 objects, subtasks, tasks, then projects with no tasks left,
- * one bounded page at a time. A run that uses up its pages hands the rest to
- * the next minute's run, so a large backlog never makes one run too long.
+ * Once a day, hard-deletes rows soft-deleted more than 7 days ago: images
+ * with their R2 objects (purgeDeletedAttachments), subtasks, tasks, then
+ * projects with no tasks left, one bounded page at a time. A run that uses up
+ * its pages hands the rest to the next minute's run, so a large backlog never
+ * makes one run too long.
  */
 export async function purgeDeletedRows(db: Db, files: R2Bucket, now: number, limits = DEFAULT_LIMITS) {
   if (!(await claimTodaysPurge(db, now))) return null;
-  const counts: Counts = { attachments: 0, subtasks: 0, tasks: 0, projects: 0 };
-  let pages = 0;
-  for (const [kind, purgePage] of purgePages(db, files, now - KEEP_DELETED_MS)) {
+  const cutoff = now - KEEP_DELETED_MS;
+  const images = await purgeDeletedAttachments(db.$client, files, cutoff, {
+    pageSize: limits.pageSize,
+    maxPages: limits.pagesPerRun,
+  });
+  const counts: Counts = { attachments: images.purged, subtasks: 0, tasks: 0, projects: 0 };
+  // Images left over means the pages are used up, so the loop stops at once.
+  let pages = images.pages;
+  for (const [kind, purgePage] of purgePages(db, cutoff)) {
     let deleted: number;
     do {
       if (pages === limits.pagesPerRun) {
