@@ -1,0 +1,11 @@
+{
+  // Code shared by the Worker and the browser: plain ES only, no DOM and no Workers globals.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023"],
+    "types": [],
+    "outDir": ".tsbuild/shared"
+  },
+  "include": ["src/shared"],
+  "exclude": ["src/shared/**/*.test.ts"]
+}

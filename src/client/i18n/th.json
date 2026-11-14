@@ -1,0 +1,111 @@
+{
+  "app": {
+    "name": "JotList",
+    "wordmark": "jotlist"
+  },
+  "nav": {
+    "sidebar": "Sidebar",
+    "settings": "Settings",
+    "search": "ค้นหา",
+    "searchShortcut": "Ctrl K",
+    "addTask": "Add Task",
+    "addTaskShortcut": "Q",
+    "smartViews": "Smart views",
+    "inbox": "Inbox",
+    "today": "Today",
+    "upcoming": "Upcoming",
+    "completed": "Completed",
+    "projects": "Projects",
+    "noProjects": "ยังไม่มีโปรเจกต์",
+    "newProject": "New Project",
+    "collapse": "Collapse",
+    "expand": "Expand",
+    "openMenu": "เปิดเมนู",
+    "closeMenu": "ปิดเมนู",
+    "menu": "เมนู"
+  },
+  "bottomBar": {
+    "label": "เมนูหลัก",
+    "today": "วันนี้",
+    "inbox": "กล่องรับงาน",
+    "upcoming": "กำลังมา",
+    "search": "ค้นหา",
+    "add": "เพิ่มงาน"
+  },
+  "pages": {
+    "today": {
+      "eyebrow": "01 - วันนี้ / today - {{date}}",
+      "title": "Today"
+    },
+    "inbox": {
+      "eyebrow": "02 - กล่องรับงาน / inbox",
+      "title": "Inbox"
+    },
+    "upcoming": {
+      "eyebrow": "03 - กำลังมา / upcoming",
+      "title": "Upcoming"
+    },
+    "project": {
+      "eyebrow": "04 - โปรเจกต์ / project",
+      "title": "Project"
+    },
+    "completed": {
+      "eyebrow": "05 - เสร็จแล้ว / completed",
+      "title": "Completed"
+    },
+    "settings": {
+      "eyebrow": "06 - ตั้งค่า / settings",
+      "title": "Settings",
+      "subtitle": "จัดการข้อมูลส่วนตัวและการทำงานของแอป"
+    },
+    "landing": {
+      "title": "JotList"
+    },
+    "login": {
+      "title": "เข้าสู่ระบบ"
+    },
+    "signup": {
+      "title": "สมัครใช้งาน"
+    },
+    "forgotPassword": {
+      "title": "ลืมรหัสผ่าน"
+    },
+    "resetPassword": {
+      "title": "ตั้งรหัสผ่านใหม่"
+    },
+    "verifyEmail": {
+      "title": "ยืนยันอีเมล"
+    },
+    "onboardingName": {
+      "title": "ตั้งชื่อที่ใช้แสดง"
+    },
+    "onboardingProjects": {
+      "title": "เริ่มด้วยหมวดหมู่ไหน?"
+    },
+    "privacy": {
+      "title": "Privacy Policy"
+    },
+    "terms": {
+      "title": "Terms of Service"
+    },
+    "notFound": {
+      "title": "ไม่พบหน้านี้",
+      "description": "ลิงก์อาจไม่ถูกต้อง หรือหน้านี้ถูกย้ายไปแล้ว",
+      "backHome": "กลับหน้าแรก"
+    },
+    "comingSoon": "หน้านี้กำลังสร้าง"
+  },
+  "dialogs": {
+    "close": "ปิด"
+  },
+  "theme": {
+    "legend": "ธีม / theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "errors": {
+    "generic": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
+    "network": "เชื่อมต่อไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ต"
+  }
+}

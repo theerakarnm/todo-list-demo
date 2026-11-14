@@ -39,7 +39,59 @@ A To-Do List web app built as a demo for a YouTube video. Live at `https://jotli
 Nested subtasks (more than one level), recurring tasks, sharing/collaboration, tags/labels, non-image attachments, offline mode, realtime sync, email reminders, Google login.
 
 ## Getting started
-Not yet — setup steps will be added when implementation starts. Stack: Cloudflare Workers + Hono + D1 (Drizzle) + React/Vite. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Stack: Cloudflare Workers + Hono + D1 (Drizzle) + React/Vite. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+You need [Bun](https://bun.sh) (version in `.bun-version`) and Node (version in `.node-version`).
+
+```sh
+bun install
+cp .env.example .env       # fill in your own values (see "Environment" below)
+cp .env .dev.vars          # Wrangler, Vite and the worker tests read .dev.vars
+bun run db:migrate:local   # create the local D1 tables
+bun run dev                # Vite + the Worker, http://localhost:5173 (API at /api/health)
+bun run test               # Vitest: worker + client projects
+```
+
+`bun test` runs Bun's own runner, which only prints a hint; use `bun run test` for the real suites.
+The `worker` test project runs in the Workers runtime through `@cloudflare/vitest-plugin`, the renamed successor of `@cloudflare/vitest-pool-workers` (the old name is deprecated).
+After changing `src/worker/db/schema.ts`, run `bun run db:generate` to write a new SQL migration into `drizzle/`.
+After changing `wrangler.jsonc`, run `bun run cf-typegen` to refresh `worker-configuration.d.ts`.
+After changing `public/favicon.svg`, run `bun run icons:generate` to redraw the PWA and iOS icons.
+Static files get their security headers from `public/_headers`; API responses get the same headers from the Worker.
+
+### Environment
+Keep your real values in `.env` (start from `.env.example`), then copy it to `.dev.vars` for local runs.
+`.dev.vars.example` lists the same names.
+Both `.env` and `.dev.vars` are gitignored: never commit their values, and only add new names to the `*.example` files and `src/worker/secrets.d.ts`.
+In production the same names are Worker secrets, set once with `wrangler secret put <NAME>`.
+
+`APP_ENV` is `production` by default (`vars` in `wrangler.jsonc`); `.dev.vars` sets it to `development` for local runs.
+Without `RESEND_API_KEY`, no email is sent.
+In development the Worker logs one line instead (`{"level":"info","event":"email.mock","subject":...,"link":...}`), so you can open verification and reset links from the terminal.
+Anywhere else it logs only `{"level":"warn","event":"email.skipped","subject":...}`, because the link holds a token.
+The tests always run in development without a key, even when `.dev.vars` holds a real key.
+
+### Scripts
+
+| Script | What it does |
+| --- | --- |
+| `bun run dev` | Vite dev server with the Worker and a local D1 database |
+| `bun run build` | Production build of the client and the Worker into `dist/` |
+| `bun run preview` | Serve the production build locally |
+| `bun run typecheck` | `tsc -b` over the client, Worker, shared code, service worker and config files |
+| `bun run lint` | Biome lint (recommended rules plus the React hooks rules); config in `biome.json` |
+| `bun run test` | Vitest: `worker` (Workers runtime, migrations applied per test file) and `client` (jsdom) |
+| `bun run cf-typegen` | Regenerate `worker-configuration.d.ts` from `wrangler.jsonc` (ignores `.dev.vars`: secret types live in `src/worker/secrets.d.ts`) |
+| `bun run db:generate` | Write a new SQL migration into `drizzle/` from the Drizzle schema |
+| `bun run db:migrate:local` | Apply migrations to the local D1 database |
+| `bun run db:migrate:remote` | Apply migrations to the production D1 database |
+| `bun run icons:generate` | Render `public/favicon.svg` into the PNG app icons |
+
+## CI and deploy
+- `.github/workflows/ci.yml` runs on every pull request into `develop` and every push to `develop`: install, type-check, lint, test, build.
+- `.github/workflows/deploy.yml` runs on every push to `main`: the same checks, then `wrangler d1 migrations apply jotlist --remote` and `wrangler deploy`.
+  It needs the repository secrets `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`.
+
+Before the first deploy, fill in the `TODO(owner)` values in `wrangler.jsonc` (D1 `database_id`, R2 bucket, rate-limit namespace ids) and set the Worker secrets.
 
 ## License
 [MIT](LICENSE)
