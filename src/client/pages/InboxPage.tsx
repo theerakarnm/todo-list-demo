@@ -20,10 +20,12 @@ export default function InboxPage() {
       <PageHeader eyebrow={t("pages.inbox.eyebrow")} title={t("pages.inbox.title")} subtitle={t("pages.inbox.subtitle")} />
       <GroupHeading label={t("pages.inbox.group", { count: tasks.length })} />
       <TaskList tasks={tasks} dateStyle="full" />
-      <AddTaskRow
-        hint={t("task.addTaskHint.inbox")}
-        onAdd={(title) => createTask({ title, projectId: null, dueDate: null })}
-      />
+      {store && (
+        <AddTaskRow
+          hint={t("task.addTaskHint.inbox")}
+          onAdd={(title) => createTask({ title, projectId: null, dueDate: null })}
+        />
+      )}
     </AppPage>
   );
 }

@@ -5,6 +5,7 @@ import { request } from "../api/request";
 import { apiError, stubApi } from "../test/fake-api";
 import { renderHookWithStore, storeWith } from "../test/render";
 import { useOptimisticMutation } from "./optimistic";
+import { useCreateTask } from "./task-mutations";
 import { SYNC_QUERY_KEY } from "./sync-query";
 import type { SyncStore } from "./sync-store";
 import { aTask } from "./test-rows";
@@ -60,5 +61,27 @@ describe("useOptimisticMutation", () => {
     expect(await screen.findByText("มีงานที่ยังไม่เสร็จครบ 1,000 งานแล้ว กรุณาปิดหรือลบงานเก่าก่อน")).toBeTruthy();
     expect(tasksIn(queryClient).t1?.title).toBe("เดิม");
     expect(tasksIn(queryClient).t2?.title).toBe("แก้แล้ว");
+  });
+
+  it("leaves no ghost row when a create fails and a queued edit of it then fails too", async () => {
+    let answerCreate: (response: Response) => void = () => {};
+    stubApi({
+      "PUT /api/tasks/:id": () => new Promise<Response>((resolve) => (answerCreate = resolve)),
+      "PATCH /api/tasks/:id": () => apiError("NOT_FOUND", 404),
+    });
+    const { result, queryClient } = renderHookWithStore(
+      () => ({ create: useCreateTask(), rename: useRename() }),
+      storeWith({}),
+    );
+
+    act(() => result.current.create({ title: "ใหม่", projectId: null, dueDate: null }));
+    await waitFor(() => expect(Object.keys(tasksIn(queryClient))).toHaveLength(1));
+    const id = Object.keys(tasksIn(queryClient))[0] ?? "";
+    act(() => result.current.rename.mutate({ id, title: "แก้ชื่อ" }));
+    await waitFor(() => expect(tasksIn(queryClient)[id]?.title).toBe("แก้ชื่อ"));
+    answerCreate(apiError("TASK_LIMIT", 409));
+
+    await waitFor(() => expect(screen.getAllByText(/./, { selector: ".toast span" })).toHaveLength(2));
+    expect(tasksIn(queryClient)).toEqual({});
   });
 });

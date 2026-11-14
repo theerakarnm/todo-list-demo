@@ -7,7 +7,8 @@ import { applyRows, type ChangedRows, type SyncStore } from "./sync-store";
 
 const TABLES = ["tasks", "projects", "subtasks"] as const;
 type Table = (typeof TABLES)[number];
-type RowChange = { table: Table; id: string; previous: unknown };
+/** A row a mutation changed: its value before (undefined = it created the row) and the value it wrote. */
+type RowChange = { table: Table; id: string; previous: unknown; written: unknown };
 
 /**
  * Every write goes to the server one at a time, in the order the user made it,
@@ -15,25 +16,28 @@ type RowChange = { table: Table; id: string; previous: unknown };
  */
 const WRITE_SCOPE = { id: "api-writes" };
 
-/** The rows `after` differs in, with their value in `before` (undefined = the row was not there). */
 function changedRows(before: SyncStore, after: SyncStore): RowChange[] {
   return TABLES.flatMap((table) => {
     const ids = new Set([...Object.keys(before[table]), ...Object.keys(after[table])]);
     return [...ids]
       .filter((id) => before[table][id] !== after[table][id])
-      .map((id) => ({ table, id, previous: before[table][id] }));
+      .map((id) => ({ table, id, previous: before[table][id], written: after[table][id] }));
   });
 }
 
-/** Puts back just these rows, so changes made meanwhile by other mutations stay. */
+/**
+ * Undoes just this mutation's rows. A row it created always goes (no ghost of a
+ * failed create); any other row goes back only if nothing has changed it since,
+ * so later edits and server answers are kept.
+ */
 function rollBack(queryClient: QueryClient, changes: RowChange[]) {
   queryClient.setQueryData<SyncStore>(SYNC_QUERY_KEY, (store) => {
     if (!store) return store;
     const next = { ...store, tasks: { ...store.tasks }, projects: { ...store.projects }, subtasks: { ...store.subtasks } };
-    for (const { table, id, previous } of changes) {
+    for (const { table, id, previous, written } of changes) {
       const rows = next[table] as Record<string, unknown>;
       if (previous === undefined) delete rows[id];
-      else rows[id] = previous;
+      else if (rows[id] === written) rows[id] = previous;
     }
     return next;
   });
@@ -64,12 +68,14 @@ export function useOptimisticMutation<Variables, Result>(mutation: OptimisticMut
     scope: WRITE_SCOPE,
     mutationFn: mutation.request,
     onMutate: async (variables: Variables) => {
+      const before = queryClient.getQueryData<SyncStore>(SYNC_QUERY_KEY);
+      // Screens offer changes only once the store is loaded; the first load is never cancelled.
+      if (!before) return { changes: [] };
       // A poll already on its way would bring back the old rows.
       await queryClient.cancelQueries({ queryKey: SYNC_QUERY_KEY });
-      const before = queryClient.getQueryData<SyncStore>(SYNC_QUERY_KEY);
-      if (!before) return { changes: [] };
-      const after = mutation.apply(before, variables);
-      queryClient.setQueryData(SYNC_QUERY_KEY, after);
+      queryClient.setQueryData(SYNC_QUERY_KEY, mutation.apply(before, variables));
+      // Compared with what the cache holds now: structural sharing copies changed rows.
+      const after = queryClient.getQueryData<SyncStore>(SYNC_QUERY_KEY) ?? before;
       return { changes: changedRows(before, after) };
     },
     onError: (error, _variables, context) => {
