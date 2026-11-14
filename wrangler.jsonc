@@ -12,16 +12,21 @@
     {
       "binding": "DB",
       "database_name": "jotlist",
+      // TODO(owner): real D1 database_id before first deploy (`wrangler d1 create jotlist`).
+      // Local dev and tests ignore this value.
       "database_id": "00000000-0000-0000-0000-000000000000",
       "migrations_dir": "drizzle"
     }
   ],
   "r2_buckets": [
+    // TODO(owner): create the bucket before first deploy (`wrangler r2 bucket create jotlist-files`).
     {
       "binding": "FILES",
       "bucket_name": "jotlist-files"
     }
   ],
+  // TODO(owner): namespace_id must be a positive integer unique within the Cloudflare account;
+  // confirm 1001 and 1002 are free before first deploy.
   "ratelimits": [
     {
       "name": "RATE_LIMIT_AUTH",
