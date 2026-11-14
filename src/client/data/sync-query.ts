@@ -21,13 +21,21 @@ async function fetchSync(queryClient: QueryClient): Promise<SyncStore> {
 export const syncQuery = queryOptions({
   queryKey: SYNC_QUERY_KEY,
   queryFn: ({ client }) => fetchSync(client),
-  // Polls only while the tab is visible, and again as soon as it regains focus.
-  refetchInterval: POLL_INTERVAL_MS,
-  refetchIntervalInBackground: false,
+  // Mutations keep the store current, so a screen opening does not need a sync;
+  // coming back to the tab does.
+  staleTime: Infinity,
   refetchOnWindowFocus: "always",
 });
 
 /** The normalized store, or undefined until the first load arrives. */
 export function useSyncStore() {
   return useQuery(syncQuery).data;
+}
+
+/**
+ * Polls /api/sync every 30 s while the tab is visible. Used once, by the app shell:
+ * every useQuery with an interval runs its own timer, so polling in each screen would multiply the requests.
+ */
+export function useSyncPolling() {
+  useQuery({ ...syncQuery, refetchInterval: POLL_INTERVAL_MS, refetchIntervalInBackground: false });
 }

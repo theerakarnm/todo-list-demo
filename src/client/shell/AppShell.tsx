@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet } from "react-router";
+import { useSyncPolling } from "../data/sync-query";
 import { NewProjectDialog } from "../projects/NewProjectDialog";
 import { TaskDrawer } from "../tasks/TaskDrawer";
 import { DesktopSidebar } from "./DesktopSidebar";
@@ -28,6 +29,7 @@ export default function AppShell() {
 
   useShortcut({ code: "KeyK", withModifier: true }, openSearch);
   useShortcut({ code: "KeyQ" }, openQuickAdd);
+  useSyncPolling();
   const actions = { onOpenSearch: openSearch, onOpenQuickAdd: openQuickAdd, onNewProject: openNewProject };
 
   return (
