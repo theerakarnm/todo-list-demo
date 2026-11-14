@@ -5,7 +5,8 @@ import { api } from "../api/client";
 import { request } from "../api/request";
 import { useToast } from "../toast/ToastProvider";
 import { useOptimisticMutation } from "./optimistic";
-import { projectTasks, sortedProjects, subtasksOf } from "./selectors";
+import { LOGBOOK_QUERY_KEY } from "./logbook-query";
+import { sortedProjects, subtasksOf } from "./selectors";
 import { positionAtEnd, putRows, removeRows } from "./store-updates";
 import { SYNC_QUERY_KEY } from "./sync-query";
 import type { SyncStore } from "./sync-store";
@@ -69,6 +70,9 @@ export function useDeleteProject() {
   const { showToast } = useToast();
   const { t } = useTranslation();
 
+  // The project's completed tasks go and come back with it, so the Logbook changes too.
+  const refreshLogbook = () => void queryClient.invalidateQueries({ queryKey: LOGBOOK_QUERY_KEY });
+
   const remove = useOptimisticMutation({
     request: ({ project }: DeletedProject) => request(api.api.projects[":id"].$delete({ param: { id: project.id } })),
     apply: (store, { project, tasks, subtasks }) =>
@@ -77,17 +81,20 @@ export function useDeleteProject() {
         tasks: tasks.map((task) => task.id),
         subtasks: subtasks.map((subtask) => subtask.id),
       }),
+    onSettled: refreshLogbook,
   });
   const restore = useOptimisticMutation({
     request: ({ project }: DeletedProject) =>
       request(api.api.projects[":id"].restore.$post({ param: { id: project.id } })),
     apply: (store, { project, tasks, subtasks }) => putRows(store, { projects: [project], tasks, subtasks }),
     confirm: (project) => ({ projects: [project] }),
+    onSettled: refreshLogbook,
   });
 
   return (project: Project) => {
     const store = queryClient.getQueryData<SyncStore>(SYNC_QUERY_KEY);
-    const tasks = store ? projectTasks(store, project.id) : [];
+    // Active and completed: the server deletes every task in the project.
+    const tasks = store ? Object.values(store.tasks).filter((task) => task.projectId === project.id) : [];
     const subtasks = store ? tasks.flatMap((task) => subtasksOf(store, task.id)) : [];
     const deleted = { project, tasks, subtasks };
     remove.mutate(deleted);

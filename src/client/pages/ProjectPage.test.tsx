@@ -14,6 +14,7 @@ const store = storeWith({
   tasks: [
     aTask({ id: "t1", title: "ส่งใบเสนอราคาให้ลูกค้า", projectId: "p1" }),
     aTask({ id: "t2", title: "ไม่อยู่ในโปรเจกต์" }),
+    aTask({ id: "t3", title: "เสร็จไปแล้ว", projectId: "p1", completedAt: 5 }),
   ],
 });
 
@@ -80,10 +81,12 @@ describe("ProjectPage", () => {
 
     expect(await screen.findByText("today page")).toBeTruthy();
     await waitFor(() => expect(projectIn(queryClient)).toBeUndefined());
+    expect((queryClient.getQueryData(SYNC_QUERY_KEY) as SyncStore).tasks.t3).toBeUndefined();
     fireEvent.click(within(screen.getByRole("status")).getByRole("button", { name: th.toast.undo }));
     await waitFor(() => expect(calls.map((call) => call.method)).toEqual(["DELETE", "POST"]));
     expect(projectIn(queryClient)?.name).toBe("งาน");
     expect((queryClient.getQueryData(SYNC_QUERY_KEY) as SyncStore).tasks.t1).toBeDefined();
+    expect((queryClient.getQueryData(SYNC_QUERY_KEY) as SyncStore).tasks.t3).toBeDefined();
   });
 
   it("shows recent completed tasks when asked, with a link to all of them", async () => {
@@ -98,7 +101,7 @@ describe("ProjectPage", () => {
     fireEvent.click(screen.getByRole("checkbox", { name: th.pages.project.showCompleted }));
 
     expect(await screen.findByRole("link", { name: "ส่งใบแจ้งหนี้เดือนตุลาคม" })).toBeTruthy();
-    expect(screen.getByText("เสร็จแล้ว / completed - 1")).toBeTruthy();
+    expect(screen.getByText("เสร็จแล้ว / completed - 2")).toBeTruthy();
     expect(screen.getByRole("link", { name: th.pages.project.seeAll }).getAttribute("href")).toBe("/app/logbook?project=p1");
   });
 });
