@@ -1,4 +1,4 @@
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sum } from "drizzle-orm";
 import { Hono } from "hono";
 import { idParamSchema } from "../../shared/schemas/fields";
 import { createTaskSchema, type UpdateTaskInput, updateTaskSchema } from "../../shared/schemas/task";
@@ -8,7 +8,7 @@ import { assertUsableProject, findUsableProject } from "../db/project-queries";
 import { findOwnTask, isSameDue, positionAtEndOfList, reminderFor } from "../db/task-queries";
 import { attachments, subtasks, tasks } from "../db/schema";
 import { ApiError } from "../errors";
-import { assertRoomForActiveTasks } from "../limits";
+import { assertRoomForActiveTasks, hasRoomInStorage } from "../limits";
 import { requireSession } from "../middleware/require-session";
 import type { SessionEnv } from "../types";
 import { validate } from "../validate";
@@ -135,6 +135,15 @@ export const taskRoutes = new Hono<SessionEnv>()
     const projectGone = task.projectId && !(await findUsableProject(db, userId, task.projectId));
     const placement = projectGone ? { projectId: null, position: await positionAtEndOfList(db, userId, null) } : {};
 
+    // Images that no longer fit in the storage limit stay deleted (the purge job removes them).
+    // Their new updated_at sends them to sync again, so a device that showed them on Undo takes them off.
+    const deletedWithTask = and(eq(attachments.taskId, id), eq(attachments.deletedAt, task.deletedAt));
+    const [images] = await db
+      .select({ bytes: sum(attachments.bytes).mapWith(Number) })
+      .from(attachments)
+      .where(deletedWithTask);
+    const imagesFit = await hasRoomInStorage(db, userId, images?.bytes ?? 0);
+
     const now = Date.now();
     const [, , restored] = await db.batch([
       db
@@ -143,8 +152,8 @@ export const taskRoutes = new Hono<SessionEnv>()
         .where(and(eq(subtasks.taskId, id), eq(subtasks.deletedAt, task.deletedAt))),
       db
         .update(attachments)
-        .set({ deletedAt: null, updatedAt: now })
-        .where(and(eq(attachments.taskId, id), eq(attachments.deletedAt, task.deletedAt))),
+        .set(imagesFit ? { deletedAt: null, updatedAt: now } : { updatedAt: now })
+        .where(deletedWithTask),
       db
         .update(tasks)
         .set({ ...placement, deletedAt: null, updatedAt: now })

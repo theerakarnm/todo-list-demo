@@ -41,10 +41,14 @@ export async function assertRoomForAttachment(db: Db, taskId: string) {
 }
 
 /** The account's storage is the sum of its live attachments; profile photos do not count. */
-export async function assertRoomInStorage(db: Db, userId: string, addingBytes: number) {
+export async function hasRoomInStorage(db: Db, userId: string, addingBytes: number) {
   const [row] = await db
     .select({ used: sum(attachments.bytes).mapWith(Number) })
     .from(attachments)
     .where(and(eq(attachments.userId, userId), isNull(attachments.deletedAt)));
-  if ((row?.used ?? 0) + addingBytes > LIMITS.storageBytesPerUser) throw new ApiError("STORAGE_LIMIT");
+  return (row?.used ?? 0) + addingBytes <= LIMITS.storageBytesPerUser;
+}
+
+export async function assertRoomInStorage(db: Db, userId: string, addingBytes: number) {
+  if (!(await hasRoomInStorage(db, userId, addingBytes))) throw new ApiError("STORAGE_LIMIT");
 }

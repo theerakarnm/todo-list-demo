@@ -1,10 +1,11 @@
 import { env } from "cloudflare:test";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { LIMITS } from "../../shared/constants";
 import type { tasks } from "../db/schema";
 import { app } from "../app";
 import { apiAs, bodyOf } from "../test/api";
 import { newId } from "../test/ids";
-import { attachmentForm, pngFile } from "../test/images";
+import { attachmentForm, pngFile, seedAttachments } from "../test/images";
 import { insertProject, insertSubtask, seedTasks } from "../test/seed";
 import { createTestUser } from "../test/users";
 
@@ -248,6 +249,29 @@ describe("DELETE /api/tasks/:id and POST /api/tasks/:id/restore", () => {
     await apiAs(userId).post(`/api/tasks/${task.id}/restore`);
     expect((await attachmentRow(kept.id))?.deleted_at).toBeNull();
     expect((await attachmentRow(deletedEarlier.id))?.deleted_at).toBe(earlierDeletedAt);
+  });
+
+  it("restores the task without its images when they no longer fit in the 200 MB", async () => {
+    const userId = await createTestUser();
+    const task = await createTask(userId);
+    const image = await bodyOf<{ id: string; bytes: number }>(
+      await apiAs(userId).postForm(`/api/tasks/${task.id}/attachments`, attachmentForm(pngFile())),
+    );
+    const deleted = await bodyOf<Task>(await apiAs(userId).delete(`/api/tasks/${task.id}`));
+    const otherTask = await createTask(userId);
+    await seedAttachments(userId, otherTask.id, 1, { bytes: LIMITS.storageBytesPerUser - image.bytes + 1 });
+    await env.DB.prepare("UPDATE attachments SET updated_at = 1000 WHERE id = ?").bind(image.id).run();
+
+    const response = await apiAs(userId).post(`/api/tasks/${task.id}/restore`);
+
+    expect(response.status).toBe(200);
+    expect((await bodyOf<Task>(response)).deletedAt).toBeNull();
+    const row = await env.DB.prepare("SELECT deleted_at, updated_at FROM attachments WHERE id = ?")
+      .bind(image.id)
+      .first<{ deleted_at: number | null; updated_at: number }>();
+    expect(row?.deleted_at).toBe(deleted.deletedAt);
+    // A newer updated_at sends the tombstone again, so a device that put the image back on Undo takes it off.
+    expect(row?.updated_at).toBeGreaterThan(1000);
   });
 
   it("brings a task back into the Inbox when its project was deleted meanwhile", async () => {
