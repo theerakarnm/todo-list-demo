@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type FakeInternet, fakeInternet } from "../test/fake-internet";
-import { newTestEmail, signUpVerifiedUser, TEST_PASSWORD } from "../test/sign-up-user";
+import { newTestEmail, PASSES_TURNSTILE, signUpVerifiedUser, TEST_PASSWORD } from "../test/sign-up-user";
 import { TEST_ORIGIN, testBrowser } from "../test/test-browser";
 
 const newPassword = "new-battery-staple-2";
@@ -24,7 +24,7 @@ describe("password reset", () => {
     const email = newTestEmail();
     await signUpVerifiedUser(internet, email);
 
-    const response = await testBrowser().postJson("/api/auth/request-password-reset", { email });
+    const response = await testBrowser().postJson("/api/auth/request-password-reset", { email }, PASSES_TURNSTILE);
 
     expect(response.status).toBe(200);
     expect(internet.sentEmails.at(-1)?.subject).toMatch(/[\u0E00-\u0E7F]/);
@@ -36,7 +36,7 @@ describe("password reset", () => {
   it("sets the new password and retires the old one", async () => {
     const email = newTestEmail();
     await signUpVerifiedUser(internet, email);
-    await testBrowser().postJson("/api/auth/request-password-reset", { email });
+    await testBrowser().postJson("/api/auth/request-password-reset", { email }, PASSES_TURNSTILE);
     const token = new URL(internet.linkInLastEmailTo(email)).searchParams.get("token");
 
     const reset = await testBrowser().postJson("/api/auth/reset-password", { token, newPassword });
@@ -49,7 +49,7 @@ describe("password reset", () => {
   it("signs out every existing session", async () => {
     const email = newTestEmail();
     const signedInBrowser = await signUpVerifiedUser(internet, email);
-    await testBrowser().postJson("/api/auth/request-password-reset", { email });
+    await testBrowser().postJson("/api/auth/request-password-reset", { email }, PASSES_TURNSTILE);
     const token = new URL(internet.linkInLastEmailTo(email)).searchParams.get("token");
 
     await testBrowser().postJson("/api/auth/reset-password", { token, newPassword });
@@ -61,7 +61,7 @@ describe("password reset", () => {
   it("refuses a token that was already used", async () => {
     const email = newTestEmail();
     await signUpVerifiedUser(internet, email);
-    await testBrowser().postJson("/api/auth/request-password-reset", { email });
+    await testBrowser().postJson("/api/auth/request-password-reset", { email }, PASSES_TURNSTILE);
     const token = new URL(internet.linkInLastEmailTo(email)).searchParams.get("token");
     await testBrowser().postJson("/api/auth/reset-password", { token, newPassword });
 

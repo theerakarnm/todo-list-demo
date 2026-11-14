@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type FakeInternet, fakeInternet } from "../test/fake-internet";
+import { PASSES_TURNSTILE } from "../test/sign-up-user";
 import { testBrowser } from "../test/test-browser";
 
 const password = "correct-horse-1";
@@ -18,7 +19,7 @@ afterEach(() => {
 });
 
 function signUp(browser = testBrowser()) {
-  return browser.postJson("/api/auth/sign-up/email", { name: "somchai", email, password });
+  return browser.postJson("/api/auth/sign-up/email", { name: "somchai", email, password }, PASSES_TURNSTILE);
 }
 
 function signIn(browser = testBrowser(), withPassword = password) {
@@ -55,11 +56,11 @@ describe("email sign-up", () => {
   });
 
   it("refuses a password shorter than 8 characters", async () => {
-    const response = await testBrowser().postJson("/api/auth/sign-up/email", {
-      name: "short",
-      email,
-      password: "1234567",
-    });
+    const response = await testBrowser().postJson(
+      "/api/auth/sign-up/email",
+      { name: "short", email, password: "1234567" },
+      PASSES_TURNSTILE,
+    );
 
     expect(response.status).toBe(400);
   });

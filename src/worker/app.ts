@@ -3,6 +3,7 @@ import { authRoutes } from "./auth/auth-routes";
 import { handleError, handleNotFound } from "./errors";
 import { requestId } from "./middleware/request-id";
 import { securityHeaders } from "./middleware/security-headers";
+import { configRoutes } from "./routes/config";
 import { healthRoutes } from "./routes/health";
 import type { AppEnv } from "./types";
 
@@ -11,6 +12,7 @@ export const app = new Hono<AppEnv>()
   .use(requestId)
   .use(securityHeaders)
   .route("/api/health", healthRoutes)
+  .route("/api/config", configRoutes)
   .route("/api/auth", authRoutes);
 
 app.notFound(handleNotFound);

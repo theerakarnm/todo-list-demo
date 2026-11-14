@@ -16,6 +16,7 @@ const ERRORS: Record<ErrorCode, { status: ContentfulStatusCode; message: string 
   FORBIDDEN: { status: 403, message: "คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้" },
   NOT_FOUND: { status: 404, message: "ไม่พบข้อมูลที่ต้องการ" },
   RATE_LIMITED: { status: 429, message: "ส่งคำขอถี่เกินไป กรุณารอสักครู่แล้วลองใหม่" },
+  TURNSTILE_FAILED: { status: 400, message: "ยืนยันว่าไม่ใช่บอทไม่สำเร็จ กรุณาลองใหม่อีกครั้ง" },
   TASK_LIMIT: {
     status: 409,
     message: `มีงานที่ยังไม่เสร็จครบ ${formatCount(LIMITS.activeTasksPerUser)} งานแล้ว กรุณาปิดหรือลบงานเก่าก่อน`,
