@@ -39,6 +39,13 @@ describe("routes", () => {
     expect(await screen.findByRole("heading", { level: 1, name: title })).toBeTruthy();
   });
 
+  it("explains an unknown address instead of saying the page is being built", async () => {
+    renderAt("/no-such-page");
+
+    expect(await screen.findByText(th.pages.notFound.description)).toBeTruthy();
+    expect(screen.queryByText(th.pages.comingSoon)).toBeNull();
+  });
+
   it("sends /app to Today", async () => {
     const router = renderAt("/app");
 

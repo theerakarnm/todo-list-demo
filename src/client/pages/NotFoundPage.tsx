@@ -5,7 +5,7 @@ import { PublicPlaceholder } from "../components/PublicPlaceholder";
 export default function NotFoundPage() {
   const { t } = useTranslation();
   return (
-    <PublicPlaceholder title={t("pages.notFound.title")}>
+    <PublicPlaceholder title={t("pages.notFound.title")} description={t("pages.notFound.description")}>
       <Link to="/" className="btn btn-outline mt-7">
         {t("pages.notFound.backHome")}
       </Link>
