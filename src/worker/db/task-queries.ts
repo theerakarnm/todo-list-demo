@@ -1,9 +1,10 @@
-import { and, eq, inArray, isNull, max, sql } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, max, sql } from "drizzle-orm";
 import { generateKeyBetween } from "fractional-indexing";
 import { zonedDateTimeToUtcMs } from "../../shared/time-zone";
 import { ApiError } from "../errors";
 import type { Db } from "./client";
 import { attachmentColumns, subtaskColumns, taskColumns } from "./columns";
+import { inJsonList } from "./in-list";
 import { getViewSettings } from "./settings-queries";
 import { attachments, subtasks, tasks } from "./schema";
 
@@ -37,7 +38,7 @@ export function subtasksOfTasks(db: Db, userId: string, taskIds: string[]) {
       and(
         eq(subtasks.userId, userId),
         isNull(subtasks.deletedAt),
-        inArray(subtasks.taskId, sql`(SELECT value FROM json_each(${JSON.stringify(taskIds)}))`),
+        inJsonList(subtasks.taskId, taskIds),
       ),
     );
 }
@@ -51,7 +52,7 @@ export function attachmentsOfTasks(db: Db, userId: string, taskIds: string[]) {
       and(
         eq(attachments.userId, userId),
         isNull(attachments.deletedAt),
-        inArray(attachments.taskId, sql`(SELECT value FROM json_each(${JSON.stringify(taskIds)}))`),
+        inJsonList(attachments.taskId, taskIds),
       ),
     );
 }
@@ -106,6 +107,34 @@ export async function setDueDates(db: Db, userId: string, timeZone: string, chan
     SET due_date = changes.due_date, remind_at = changes.remind_at, reminder_sent_at = NULL, updated_at = ${Date.now()}
     FROM (
       SELECT value ->> 'id' AS id, value ->> 'dueDate' AS due_date, value ->> 'remindAt' AS remind_at
+      FROM json_each(${JSON.stringify(rows)})
+    ) AS changes
+    WHERE tasks.id = changes.id AND tasks.user_id = ${userId}`);
+}
+
+/**
+ * After the user's time zone changes, every task with a due time gets the
+ * remind_at of its due date and time in the new zone. Completed and deleted
+ * tasks move too: un-complete and restore keep remind_at, so a task that comes
+ * back must already have the new zone's time. A reminder already sent is armed
+ * again when its new time is still ahead of `now`; one whose new time has
+ * passed stays sent.
+ */
+export async function moveRemindersToTimeZone(db: Db, userId: string, timeZone: string, now: number) {
+  const timed = await db
+    .select({ id: tasks.id, dueDate: tasks.dueDate, dueTime: tasks.dueTime })
+    .from(tasks)
+    .where(and(eq(tasks.userId, userId), isNotNull(tasks.dueTime)));
+  const rows = timed.flatMap(({ id, dueDate, dueTime }) =>
+    dueDate && dueTime ? [{ id, remindAt: zonedDateTimeToUtcMs(dueDate, dueTime, timeZone) }] : [],
+  );
+  if (rows.length === 0) return;
+  await db.run(sql`
+    UPDATE tasks
+    SET remind_at = changes.remind_at,
+      reminder_sent_at = CASE WHEN changes.remind_at > ${now} THEN NULL ELSE tasks.reminder_sent_at END
+    FROM (
+      SELECT value ->> 'id' AS id, value ->> 'remindAt' AS remind_at
       FROM json_each(${JSON.stringify(rows)})
     ) AS changes
     WHERE tasks.id = changes.id AND tasks.user_id = ${userId}`);

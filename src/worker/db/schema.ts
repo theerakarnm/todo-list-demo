@@ -124,3 +124,9 @@ export const pushSubscriptions = sqliteTable(
   },
   (table) => [index("push_subscriptions_user_idx").on(table.userId)],
 );
+
+/** The UTC day ("YYYY-MM-DD") each daily cron job last ran, so it runs at most once a day. */
+export const cronRuns = sqliteTable("cron_runs", {
+  job: text("job").primaryKey(),
+  lastRunOn: text("last_run_on").notNull(),
+});

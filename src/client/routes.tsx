@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import type { RouteObject } from "react-router";
+import { Navigate, type RouteObject, useParams } from "react-router";
 import { OnboardingOnly, SignedInOnly, SignedOutOnly, StartPageRedirect } from "./auth/guards";
 
 // Every screen is its own chunk, downloaded the first time it is visited.
@@ -17,6 +17,12 @@ function BlankPage() {
   return null;
 }
 
+/** The address a reminder push carries (/task/:id): Today with that task open in the drawer. */
+function TaskLinkRedirect() {
+  const { id = "" } = useParams();
+  return <Navigate to={{ pathname: "/app/today", search: `?task=${encodeURIComponent(id)}` }} replace />;
+}
+
 const screens: RouteObject[] = [
   { path: "/", lazy: lazyPage(() => import("./pages/LandingPage")) },
   guarded(SignedOutOnly, { path: "/login", lazy: lazyPage(() => import("./pages/LoginPage")) }),
@@ -26,6 +32,9 @@ const screens: RouteObject[] = [
   { path: "/verify-email", lazy: lazyPage(() => import("./pages/VerifyEmailPage")) },
   guarded(OnboardingOnly, { path: "/onboarding/1", lazy: lazyPage(() => import("./pages/OnboardingNamePage")) }),
   guarded(OnboardingOnly, { path: "/onboarding/2", lazy: lazyPage(() => import("./pages/OnboardingProjectsPage")) }),
+  // Addresses carried by push notifications; the signed-in guard on /app handles signed-out visitors.
+  { path: "/today", element: <Navigate to="/app/today" replace /> },
+  { path: "/task/:id", Component: TaskLinkRedirect },
   { path: "/privacy", lazy: lazyPage(() => import("./pages/PrivacyPage")) },
   { path: "/terms", lazy: lazyPage(() => import("./pages/TermsPage")) },
   guarded(SignedInOnly, {

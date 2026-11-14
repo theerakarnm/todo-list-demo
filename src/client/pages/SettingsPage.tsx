@@ -4,6 +4,7 @@ import { AppPage } from "../components/AppPage";
 import { PageHeader } from "../components/PageHeader";
 import { AccountSettings } from "../settings/AccountSettings";
 import { GeneralSettings } from "../settings/GeneralSettings";
+import { NotificationSettings } from "../settings/NotificationSettings";
 import { SettingsTabs } from "../settings/SettingsTabs";
 
 export default function SettingsPage() {
@@ -19,7 +20,11 @@ export default function SettingsPage() {
       />
       {me && (
         <SettingsTabs
-          panels={{ account: <AccountSettings me={me} />, general: <GeneralSettings settings={me.settings} /> }}
+          panels={{
+            account: <AccountSettings me={me} />,
+            general: <GeneralSettings settings={me.settings} />,
+            notifications: <NotificationSettings settings={me.settings} />,
+          }}
         />
       )}
     </AppPage>

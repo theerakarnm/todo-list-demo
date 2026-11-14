@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, todayInTimeZone, zonedDateTimeToUtcMs } from "./time-zone";
+import { addDays, timeInTimeZone, todayInTimeZone, zonedDateTimeToUtcMs } from "./time-zone";
 
 describe("todayInTimeZone", () => {
   it("gives the local calendar date as YYYY-MM-DD", () => {
@@ -8,6 +8,15 @@ describe("todayInTimeZone", () => {
     expect(todayInTimeZone(instant, "Asia/Bangkok")).toBe("2026-11-15");
     expect(todayInTimeZone(instant, "UTC")).toBe("2026-11-14");
     expect(todayInTimeZone(instant, "America/Los_Angeles")).toBe("2026-11-14");
+  });
+});
+
+describe("timeInTimeZone", () => {
+  it("gives the local wall-clock time as HH:MM, with midnight as 00", () => {
+    const instant = Date.UTC(2026, 10, 14, 17, 5);
+    expect(timeInTimeZone(instant, "Asia/Bangkok")).toBe("00:05");
+    expect(timeInTimeZone(instant, "UTC")).toBe("17:05");
+    expect(timeInTimeZone(instant, "Asia/Kolkata")).toBe("22:35");
   });
 });
 

@@ -13,6 +13,7 @@ import { onboardingRoutes } from "./routes/onboarding";
 import { settingsRoutes } from "./routes/settings";
 import { logbookRoutes } from "./routes/logbook";
 import { projectRoutes } from "./routes/projects";
+import { pushRoutes } from "./routes/push";
 import { searchRoutes } from "./routes/search";
 import { subtaskRoutes } from "./routes/subtasks";
 import { syncRoutes } from "./routes/sync";
@@ -37,7 +38,8 @@ export const app = new Hono<AppEnv>()
   .route("/api/sync", syncRoutes)
   .route("/api/logbook", logbookRoutes)
   .route("/api/files", fileRoutes)
-  .route("/api/search", searchRoutes);
+  .route("/api/search", searchRoutes)
+  .route("/api/push", pushRoutes);
 
 app.notFound(handleNotFound);
 app.onError(handleError);

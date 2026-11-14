@@ -52,7 +52,7 @@ describe("purgeDeletedAttachments", () => {
     await insertAttachment(userId, oldTaskId, BEFORE);
     const onRecentTask = await insertAttachment(userId, recentTaskId, AFTER);
 
-    const purged = await purgeDeletedAttachments(env.DB, env.FILES, CUTOFF);
+    const { purged } = await purgeDeletedAttachments(env.DB, env.FILES, CUTOFF);
 
     expect(purged).toBe(2);
     const kept = [live, recentlyDeleted, onRecentTask].sort();
@@ -73,7 +73,7 @@ describe("purgeDeletedAttachments", () => {
     await setDeletedAt(old.id, now - 8 * DAY_MS);
     await setDeletedAt(recent.id, now - DAY_MS);
 
-    expect(await purgeDeletedAttachments(env.DB, env.FILES, now - 7 * DAY_MS)).toBe(1);
+    expect((await purgeDeletedAttachments(env.DB, env.FILES, now - 7 * DAY_MS)).purged).toBe(1);
 
     expect(await remainingKeys(userId)).toEqual({ rows: [recent.r2Key], files: [recent.r2Key] });
   });
@@ -85,8 +85,25 @@ describe("purgeDeletedAttachments", () => {
     const { results } = await env.DB.prepare("SELECT r2_key FROM attachments WHERE task_id = ?").bind(taskId).all<{ r2_key: string }>();
     await Promise.all(results.map((row) => env.FILES.put(row.r2_key, "img")));
 
-    expect(await purgeDeletedAttachments(env.DB, env.FILES, CUTOFF)).toBe(1005);
+    expect((await purgeDeletedAttachments(env.DB, env.FILES, CUTOFF)).purged).toBe(1005);
 
     expect(await remainingKeys(userId)).toEqual({ rows: [], files: [] });
+  });
+
+  it("stops after maxPages pages and says it is not done, so a later call goes on", async () => {
+    const userId = await createTestUser();
+    const taskId = await insertTask(userId, null);
+    for (let i = 0; i < 5; i++) await insertAttachment(userId, taskId, BEFORE);
+    const live = await insertAttachment(userId, taskId, null);
+
+    const first = await purgeDeletedAttachments(env.DB, env.FILES, CUTOFF, { pageSize: 2, maxPages: 2 });
+
+    expect(first).toEqual({ purged: 4, pages: 2, done: false });
+    expect((await remainingKeys(userId)).rows).toHaveLength(2);
+
+    const second = await purgeDeletedAttachments(env.DB, env.FILES, CUTOFF, { pageSize: 2, maxPages: 2 });
+
+    expect(second).toEqual({ purged: 1, pages: 1, done: true });
+    expect(await remainingKeys(userId)).toEqual({ rows: [live], files: [live] });
   });
 });

@@ -1,20 +1,30 @@
-import { inArray, lt, or, sql } from "drizzle-orm";
+import { inArray, lt, or } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
+import { inJsonList } from "../db/in-list";
 import { attachments, tasks } from "../db/schema";
 
-/** R2 deletes at most 1,000 keys per call. */
-const R2_DELETE_BATCH = 1000;
+type PurgeOptions = {
+  /** Images per page; R2 deletes at most 1,000 keys per call. */
+  pageSize?: number;
+  /** Pages this call may delete; the rest waits for a later call. */
+  maxPages?: number;
+};
 
 /**
  * Hard-deletes the images deleted before `cutoffMs`, or whose task was, and
- * their R2 files, 1,000 at a time. Returns how many it removed.
+ * their R2 files, one page at a time. `done` is false when it stopped at
+ * `maxPages` with images possibly left.
  *
- * Lane 4's daily purge cron calls this (it is not wired into cron.ts here).
- * It must run BEFORE that cron hard-deletes old tasks: the foreign key cascade
- * would drop these rows with their tasks and lose the R2 keys.
+ * The purge cron calls this before it hard-deletes old tasks: the foreign key
+ * cascade would drop these rows with their tasks and lose the R2 keys.
  * Files go first, so a failure leaves rows that the next run tries again.
  */
-export async function purgeDeletedAttachments(db: D1Database, files: R2Bucket, cutoffMs: number) {
+export async function purgeDeletedAttachments(
+  db: D1Database,
+  files: R2Bucket,
+  cutoffMs: number,
+  { pageSize = 1000, maxPages = Number.POSITIVE_INFINITY }: PurgeOptions = {},
+) {
   const orm = drizzle(db);
   const purgeable = or(
     lt(attachments.deletedAt, cutoffMs),
@@ -22,17 +32,20 @@ export async function purgeDeletedAttachments(db: D1Database, files: R2Bucket, c
   );
 
   let purged = 0;
-  for (;;) {
-    const batch = await orm
+  let pages = 0;
+  while (pages < maxPages) {
+    const page = await orm
       .select({ id: attachments.id, r2Key: attachments.r2Key })
       .from(attachments)
       .where(purgeable)
-      .limit(R2_DELETE_BATCH);
-    if (batch.length === 0) return purged;
-
-    await files.delete(batch.map((attachment) => attachment.r2Key));
-    const ids = JSON.stringify(batch.map((attachment) => attachment.id));
-    await orm.delete(attachments).where(inArray(attachments.id, sql`(SELECT value FROM json_each(${ids}))`));
-    purged += batch.length;
+      .limit(pageSize);
+    pages++;
+    if (page.length > 0) {
+      await files.delete(page.map((attachment) => attachment.r2Key));
+      await orm.delete(attachments).where(inJsonList(attachments.id, page.map((attachment) => attachment.id)));
+      purged += page.length;
+    }
+    if (page.length < pageSize) return { purged, pages, done: true };
   }
+  return { purged, pages, done: false };
 }
