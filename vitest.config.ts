@@ -18,6 +18,14 @@ export default defineConfig({
                 RESEND_API_KEY: "",
                 // Same in every checkout, whatever .dev.vars says.
                 APP_ENV: "development",
+                // Fixed test values, so tests never depend on (or leak) the real keys in .dev.vars.
+                BETTER_AUTH_SECRET: "test-better-auth-secret-at-least-32-characters",
+                BETTER_AUTH_URL: "",
+                EMAIL_FROM: "no-reply@mail.eukron.com",
+                LINE_LOGIN_CHANNEL_ID: "test-line-channel-id",
+                LINE_LOGIN_CHANNEL_SECRET: "test-line-channel-secret",
+                TURNSTILE_SITE_KEY: "test-turnstile-site-key",
+                TURNSTILE_SECRET_KEY: "test-turnstile-secret-key",
               },
             },
           })),
