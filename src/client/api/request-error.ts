@@ -13,10 +13,15 @@ export class ApiRequestError extends Error {
 
 type JsonResponse = { ok: boolean; status: number; json(): Promise<unknown> };
 
-/** The JSON body of a successful response; throws an `ApiRequestError` for an error response. */
-export async function readJson<R extends JsonResponse>(response: R): Promise<Awaited<ReturnType<R["json"]>>> {
-  if (response.ok) return (await response.json()) as Awaited<ReturnType<R["json"]>>;
-
+/** Throws an `ApiRequestError` for an error response; does nothing for a successful one. */
+export async function throwIfFailed(response: JsonResponse) {
+  if (response.ok) return;
   const body = (await response.json().catch(() => null)) as Partial<ApiErrorBody> | null;
   throw new ApiRequestError(response.status, body?.error?.code ?? null, body?.error?.message ?? "");
+}
+
+/** The JSON body of a successful response; throws an `ApiRequestError` for an error response. */
+export async function readJson<R extends JsonResponse>(response: R): Promise<Awaited<ReturnType<R["json"]>>> {
+  await throwIfFailed(response);
+  return (await response.json()) as Awaited<ReturnType<R["json"]>>;
 }

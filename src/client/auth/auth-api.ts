@@ -34,6 +34,11 @@ export function resetPassword(token: string, newPassword: string) {
   return postAuth("reset-password", { token, newPassword });
 }
 
+/** Settings → Account. Other devices are signed out; this one stays signed in. */
+export function changePassword(currentPassword: string, newPassword: string) {
+  return postAuth("change-password", { currentPassword, newPassword, revokeOtherSessions: true });
+}
+
 /** Asks Better Auth where LINE's sign-in page is; LINE sends the user back to `callbackURL`. */
 export function startLineSignIn(callbackURL: string) {
   return postAuth<{ url: string }>("sign-in/social", { provider: "line", callbackURL, errorCallbackURL: "/login" });

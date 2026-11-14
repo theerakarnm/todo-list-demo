@@ -273,5 +273,30 @@
     "projectsHint": "เลือกได้หลายอัน เปลี่ยนหรือเพิ่มทีหลังได้",
     "createWorkspace": "Create workspace",
     "skip": "Skip"
+  },
+  "settingsTabs": {
+    "label": "Settings",
+    "account": "Account",
+    "general": "General"
+  },
+  "settingsAccount": {
+    "nameLabel": "ชื่อ / name",
+    "save": "บันทึก",
+    "saved": "บันทึกแล้ว",
+    "emailLabel": "อีเมล / email",
+    "noEmail": "ไม่มีอีเมล · เข้าสู่ระบบด้วย LINE",
+    "passwordLabel": "รหัสผ่าน / password",
+    "changePassword": "เปลี่ยนรหัสผ่าน",
+    "currentPassword": "รหัสผ่านปัจจุบัน / current password",
+    "newPassword": "รหัสผ่านใหม่ / new password",
+    "savePassword": "บันทึกรหัสผ่าน",
+    "cancel": "ยกเลิก",
+    "passwordChanged": "เปลี่ยนรหัสผ่านแล้ว",
+    "deleteTitle": "▲ ลบบัญชี / delete account",
+    "deleteBody": "ลบบัญชีและงานทั้งหมดอย่างถาวร กู้คืนไม่ได้",
+    "deleteButton": "ลบบัญชี",
+    "deleteConfirmTitle": "ลบบัญชีถาวร?",
+    "deleteConfirmBody": "งาน โปรเจกต์ รูปภาพ และการตั้งค่าทั้งหมดจะถูกลบทันที แล้วออกจากระบบ กู้คืนไม่ได้",
+    "deleteConfirm": "ลบบัญชีถาวร"
   }
 }

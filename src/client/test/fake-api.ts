@@ -5,7 +5,7 @@ import type { ErrorCode } from "../../shared/error-codes";
 type Route = `${"GET" | "POST" | "PATCH" | "DELETE"} /api/${string}`;
 type Reply = { status?: number; body?: unknown };
 
-const replies = new Map<string, Reply>();
+const replies = new Map<string, Reply | Promise<Reply>>();
 const sent: { route: string; request: Request }[] = [];
 
 export const TEST_TURNSTILE_SITE_KEY = "test-site-key";
@@ -47,6 +47,13 @@ export function answer(route: Route, reply: Reply) {
   replies.set(route, reply);
 }
 
+/** The route answers only when the test calls `reply(...)`, so it can look at the screen while the request is in flight. */
+export function answerLater(route: Route) {
+  let reply: (value: Reply) => void = () => {};
+  replies.set(route, new Promise<Reply>((resolve) => (reply = resolve)));
+  return { reply };
+}
+
 export function signedInAs(me: Me) {
   answer("GET /api/me", { body: me });
 }
@@ -80,7 +87,7 @@ export function installFakeApi() {
     const request = new Request(new URL(input instanceof Request ? input.url : input, "http://localhost"), init);
     const route = `${request.method} ${new URL(request.url).pathname}`;
     sent.push({ route, request: request.clone() });
-    const reply = replies.get(route) ?? apiError(404, "NOT_FOUND");
+    const reply = (await replies.get(route)) ?? apiError(404, "NOT_FOUND");
     const body = reply.body === undefined ? null : JSON.stringify(reply.body);
     return new Response(body, { status: reply.status ?? 200, headers: { "Content-Type": "application/json" } });
   });

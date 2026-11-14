@@ -26,6 +26,14 @@ HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) {
   this.dispatchEvent(new Event("close"));
 };
 
+// A <form method="dialog"> closes its dialog when submitted, as in browsers.
+document.addEventListener("submit", (event) => {
+  const form = event.target as HTMLFormElement;
+  if (form.getAttribute("method") !== "dialog") return;
+  event.preventDefault();
+  form.closest("dialog")?.close();
+});
+
 function closeOnEscape(this: HTMLDialogElement, event: KeyboardEvent) {
   if (event.key === "Escape") this.close();
 }
