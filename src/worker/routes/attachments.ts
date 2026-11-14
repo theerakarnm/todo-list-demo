@@ -12,6 +12,7 @@ import { assertRoomForAttachment, assertRoomInStorage } from "../limits";
 import { attachmentFileKey } from "../files/file-keys";
 import { SNIFF_BYTES, sniffImageMime } from "../files/sniff-image";
 import { imageBodyLimit, uploadAttachmentSchema } from "../files/uploads";
+import { requireSession } from "../middleware/require-session";
 import type { SessionEnv } from "../types";
 import { validate } from "../validate";
 
@@ -30,6 +31,25 @@ function findAttachment(db: Db, id: string) {
     .select({ userId: attachments.userId, attachment: attachmentColumns })
     .from(attachments)
     .where(eq(attachments.id, id))
+    .get();
+}
+
+async function findOwnAttachment(db: Db, userId: string, id: string) {
+  const attachment = await db
+    .select(attachmentColumns)
+    .from(attachments)
+    .where(and(eq(attachments.id, id), eq(attachments.userId, userId)))
+    .get();
+  if (!attachment) throw new ApiError("NOT_FOUND");
+  return attachment;
+}
+
+async function updateAttachment(db: Db, id: string, changes: Partial<typeof attachments.$inferInsert>) {
+  return db
+    .update(attachments)
+    .set({ updatedAt: Date.now(), ...changes })
+    .where(eq(attachments.id, id))
+    .returning(attachmentColumns)
     .get();
 }
 
@@ -77,4 +97,21 @@ export const taskAttachmentRoutes = new Hono<SessionEnv>()
       .returning(attachmentColumns)
       .get();
     return c.json(created, 201);
+  });
+
+export const attachmentRoutes = new Hono<SessionEnv>()
+  .use(requireSession)
+
+  // No Undo for an image: the file goes right away. The row stays as a tombstone for sync.
+  // If the R2 delete fails, the purge job removes the file of the soft-deleted row later.
+  .delete("/:id", validate("param", idParamSchema), async (c) => {
+    const db = createDb(c.env.DB);
+    const { id } = c.req.valid("param");
+    const attachment = await findOwnAttachment(db, c.get("userId"), id);
+    if (attachment.deletedAt) return c.json(attachment, 200);
+
+    const now = Date.now();
+    const deleted = await updateAttachment(db, id, { deletedAt: now, updatedAt: now });
+    await c.env.FILES.delete(attachment.r2Key);
+    return c.json(deleted, 200);
   });

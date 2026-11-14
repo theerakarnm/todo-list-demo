@@ -189,3 +189,42 @@ describe("POST /api/tasks/:id/attachments", () => {
     expect((await upload(userId, taskId, withoutFile)).status).toBe(400);
   });
 });
+
+describe("DELETE /api/attachments/:id", () => {
+  it("soft-deletes the row and removes the R2 object right away", async () => {
+    const userId = await createTestUser();
+    const attachment = await uploadPng(userId, await createTask(userId));
+
+    const response = await apiAs(userId).delete(`/api/attachments/${attachment.id}`);
+
+    expect(response.status).toBe(200);
+    const deleted = await bodyOf<Attachment>(response);
+    expect(deleted.deletedAt).toEqual(expect.any(Number));
+    expect(deleted.updatedAt).toBe(deleted.deletedAt);
+    expect(await env.FILES.head(attachment.r2Key)).toBeNull();
+  });
+
+  it("is idempotent: deleting again answers the same deleted row", async () => {
+    const userId = await createTestUser();
+    const attachment = await uploadPng(userId, await createTask(userId));
+    const first = await bodyOf<Attachment>(await apiAs(userId).delete(`/api/attachments/${attachment.id}`));
+
+    const again = await apiAs(userId).delete(`/api/attachments/${attachment.id}`);
+
+    expect(again.status).toBe(200);
+    expect(await bodyOf<Attachment>(again)).toEqual(first);
+  });
+
+  it("answers 404 for another user's attachment and leaves its file alone", async () => {
+    const owner = await createTestUser();
+    const intruder = await createTestUser();
+    const attachment = await uploadPng(owner, await createTask(owner));
+
+    const response = await apiAs(intruder).delete(`/api/attachments/${attachment.id}`);
+
+    expect(response.status).toBe(404);
+    expect(await env.FILES.head(attachment.r2Key)).not.toBeNull();
+    const row = await env.DB.prepare("SELECT deleted_at FROM attachments WHERE id = ?").bind(attachment.id).first();
+    expect(row?.deleted_at).toBeNull();
+  });
+});
