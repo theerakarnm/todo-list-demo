@@ -1,4 +1,5 @@
 import { vi } from "vitest";
+import { type FakePushService, fakePushService } from "./fake-push-service";
 
 type FakeHandler = (request: Request) => Response | Promise<Response>;
 
@@ -13,11 +14,13 @@ export const PASSING_TURNSTILE_TOKEN = "passing-turnstile-token";
 /**
  * Replaces `fetch` with a fake internet for one test: each outside URL gets a
  * handler, and any other request fails the test. Nothing real is ever called.
- * Emails "sent" through Resend are kept in `sentEmails`.
+ * Emails "sent" through Resend are kept in `sentEmails`; Web Push messages to
+ * any URL under the fake push service are kept in `push.received`.
  */
 export function fakeInternet() {
   const handlers = new Map<string, FakeHandler>();
   const sentEmails: SentEmail[] = [];
+  const push: FakePushService = fakePushService();
 
   handlers.set(RESEND_EMAILS_URL, async (request) => {
     sentEmails.push(await request.json());
@@ -34,7 +37,7 @@ export function fakeInternet() {
     vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
       const request = new Request(input, init);
       const url = request.url.split("?")[0] ?? request.url;
-      const handler = handlers.get(url);
+      const handler = handlers.get(url) ?? (push.handles(url) ? push.handle : undefined);
       if (!handler) throw new Error(`Unexpected fetch in a test: ${url}`);
       return handler(request);
     }),
@@ -42,6 +45,7 @@ export function fakeInternet() {
 
   return {
     sentEmails,
+    push,
     /** Answers every request to `url` with `handler`. */
     on(url: string, handler: FakeHandler) {
       handlers.set(url, handler);
