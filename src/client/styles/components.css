@@ -77,8 +77,9 @@
     flex: none;
   }
 
-  /* The black and dark green swatches vanish on night stock without an edge. */
-  [data-theme="dark"] .swatch {
+  /* The black and dark green swatches vanish on dark ink without an edge. */
+  [data-theme="dark"] .swatch,
+  .nav-item[aria-current="page"] .swatch {
     outline: 1px solid var(--fg-muted);
     outline-offset: -1px;
   }
