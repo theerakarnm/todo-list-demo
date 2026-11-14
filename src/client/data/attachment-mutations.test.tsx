@@ -4,7 +4,7 @@ import th from "../i18n/th.json";
 import { answerLater, apiError, requestsTo, stubApi } from "../test/fake-api";
 import { aFile, stubBrowserImages } from "../test/fake-images";
 import { renderHookWithStore } from "../test/render";
-import { useDeleteImage, useUploadImages } from "./attachment-mutations";
+import { useDeleteImage, useMoveImage, useUploadImages } from "./attachment-mutations";
 import { localUpload } from "./local-uploads";
 import { SYNC_QUERY_KEY } from "./sync-query";
 import type { SyncStore } from "./sync-store";
@@ -131,7 +131,9 @@ describe("useDeleteImage", () => {
     act(() => result.current(image));
 
     await waitFor(() => expect(imagesIn(queryClient)).toEqual([]));
-    await waitFor(() => expect(calls.map((call) => `${call.method} ${call.path}`)).toEqual(["DELETE /api/attachments/a1"]));
+    await waitFor(() =>
+      expect(calls.map((call) => `${call.method} ${call.path}`)).toEqual(["DELETE /api/attachments/a1"]),
+    );
   });
 
   it("an image deleted while it is still uploading does not come back", async () => {
@@ -165,5 +167,33 @@ describe("useDeleteImage", () => {
 
     expect(await screen.findByText(th.errors.network)).toBeTruthy();
     expect(imagesIn(queryClient)).toEqual([image]);
+  });
+});
+
+describe("useMoveImage", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("moves the image at once and saves its new position", async () => {
+    const calls = stubApi({
+      "PATCH /api/attachments/:id": anAttachment({ id: "a1", taskId: "t1", position: "a2", updatedAt: 5 }),
+    });
+    const image = anAttachment({ id: "a1", taskId: "t1", position: "a0" });
+    const { result, queryClient } = renderHookWithStore(useMoveImage, storeWith({ attachments: [image] }));
+
+    act(() => result.current(image, "a2"));
+
+    await waitFor(() => expect(storeIn(queryClient).attachments.a1?.position).toBe("a2"));
+    await waitFor(() => expect(calls[0]?.body).toEqual({ position: "a2" }));
+  });
+
+  it("puts the image back where it was when the server says no", async () => {
+    stubApi({ "PATCH /api/attachments/:id": apiError(404, "NOT_FOUND") });
+    const image = anAttachment({ id: "a1", taskId: "t1", position: "a0" });
+    const { result, queryClient } = renderHookWithStore(useMoveImage, storeWith({ attachments: [image] }));
+
+    act(() => result.current(image, "a2"));
+
+    expect(await screen.findByText(th.errors.api.NOT_FOUND)).toBeTruthy();
+    expect(storeIn(queryClient).attachments.a1?.position).toBe("a0");
   });
 });

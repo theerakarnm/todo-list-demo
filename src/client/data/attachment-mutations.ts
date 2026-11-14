@@ -99,3 +99,17 @@ export function useDeleteImage() {
   });
   return (attachment: Attachment) => remove.mutate(attachment);
 }
+
+/** Drag-to-reorder in the gallery: only the moved image gets a new position. */
+export function useMoveImage() {
+  const move = useOptimisticMutation({
+    request: ({ attachment, position }: { attachment: Attachment; position: string }) =>
+      request(api.api.attachments[":id"].$patch({ param: { id: attachment.id }, json: { position } })),
+    apply: (store, { attachment, position }) => {
+      const current = store.attachments[attachment.id];
+      return current ? putRows(store, { attachments: [{ ...current, position }] }) : store;
+    },
+    confirm: (attachment) => ({ attachments: [attachment] }),
+  });
+  return (attachment: Attachment, position: string) => move.mutate({ attachment, position });
+}
