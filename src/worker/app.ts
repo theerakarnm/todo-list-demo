@@ -3,13 +3,15 @@ import { handleError, handleNotFound } from "./errors";
 import { requestId } from "./middleware/request-id";
 import { securityHeaders } from "./middleware/security-headers";
 import { healthRoutes } from "./routes/health";
+import { taskRoutes } from "./routes/tasks";
 import type { AppEnv } from "./types";
 
 // Only /api/* reaches the Worker; everything else is a static asset (see wrangler.jsonc).
 export const app = new Hono<AppEnv>()
   .use(requestId)
   .use(securityHeaders)
-  .route("/api/health", healthRoutes);
+  .route("/api/health", healthRoutes)
+  .route("/api/tasks", taskRoutes);
 
 app.notFound(handleNotFound);
 app.onError(handleError);
