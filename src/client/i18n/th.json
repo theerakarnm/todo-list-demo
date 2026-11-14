@@ -21,7 +21,8 @@
     "collapse": "Collapse",
     "expand": "Expand",
     "openMenu": "เปิดเมนู",
-    "closeMenu": "ปิดเมนู"
+    "closeMenu": "ปิดเมนู",
+    "menu": "เมนู"
   },
   "bottomBar": {
     "label": "เมนูหลัก",
