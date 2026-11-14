@@ -13,9 +13,10 @@ export type SidebarProject = {
 type ProjectsNavProps = {
   projects: SidebarProject[];
   collapsed: boolean;
+  onNewProject: () => void;
 };
 
-export function ProjectsNav({ projects, collapsed }: ProjectsNavProps) {
+export function ProjectsNav({ projects, collapsed, onNewProject }: ProjectsNavProps) {
   const { t } = useTranslation();
   const itemClass = collapsed ? "nav-item justify-center px-0" : "nav-item";
 
@@ -38,11 +39,11 @@ export function ProjectsNav({ projects, collapsed }: ProjectsNavProps) {
             {!collapsed && <span className="mono ml-auto text-xs">{project.openTaskCount}</span>}
           </NavLink>
         ))}
-        {/* Lane 2 opens the create-project form from here. */}
         <button
           type="button"
           className={`${itemClass} mt-2 border-dashed border-fg`}
           title={collapsed ? t("nav.newProject") : undefined}
+          onClick={onNewProject}
         >
           <Icon name="plus" size={16} />
           <span className={collapsed ? "sr-only" : undefined}>{t("nav.newProject")}</span>

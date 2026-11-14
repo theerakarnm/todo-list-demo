@@ -338,4 +338,32 @@
     border: var(--rule-thin) dashed var(--fg-muted);
     background: transparent;
   }
+
+  /* A project colour swatch choice (the colour buttons of the Project mockup's menu). */
+  .color-option {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border: var(--rule-bold) solid transparent;
+    cursor: pointer;
+  }
+
+  .color-option input {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .color-option:hover,
+  .color-option:has(input:checked) {
+    border-color: var(--fg);
+  }
+
+  .color-option:has(input:focus-visible) {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
+  }
 }

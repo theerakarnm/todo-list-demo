@@ -1,21 +1,32 @@
 import { useTranslation } from "react-i18next";
 import { Icon } from "../components/Icon";
-import { ProjectsNav, type SidebarProject } from "./ProjectsNav";
+import { sidebarCounts, sortedProjects } from "../data/selectors";
+import { useSyncStore } from "../data/sync-query";
+import { useNow } from "../data/use-now";
+import { ProjectsNav } from "./ProjectsNav";
 import { SidebarUser } from "./SidebarUser";
 import { SmartViewsNav } from "./SmartViewsNav";
 
-type SidebarContentProps = {
-  collapsed?: boolean;
+export type ShellActions = {
   onOpenSearch: () => void;
   onOpenQuickAdd: () => void;
+  onNewProject: () => void;
 };
 
-// Lane 2 replaces this with the projects query.
-const NO_PROJECTS: SidebarProject[] = [];
-
 /** Everything in the sidebar column; shared by the desktop sidebar and the mobile drawer. */
-export function SidebarContent({ collapsed = false, onOpenSearch, onOpenQuickAdd }: SidebarContentProps) {
+export function SidebarContent({
+  collapsed = false,
+  onOpenSearch,
+  onOpenQuickAdd,
+  onNewProject,
+}: ShellActions & { collapsed?: boolean }) {
   const { t } = useTranslation();
+  const store = useSyncStore();
+  const now = useNow();
+  const counts = store ? sidebarCounts(store, now) : undefined;
+  const projects = store
+    ? sortedProjects(store).map((project) => ({ ...project, openTaskCount: counts?.projects[project.id] ?? 0 }))
+    : [];
 
   return (
     <>
@@ -50,8 +61,8 @@ export function SidebarContent({ collapsed = false, onOpenSearch, onOpenQuickAdd
           </span>
         )}
       </button>
-      <SmartViewsNav collapsed={collapsed} />
-      <ProjectsNav projects={NO_PROJECTS} collapsed={collapsed} />
+      <SmartViewsNav collapsed={collapsed} counts={counts} />
+      <ProjectsNav projects={projects} collapsed={collapsed} onNewProject={onNewProject} />
     </>
   );
 }

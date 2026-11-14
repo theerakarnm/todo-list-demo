@@ -115,7 +115,8 @@
     "comingSoon": "หน้านี้กำลังสร้าง"
   },
   "dialogs": {
-    "close": "ปิด"
+    "close": "ปิด",
+    "closeLabel": "ปิด"
   },
   "theme": {
     "legend": "ธีม / theme",
@@ -168,5 +169,20 @@
       "project": "to: {{name}}",
       "date": "due: {{date}}"
     }
+  },
+  "projectColors": {
+    "legend": "สี / color",
+    "blue": "สีน้ำเงิน",
+    "orange": "สีส้ม",
+    "violet": "สีม่วง",
+    "green": "สีเขียวเข้ม",
+    "black": "สีดำ"
+  },
+  "newProject": {
+    "title": "new project",
+    "name": "ชื่อโปรเจกต์ / name",
+    "namePlaceholder": "เช่น งาน, ส่วนตัว",
+    "cancel": "Cancel",
+    "create": "Create project"
   }
 }

@@ -6,36 +6,44 @@ type SmartView = {
   path: string;
   icon: IconName;
   labelKey: "nav.inbox" | "nav.today" | "nav.upcoming" | "nav.completed";
-  count?: number;
+  countKey?: "inbox" | "today";
 };
 
-// Counts are placeholders until lane 2 loads tasks.
 const SMART_VIEWS: SmartView[] = [
-  { path: "/app/inbox", icon: "inbox", labelKey: "nav.inbox", count: 0 },
-  { path: "/app/today", icon: "today", labelKey: "nav.today", count: 0 },
+  { path: "/app/inbox", icon: "inbox", labelKey: "nav.inbox", countKey: "inbox" },
+  { path: "/app/today", icon: "today", labelKey: "nav.today", countKey: "today" },
   { path: "/app/upcoming", icon: "upcoming", labelKey: "nav.upcoming" },
   { path: "/app/logbook", icon: "completed", labelKey: "nav.completed" },
 ];
 
-export function SmartViewsNav({ collapsed }: { collapsed: boolean }) {
+type SmartViewsNavProps = {
+  collapsed: boolean;
+  /** Active tasks in the Inbox and in Today; left out until the tasks have loaded. */
+  counts?: { inbox: number; today: number };
+};
+
+export function SmartViewsNav({ collapsed, counts }: SmartViewsNavProps) {
   const { t } = useTranslation();
 
   return (
     <>
       <div className={collapsed ? "sr-only" : "mono section-label"}>{t("nav.smartViews")}</div>
       <nav aria-label={t("nav.smartViews")} className="flex flex-col gap-0.5">
-        {SMART_VIEWS.map(({ path, icon, labelKey, count }) => (
-          <NavLink
-            key={path}
-            to={path}
-            className={collapsed ? "nav-item justify-center px-0" : "nav-item"}
-            title={collapsed ? t(labelKey) : undefined}
-          >
-            <Icon name={icon} />
-            <span className={collapsed ? "sr-only" : undefined}>{t(labelKey)}</span>
-            {count !== undefined && !collapsed && <span className="mono count-badge ml-auto">{count}</span>}
-          </NavLink>
-        ))}
+        {SMART_VIEWS.map(({ path, icon, labelKey, countKey }) => {
+          const count = countKey ? counts?.[countKey] : undefined;
+          return (
+            <NavLink
+              key={path}
+              to={path}
+              className={collapsed ? "nav-item justify-center px-0" : "nav-item"}
+              title={collapsed ? t(labelKey) : undefined}
+            >
+              <Icon name={icon} />
+              <span className={collapsed ? "sr-only" : undefined}>{t(labelKey)}</span>
+              {count !== undefined && !collapsed && <span className="mono count-badge ml-auto">{count}</span>}
+            </NavLink>
+          );
+        })}
       </nav>
     </>
   );

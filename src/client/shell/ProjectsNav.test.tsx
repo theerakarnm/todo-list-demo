@@ -9,7 +9,7 @@ describe("ProjectsNav", () => {
   it("lists each project with its open task count", () => {
     render(
       <MemoryRouter>
-        <ProjectsNav collapsed={false} projects={[{ id: "p1", name: "งาน", color: "blue", openTaskCount: 8 }]} />
+        <ProjectsNav collapsed={false} onNewProject={() => {}} projects={[{ id: "p1", name: "งาน", color: "blue", openTaskCount: 8 }]} />
       </MemoryRouter>,
     );
 
