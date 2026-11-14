@@ -2,17 +2,18 @@ import type { KeyboardEvent, ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 
-const TABS = ["account", "general"] as const;
+const TABS = ["account", "general", "notifications"] as const;
 type Tab = (typeof TABS)[number];
 
 /**
- * Account / General tabs from the Settings mockup. The open tab is in the
+ * Account / General / Notifications tabs from the Settings mockup. The open tab is in the
  * address (?tab=general), so a reload or a link keeps it.
  */
 export function SettingsTabs({ panels }: { panels: Record<Tab, ReactNode> }) {
   const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
-  const current: Tab = searchParams.get("tab") === "general" ? "general" : "account";
+  const requested = searchParams.get("tab");
+  const current: Tab = TABS.find((tab) => tab === requested) ?? "account";
 
   function select(tab: Tab) {
     setSearchParams(tab === "account" ? {} : { tab }, { replace: true });

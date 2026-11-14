@@ -19,12 +19,12 @@ describe("pushSupport", () => {
   });
 
   it("asks an iPhone in Safari to add JotList to the home screen first", () => {
-    expect(pushSupport({ ...desktop, userAgent: IPHONE, hasPushManager: false })).toBe("needs-home-screen");
+    expect(pushSupport({ ...desktop, userAgent: IPHONE, hasPushManager: false })).toBe("needsHomeScreen");
   });
 
   it("recognises an iPad that reports itself as a Mac", () => {
     expect(pushSupport({ ...desktop, userAgent: IPAD_AS_MAC, maxTouchPoints: 5, hasPushManager: false })).toBe(
-      "needs-home-screen",
+      "needsHomeScreen",
     );
   });
 

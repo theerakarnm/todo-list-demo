@@ -348,7 +348,19 @@
   "settingsTabs": {
     "label": "Settings",
     "account": "Account",
-    "general": "General"
+    "general": "General",
+    "notifications": "Notifications"
+  },
+  "notifications": {
+    "browserLabel": "แจ้งเตือนบนเบราว์เซอร์",
+    "browserHint": "เบราว์เซอร์จะขออนุญาตครั้งแรกที่เปิดใช้",
+    "digestLabel": "สรุปงานประจำวัน / daily digest",
+    "digestTimeLabel": "ส่งเวลา / time",
+    "denied": "เบราว์เซอร์ปิดกั้นการแจ้งเตือนของ JotList อยู่ ไปที่การตั้งค่าของเว็บไซต์ในเบราว์เซอร์ เปลี่ยนเป็นอนุญาต แล้วลองใหม่",
+    "needsHomeScreen": "iPhone และ iPad รับการแจ้งเตือนได้เมื่อเปิด JotList จากไอคอนบนหน้าจอโฮมเท่านั้น ให้เพิ่ม JotList ลงหน้าจอโฮมก่อน (ต้องใช้ iOS 16.4 ขึ้นไป) แล้วเปิดแอปจากไอคอนนั้น",
+    "unsupported": "เบราว์เซอร์นี้ยังไม่รองรับการแจ้งเตือน ลองใช้ Chrome, Edge, Firefox หรือ Safari เวอร์ชันล่าสุด",
+    "enableFailed": "เปิดการแจ้งเตือนไม่สำเร็จ ลองใหม่อีกครั้ง",
+    "disableFailed": "ปิดการแจ้งเตือนไม่สำเร็จ ลองใหม่อีกครั้ง"
   },
   "settingsAccount": {
     "nameLabel": "ชื่อ / name",

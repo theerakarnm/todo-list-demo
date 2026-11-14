@@ -7,7 +7,7 @@ export type PushEnvironment = {
   hasNotification: boolean;
 };
 
-export type PushSupport = "ready" | "needs-home-screen" | "unsupported";
+export type PushSupport = "ready" | "needsHomeScreen" | "unsupported";
 
 /** iPadOS 13+ Safari reports a Mac user agent, so a touch screen tells it apart. */
 function isIos({ userAgent, maxTouchPoints }: PushEnvironment) {
@@ -16,7 +16,7 @@ function isIos({ userAgent, maxTouchPoints }: PushEnvironment) {
 
 /** Can this device get push? On iOS 16.4+ only an app added to the home screen can. */
 export function pushSupport(environment: PushEnvironment): PushSupport {
-  if (isIos(environment) && !environment.installed) return "needs-home-screen";
+  if (isIos(environment) && !environment.installed) return "needsHomeScreen";
   return environment.hasPushManager && environment.hasNotification ? "ready" : "unsupported";
 }
 
