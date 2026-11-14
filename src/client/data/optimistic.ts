@@ -58,7 +58,7 @@ type OptimisticMutation<Variables, Result> = {
   confirm?: (result: Result) => ChangedRows;
   onSuccess?: (result: Result, variables: Variables) => void;
   /** Runs after success or failure, e.g. to refresh the Logbook. */
-  onSettled?: () => void;
+  onSettled?: (variables: Variables) => void;
 };
 
 /**
@@ -93,6 +93,6 @@ export function useOptimisticMutation<Variables, Result>(mutation: OptimisticMut
       if (rows) queryClient.setQueryData<SyncStore>(SYNC_QUERY_KEY, (store) => store && applyRows(store, rows));
       mutation.onSuccess?.(result, variables);
     },
-    onSettled: mutation.onSettled,
+    onSettled: (_result, _error, variables) => mutation.onSettled?.(variables),
   });
 }
