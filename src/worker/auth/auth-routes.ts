@@ -13,7 +13,7 @@ export const authRoutes = new Hono<AppEnv>()
   .use("/sign-up/email", requireTurnstile, rejectTakenEmail)
   .use("/request-password-reset", requireTurnstile)
   .on(["GET", "POST"], "/*", async (c) => {
-    const response = await createAuth(c.env, c.req.raw).handler(c.req.raw);
+    const response = await createAuth(c.env, c.req.raw, c.get("requestId")).handler(c.req.raw);
     if (response.status >= 400) throw new ApiError(await errorCodeForAuthResponse(response));
     return response;
   });

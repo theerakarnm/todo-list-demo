@@ -6,7 +6,7 @@ import * as authSchema from "../db/auth-schema";
 import { createUserSettingsOnce } from "../db/user-settings";
 import { sendEmail } from "../email/send-email";
 import { resetPasswordTemplate, verifyEmailTemplate } from "../email/templates";
-import { betterAuthLogger } from "./better-auth-logger";
+import { createBetterAuthLogger } from "./better-auth-logger";
 import { isLinePlaceholderEmail, lineProfileToUser } from "./line-linking";
 
 /** Where links in auth emails land in the client app. */
@@ -21,8 +21,9 @@ export function appOrigin(env: Env, request: Request) {
 /**
  * Better Auth for one request. The Worker has no long-lived process,
  * so the auth instance is built from this request's env and origin.
+ * `requestId` goes on Better Auth's log lines.
  */
-export function createAuth(env: Env, request: Request) {
+export function createAuth(env: Env, request: Request, requestId?: string) {
   const origin = appOrigin(env, request);
 
   return betterAuth({
@@ -31,7 +32,7 @@ export function createAuth(env: Env, request: Request) {
     trustedOrigins: [origin],
     secret: env.BETTER_AUTH_SECRET,
     database: drizzleAdapter(drizzle(env.DB), { provider: "sqlite", schema: authSchema }),
-    logger: betterAuthLogger,
+    logger: createBetterAuthLogger(requestId),
     // The Workers Rate Limiting bindings do this (middleware/rate-limit.ts).
     rateLimit: { enabled: false },
     advanced: {
