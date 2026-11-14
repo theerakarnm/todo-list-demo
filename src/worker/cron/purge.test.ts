@@ -1,8 +1,10 @@
 import { env } from "cloudflare:test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { createDb } from "../db/client";
 import { runCronAt } from "../test/cron";
 import { newId } from "../test/ids";
 import { createTestUser } from "../test/users";
+import { purgeDeletedRows } from "./purge";
 
 beforeEach(() => {
   vi.spyOn(console, "log").mockImplementation(() => {});
@@ -156,5 +158,75 @@ describe("the daily purge cron", () => {
 
     await runCronAt(now + DAY);
     expect(await exists("tasks", oldTask)).toBe(false);
+  });
+});
+
+/** env.FILES, recording the keys of every delete call. */
+function recordingFiles() {
+  const deleteCalls: string[][] = [];
+  const files = {
+    delete: (keys: string[]) => {
+      deleteCalls.push(keys);
+      return env.FILES.delete(keys);
+    },
+  } as unknown as R2Bucket;
+  return { files, deleteCalls };
+}
+
+describe("the daily purge in pages", () => {
+  it("deletes R2 objects and rows a page at a time until every old row is gone", async () => {
+    const now = threeAmUtc(20);
+    const old = now - 7 * DAY - HOUR;
+    const userId = await createTestUser();
+    const liveTask = await insertTask(userId, null);
+    const oldFiles = [];
+    for (let i = 0; i < 5; i++) oldFiles.push(await insertAttachment(userId, liveTask, old));
+    const oldSubtasks = [];
+    for (let i = 0; i < 3; i++) oldSubtasks.push(await insertSubtask(userId, liveTask, old));
+    const oldTasks = [];
+    for (let i = 0; i < 3; i++) oldTasks.push(await insertTask(userId, old));
+    const liveFile = await insertAttachment(userId, liveTask, null);
+    const recentFile = await insertAttachment(userId, liveTask, now - DAY);
+    const { files, deleteCalls } = recordingFiles();
+
+    const counts = await purgeDeletedRows(createDb(env.DB), files, now, { pageSize: 2, pagesPerRun: 20 });
+
+    expect(counts).toMatchObject({ attachments: 5, subtasks: 3, tasks: 3 });
+    expect(deleteCalls.map((keys) => keys.length)).toEqual([2, 2, 1]);
+    for (const file of oldFiles) {
+      expect(await exists("attachments", file.id)).toBe(false);
+      expect(await fileExists(file.key)).toBe(false);
+    }
+    for (const id of oldSubtasks) expect(await exists("subtasks", id)).toBe(false);
+    for (const id of oldTasks) expect(await exists("tasks", id)).toBe(false);
+    for (const file of [liveFile, recentFile]) {
+      expect(await exists("attachments", file.id)).toBe(true);
+      expect(await fileExists(file.key)).toBe(true);
+    }
+    expect(await exists("tasks", liveTask)).toBe(true);
+  });
+
+  it("stops after its pages for this run and finishes on the next run the same day", async () => {
+    const now = threeAmUtc(21);
+    const userId = await createTestUser();
+    const liveTask = await insertTask(userId, null);
+    const oldFiles = [];
+    for (let i = 0; i < 5; i++) oldFiles.push(await insertAttachment(userId, liveTask, now - 30 * DAY));
+    const oldTask = await insertTask(userId, now - 30 * DAY);
+    const db = createDb(env.DB);
+
+    await purgeDeletedRows(db, env.FILES, now, { pageSize: 2, pagesPerRun: 2 });
+
+    const left = [];
+    for (const file of oldFiles) if (await exists("attachments", file.id)) left.push(file);
+    expect(left).toHaveLength(1);
+    expect(await exists("tasks", oldTask)).toBe(true);
+
+    await purgeDeletedRows(db, env.FILES, now + 60_000, { pageSize: 2, pagesPerRun: 20 });
+
+    expect(await exists("attachments", left[0]?.id ?? "")).toBe(false);
+    expect(await fileExists(left[0]?.key ?? "")).toBe(false);
+    expect(await exists("tasks", oldTask)).toBe(false);
+    expect(await purgeDeletedRows(db, env.FILES, now + 120_000)).toBeNull();
   });
 });
