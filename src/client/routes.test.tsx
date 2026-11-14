@@ -20,7 +20,7 @@ function renderAt(path: string) {
 
 describe("routes", () => {
   it.each([
-    ["/", th.pages.landing.title],
+    ["/", th.landing.hero.line1 + th.landing.hero.line2 + th.landing.hero.line3 + th.landing.hero.highlight],
     ["/login", th.pages.login.title],
     ["/signup", th.pages.signup.title],
     ["/forgot-password", th.pages.forgotPassword.title],

@@ -176,5 +176,91 @@
       "logIn": "เข้าสู่ระบบ"
     },
     "recoveryEyebrow": "04 - วิธีเข้า / access"
+  },
+  "landing": {
+    "nav": {
+      "logIn": "Log in",
+      "getStarted": "Get Started Free"
+    },
+    "hero": {
+      "eyebrow": "JOB 001 - ตัวจัดการงาน / task manager",
+      "line1": "จดไว",
+      "line2": "จัดง่าย",
+      "line3": "โฟกัส",
+      "highlight": "วันนี้",
+      "tagline": "Capture fast. Sort later. Do today.",
+      "body": "พิมพ์ข้อความเดียวก็จดงานได้ทันที เปิดแอปมาก็เห็นแค่สิ่งที่ต้องทำวันนี้ ไม่ต้องจัดหมวดหมู่ก่อนเริ่มงาน",
+      "getStarted": "Get Started Free",
+      "howItWorks": "ดูวิธีใช้ / how it works",
+      "signUpWith": "สมัครด้วย LINE หรืออีเมล / line or email",
+      "gripperEdge": "▲ gripper edge",
+      "plates": "pl.01 blu - pl.02 org"
+    },
+    "preview": {
+      "label": "ตัวอย่างหน้าจอ Today ของแอป",
+      "windowTitle": "jotlist / today",
+      "inbox": "Inbox",
+      "inboxCount": "4",
+      "today": "Today",
+      "todayCount": "6",
+      "upcoming": "Upcoming",
+      "completed": "Completed",
+      "projects": "Projects",
+      "projectWork": "งาน",
+      "projectPersonal": "ส่วนตัว",
+      "projectGoals": "เป้าหมายปีนี้",
+      "date": "เสาร์ 14 พ.ย.",
+      "left": "06",
+      "task1": "ส่งใบเสนอราคาให้ลูกค้า",
+      "task2": "ตอบอีเมลฝ่ายบัญชี",
+      "task3": "ซื้อของเข้าบ้าน",
+      "task4": "สรุปประชุมทีม",
+      "addTask": "+ Add task"
+    },
+    "features": {
+      "eyebrow": "02 - สิ่งที่ได้ / what you get",
+      "title": "ทุกอย่างที่ต้องใช้ ไม่มีอะไรเกินจำเป็น",
+      "capture": {
+        "number": "01",
+        "key": "Q",
+        "title": "จดทันที",
+        "caption": "quick capture",
+        "body": "กด Q จากหน้าไหนก็ได้ พิมพ์ชื่องาน แล้วกด Enter งานเข้า Inbox ทันที ค่อยจัดทีหลัง"
+      },
+      "today": {
+        "number": "02",
+        "badge": "06 left",
+        "title": "โฟกัสวันนี้",
+        "caption": "today focus",
+        "body": "เปิดแอปมาเห็นเฉพาะงานที่ต้องทำวันนี้ งานค้างรวมไว้ให้เลื่อนมาวันนี้ได้ในคลิกเดียว"
+      },
+      "search": {
+        "number": "03",
+        "key": "Ctrl K",
+        "title": "ค้นหาไว",
+        "caption": "find anything",
+        "body": "กด Ctrl/Cmd + K เพื่อค้นหางานและโปรเจกต์ แล้วกระโดดไปหางานนั้นได้เลย"
+      },
+      "sync": {
+        "number": "04",
+        "title": "ซิงก์ทุกอุปกรณ์",
+        "caption": "cross-device sync",
+        "body": "จดบนมือถือ เปิดต่อบนคอมได้ทันที งานเหมือนกันทุกเครื่อง"
+      }
+    },
+    "start": {
+      "eyebrow": "03 - เริ่มเลย / start",
+      "title": "เริ่มจดงานแรกของคุณวันนี้",
+      "tagline": "Start free. Add your first task in 10 seconds.",
+      "getStarted": "Get Started Free"
+    }
+  },
+  "footer": {
+    "label": "Footer",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "contact": "ติดต่อ: {{email}}",
+    "contactEmail": "contact@theerakarnm.dev",
+    "copyright": "© 2026 jotlist - Eukron Team"
   }
 }

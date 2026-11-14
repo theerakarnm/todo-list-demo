@@ -13,8 +13,8 @@ export function useLineSignIn(next: string) {
   });
 }
 
-/** "Continue with LINE" in LINE green (ARCHITECTURE §15). */
-export function LineSignInButton({ next }: { next: string }) {
+/** "Continue with LINE" in LINE green (ARCHITECTURE §15). `className` sets its size. */
+export function LineSignInButton({ next, className = "w-full min-h-14" }: { next: string; className?: string }) {
   const { t } = useTranslation();
   const lineSignIn = useLineSignIn(next);
 
@@ -22,7 +22,7 @@ export function LineSignInButton({ next }: { next: string }) {
     <>
       <button
         type="button"
-        className="btn btn-line w-full"
+        className={`btn btn-line ${className}`}
         disabled={lineSignIn.isPending}
         onClick={() => lineSignIn.mutate()}
       >

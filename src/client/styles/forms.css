@@ -76,7 +76,6 @@
 
   .btn-line,
   .btn-line:hover {
-    min-height: 56px;
     border-color: var(--line-green);
     background: var(--line-green);
     color: var(--on-line-green);
@@ -110,5 +109,10 @@
     border-radius: 9999px;
     background-image: radial-gradient(circle, var(--paper) 2.4px, transparent 3px);
     background-size: 10px 10px;
+  }
+
+  .halftone-blue {
+    background-image: radial-gradient(circle, var(--ink-blue) 2.4px, transparent 3px);
+    background-size: 9px 9px;
   }
 }
