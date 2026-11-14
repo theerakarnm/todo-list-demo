@@ -75,4 +75,20 @@ describe("GET /api/logbook", () => {
 
     expect((await page(userId)).tasks).toEqual([]);
   });
+
+  it("can show one project's completed tasks only", async () => {
+    const userId = await createTestUser();
+    const projectId = newId();
+    const inProjectId = newId();
+    const inboxId = newId();
+    await apiAs(userId).put(`/api/projects/${projectId}`, { name: "งาน", position: "a0" });
+    await apiAs(userId).put(`/api/tasks/${inProjectId}`, { title: "ในโปรเจกต์", position: "a0", projectId });
+    await apiAs(userId).put(`/api/tasks/${inboxId}`, { title: "ในกล่อง", position: "a0" });
+    await apiAs(userId).patch(`/api/tasks/${inProjectId}`, { completed: true });
+    await apiAs(userId).patch(`/api/tasks/${inboxId}`, { completed: true });
+
+    const response = await apiAs(userId).get(`/api/logbook?projectId=${projectId}`);
+
+    expect((await bodyOf<Page>(response)).tasks.map((task) => task.id)).toEqual([inProjectId]);
+  });
 });

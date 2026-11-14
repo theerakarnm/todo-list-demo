@@ -24,13 +24,19 @@ export const logbookRoutes = new Hono<AppEnv>()
   // so tasks completed in the same millisecond are never skipped or repeated.
   .get("/", validate("query", logbookQuerySchema), async (c) => {
     const db = createDb(c.env.DB);
-    const { before, beforeId } = c.req.valid("query");
+    const { before, beforeId, projectId } = c.req.valid("query");
 
     const rows = await db
       .select(taskColumns)
       .from(tasks)
       .where(
-        and(eq(tasks.userId, c.get("userId")), isNotNull(tasks.completedAt), isNull(tasks.deletedAt), afterCursor(before, beforeId)),
+        and(
+          eq(tasks.userId, c.get("userId")),
+          isNotNull(tasks.completedAt),
+          isNull(tasks.deletedAt),
+          projectId ? eq(tasks.projectId, projectId) : undefined,
+          afterCursor(before, beforeId),
+        ),
       )
       .orderBy(desc(tasks.completedAt), desc(tasks.id))
       // One extra row tells us whether there is a next page.
