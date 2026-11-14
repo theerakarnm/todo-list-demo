@@ -9,6 +9,13 @@ export function todayInTimeZone(instant: number, timeZone: string) {
   );
 }
 
+/** The wall-clock time at `instant` in `timeZone`, e.g. "09:30" (midnight is "00:00"). */
+export function timeInTimeZone(instant: number, timeZone: string) {
+  return new Intl.DateTimeFormat("en-GB", { timeZone, hourCycle: "h23", hour: "2-digit", minute: "2-digit" }).format(
+    instant,
+  );
+}
+
 /** How far `timeZone` is ahead of UTC at `instant`, in milliseconds. */
 function offsetAt(instant: number, timeZone: string) {
   const parts = new Intl.DateTimeFormat("en-US", {

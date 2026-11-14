@@ -3,3 +3,9 @@
 
 /** Same name the app shows for tasks without a project (th.json nav.inbox). */
 export const INBOX_NAME = "Inbox";
+
+export const DIGEST_TITLE = "สรุปงานประจำวัน";
+
+export function digestBody(dueToday: number, overdue: number) {
+  return `วันนี้มี ${dueToday} งาน · เลยกำหนด ${overdue} งาน`;
+}
