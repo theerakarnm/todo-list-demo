@@ -1,13 +1,25 @@
 import { expect, test } from "@playwright/test";
+import { E2E_PASSWORD, e2eEmail } from "./test-user";
 
-// The signed-in user is the development placeholder (src/worker/middleware/current-user.ts),
-// so the local D1 must be migrated first: `bun run db:migrate:local`.
+// `bun run test:e2e` migrates the local D1 and adds this run's user (e2e/global-setup.ts).
 
-test("quick add for tomorrow, complete with Undo, then add a subtask", async ({ page }) => {
+test("sign in, quick add for tomorrow, complete with Undo, then add a subtask", async ({ page }) => {
   // The local database keeps earlier runs, so this run's task has its own name.
   const title = `ซื้อของขวัญวันเกิดแม่ ${Date.now()}`;
 
+  // Only the dev server: nothing in this test may reach LINE, Turnstile or Resend.
+  await page.context().route(/^(?!http:\/\/localhost:5199\/)/, (route) => route.abort());
+
+  // Signed out, /app goes to the Login page.
   await page.goto("/app");
+  await page.getByLabel("อีเมล / email").fill(e2eEmail());
+  await page.getByLabel("รหัสผ่าน / password").fill(E2E_PASSWORD);
+  await page.getByRole("button", { name: "Log in" }).click();
+
+  // A new account goes through onboarding once: keep the name, then skip the starter projects.
+  await expect(page).toHaveURL(/\/onboarding\/1/);
+  await page.getByRole("button", { name: "Continue", exact: true }).click();
+  await page.getByRole("button", { name: "Skip" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Today" })).toBeVisible();
 
   // Quick Add with Q: "พรุ่งนี้" becomes the date and leaves the title.

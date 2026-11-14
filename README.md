@@ -97,7 +97,7 @@ Client tests replace `fetch` with a fake API server (`src/client/test/fake-api.t
 | `bun run typecheck` | `tsc -b` over the client, Worker, shared code, service worker and config files |
 | `bun run lint` | Biome lint (recommended rules plus the React hooks rules); config in `biome.json` |
 | `bun run test` | Vitest: `worker` (Workers runtime, migrations applied per test file) and `client` (jsdom) |
-| `bun run test:e2e` | Playwright smoke in Chromium: migrates the local D1, starts the dev server on port 5199 and stops it after; needs `APP_ENV=development` in `.dev.vars` (the placeholder dev user) |
+| `bun run test:e2e` | Playwright smoke in Chromium: migrates the local D1, adds a fresh verified test user, starts the dev server on port 5199 with `CLOUDFLARE_ENV=e2e` (it reads the test-only `.dev.vars.e2e` that `playwright.config.ts` writes, never your `.dev.vars`), signs in through the Login page and stops the server after |
 | `bun run cf-typegen` | Regenerate `worker-configuration.d.ts` from `wrangler.jsonc` (ignores `.dev.vars`: secret types live in `src/worker/secrets.d.ts`) |
 | `bun run db:generate` | Write a new SQL migration into `drizzle/` from the Drizzle schema |
 | `bun run db:migrate:local` | Apply migrations to the local D1 database |
