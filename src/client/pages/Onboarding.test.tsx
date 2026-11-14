@@ -2,7 +2,7 @@ import { act, fireEvent, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import th from "../i18n/th.json";
 import { answer, apiError, lastJsonSentTo, signedInAs, signedOut, testMe } from "../test/fake-api";
-import { openPage } from "../test/render-app";
+import { findPageAlert, openPage } from "../test/render-app";
 
 const newUser = testMe({ settings: { displayName: "narin", onboardedAt: null } });
 const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -59,7 +59,7 @@ describe("onboarding step 2", () => {
   });
 
   it("sends an extra project once it is ticked", async () => {
-    answer("POST /api/onboarding/complete", { body: { settings: {} } });
+    answer("POST /api/onboarding/complete", { settings: {} });
     await finishStepOne();
     act(() => screen.getByRole("checkbox", { name: "การเงิน" }).click());
 
@@ -71,7 +71,7 @@ describe("onboarding step 2", () => {
   });
 
   it("creates the ticked projects with the name, theme and browser time zone, then opens the start page", async () => {
-    answer("POST /api/onboarding/complete", { body: { settings: {} } });
+    answer("POST /api/onboarding/complete", { settings: {} });
     const router = await finishStepOne("นรินทร์");
     act(() => screen.getByRole("checkbox", { name: "ส่วนตัว" }).click());
     signedInAs(testMe({ settings: { startPage: "inbox" } }));
@@ -92,7 +92,7 @@ describe("onboarding step 2", () => {
   });
 
   it("Skip creates no projects but still finishes onboarding", async () => {
-    answer("POST /api/onboarding/complete", { body: { settings: {} } });
+    answer("POST /api/onboarding/complete", { settings: {} });
     await finishStepOne();
     signedInAs(testMe());
 
@@ -108,7 +108,7 @@ describe("onboarding step 2", () => {
 
     click(th.onboarding.createWorkspace);
 
-    expect((await screen.findByRole("alert")).textContent).toContain("ส่งคำขอถี่เกินไป");
+    expect((await findPageAlert()).textContent).toContain("ส่งคำขอถี่เกินไป");
   });
 });
 
@@ -122,7 +122,7 @@ describe("onboarding keeps the page the user wanted", () => {
   }
 
   it("carries ?next= from step 1 to step 2 and goes there when finished", async () => {
-    answer("POST /api/onboarding/complete", { body: { settings: {} } });
+    answer("POST /api/onboarding/complete", { settings: {} });
     const router = await openStepOneWith("/app/upcoming");
     expect(router.state.location.search).toBe(`?next=${encodeURIComponent("/app/upcoming")}`);
     signedInAs(testMe());
@@ -134,7 +134,7 @@ describe("onboarding keeps the page the user wanted", () => {
   });
 
   it("goes there after Skip too", async () => {
-    answer("POST /api/onboarding/complete", { body: { settings: {} } });
+    answer("POST /api/onboarding/complete", { settings: {} });
     const router = await openStepOneWith("/app/upcoming");
     signedInAs(testMe());
 
@@ -145,7 +145,7 @@ describe("onboarding keeps the page the user wanted", () => {
   });
 
   it.each(["//evil.example", "https://evil.example", "/\\evil.example"])("ignores the unsafe next %s", async (next) => {
-    answer("POST /api/onboarding/complete", { body: { settings: {} } });
+    answer("POST /api/onboarding/complete", { settings: {} });
     const router = await openStepOneWith(next);
     signedInAs(testMe({ settings: { startPage: "inbox" } }));
 

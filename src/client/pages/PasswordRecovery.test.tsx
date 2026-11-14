@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import th from "../i18n/th.json";
 import { answer, apiError, lastJsonSentTo, requestsTo, signedOut, TEST_TURNSTILE_SITE_KEY } from "../test/fake-api";
 import { stubTurnstile } from "../test/fake-turnstile";
-import { openPage } from "../test/render-app";
+import { findPageAlert, getPageAlert, openPage } from "../test/render-app";
 
 let widget: ReturnType<typeof stubTurnstile>;
 
@@ -22,7 +22,7 @@ describe("Forgot password page", () => {
   }
 
   it("sends the reset request with the Turnstile token and says to check the inbox", async () => {
-    answer("POST /api/auth/request-password-reset", { body: { status: true } });
+    answer("POST /api/auth/request-password-reset", { status: true });
 
     await requestResetLink("narin@example.com");
 
@@ -39,7 +39,7 @@ describe("Forgot password page", () => {
 
     await requestResetLink("narin@example.com");
 
-    expect((await screen.findByRole("alert")).textContent).toContain("ส่งคำขอถี่เกินไป");
+    expect((await findPageAlert()).textContent).toContain("ส่งคำขอถี่เกินไป");
     expect(widget.turnstile.reset).toHaveBeenCalled();
   });
 
@@ -57,7 +57,7 @@ describe("Reset password page", () => {
   }
 
   it("saves the new password with the token from the link, then offers Login", async () => {
-    answer("POST /api/auth/reset-password", { body: { status: true } });
+    answer("POST /api/auth/reset-password", { status: true });
     await openPage("/reset-password?token=abc123");
 
     setNewPassword();
@@ -81,7 +81,7 @@ describe("Reset password page", () => {
 
     setNewPassword();
 
-    expect((await screen.findByRole("alert")).textContent).toContain("ลิงก์นี้หมดอายุ");
+    expect((await findPageAlert()).textContent).toContain("ลิงก์นี้หมดอายุ");
     expect(screen.getByRole("link", { name: th.auth.resetPassword.requestNewLink }).getAttribute("href")).toBe(
       "/forgot-password",
     );
@@ -90,7 +90,7 @@ describe("Reset password page", () => {
   it("asks for a new link when the address has no token", async () => {
     await openPage("/reset-password");
 
-    expect(screen.getByRole("alert").textContent).toContain(th.auth.resetPassword.invalidLink);
+    expect(getPageAlert().textContent).toContain(th.auth.resetPassword.invalidLink);
     expect(screen.queryByLabelText(th.auth.resetPassword.newPasswordLabel)).toBeNull();
   });
 });

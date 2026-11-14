@@ -11,7 +11,7 @@ import {
   signedOut,
   testMe,
 } from "../test/fake-api";
-import { openPage } from "../test/render-app";
+import { findPageAlert, openPage } from "../test/render-app";
 
 const t = th.settingsAccount;
 
@@ -33,7 +33,7 @@ describe("Settings → Account: display name", () => {
 
     expect(await sidebar().findByText("สมชาย")).toBeTruthy();
     expect(await lastJsonSentTo("PATCH /api/settings")).toEqual({ displayName: "สมชาย" });
-    save.reply({ body: { settings: testMe({ settings: { displayName: "สมชาย" } }).settings } });
+    save.reply({ settings: testMe({ settings: { displayName: "สมชาย" } }).settings });
     expect(await screen.findByText(t.saved)).toBeTruthy();
   });
 
@@ -44,7 +44,7 @@ describe("Settings → Account: display name", () => {
     fireEvent.change(screen.getByLabelText(t.nameLabel), { target: { value: "สมชาย" } });
     click(t.save);
 
-    expect((await screen.findByRole("alert")).textContent).toContain("ข้อมูลไม่ถูกต้อง");
+    expect((await findPageAlert()).textContent).toContain("ข้อมูลไม่ถูกต้อง");
     expect(sidebar().getByText("นรินทร์ ก.")).toBeTruthy();
   });
 });
@@ -68,7 +68,7 @@ describe("Settings → Account: email and password", () => {
   });
 
   it("changes the password", async () => {
-    answer("POST /api/auth/change-password", { body: {} });
+    answer("POST /api/auth/change-password", {});
     await openPage("/app/settings");
 
     click(t.changePassword);
@@ -93,7 +93,7 @@ describe("Settings → Account: email and password", () => {
     fireEvent.change(screen.getByLabelText(t.newPassword), { target: { value: "new-horse-22" } });
     click(t.savePassword);
 
-    expect((await screen.findByRole("alert")).textContent).toContain("รหัสผ่านปัจจุบันไม่ถูกต้อง");
+    expect((await findPageAlert()).textContent).toContain("รหัสผ่านปัจจุบันไม่ถูกต้อง");
     expect(screen.getByLabelText(t.currentPassword).getAttribute("aria-invalid")).toBe("true");
   });
 });
@@ -111,7 +111,7 @@ describe("Settings → Account: delete account", () => {
   });
 
   it("deletes the account, signs out and goes to the landing page", async () => {
-    answer("DELETE /api/account", { status: 204 });
+    answer("DELETE /api/account", new Response(null, { status: 204 }));
     const router = await openPage("/app/settings");
 
     click(t.deleteButton);

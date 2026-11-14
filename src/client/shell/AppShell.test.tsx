@@ -83,6 +83,6 @@ describe("AppShell desktop sidebar", () => {
     expect(screen.queryByRole("dialog")).toBeNull();
 
     fireEvent.keyDown(window, { code: "KeyQ", key: "q" });
-    expect(screen.getByRole("dialog", { name: th.nav.addTask })).toBeTruthy();
+    expect(screen.getByRole("dialog", { name: th.quickAdd.title })).toBeTruthy();
   });
 });

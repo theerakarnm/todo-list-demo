@@ -1,15 +1,10 @@
 import { useTranslation } from "react-i18next";
 import { Icon } from "../components/Icon";
-import { SidebarContent } from "./SidebarContent";
+import { type ShellActions, SidebarContent } from "./SidebarContent";
 import { useSidebarCollapsed } from "./use-sidebar-collapsed";
 
-type DesktopSidebarProps = {
-  onOpenSearch: () => void;
-  onOpenQuickAdd: () => void;
-};
-
 /** Left sidebar from the Today mockup (272px), or a 76px icon rail when collapsed. Desktop only. */
-export function DesktopSidebar({ onOpenSearch, onOpenQuickAdd }: DesktopSidebarProps) {
+export function DesktopSidebar(actions: ShellActions) {
   const { t } = useTranslation();
   const { collapsed, toggleCollapsed } = useSidebarCollapsed();
 
@@ -21,7 +16,7 @@ export function DesktopSidebar({ onOpenSearch, onOpenQuickAdd }: DesktopSidebarP
         collapsed ? "w-[76px]" : "w-[272px]"
       }`}
     >
-      <SidebarContent collapsed={collapsed} onOpenSearch={onOpenSearch} onOpenQuickAdd={onOpenQuickAdd} />
+      <SidebarContent collapsed={collapsed} dragAndDrop {...actions} />
       <button
         type="button"
         className={`nav-item mt-auto text-fg-muted hover:text-fg ${collapsed ? "justify-center px-0" : ""}`}

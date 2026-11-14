@@ -35,23 +35,64 @@
   "pages": {
     "today": {
       "eyebrow": "01 - วันนี้ / today - {{date}}",
-      "title": "Today"
+      "title": "Today",
+      "left": "เหลือ / left",
+      "leftLabel": "เหลือ {{count}} งาน",
+      "overdue": "▲ เลยกำหนด / overdue - {{count}}",
+      "group": "วันนี้ / today - {{count}}",
+      "reschedule": "Reschedule",
+      "rescheduleLabel": "ย้ายงานที่เลยกำหนดทั้งหมดมาเป็นวันนี้",
+      "emptyTitle": "เคลียร์ครบแล้ว พักได้เลย",
+      "emptyNote": "all clear - nothing due today"
     },
     "inbox": {
       "eyebrow": "02 - กล่องรับงาน / inbox",
-      "title": "Inbox"
+      "title": "Inbox",
+      "subtitle": "ที่พักไอเดียและธุระที่นึกออกทันที ยังไม่ต้องเลือกโปรเจกต์หรือวันที่",
+      "group": "ยังไม่จัด / unsorted - {{count}}"
     },
     "upcoming": {
       "eyebrow": "03 - กำลังมา / upcoming",
-      "title": "Upcoming"
+      "title": "Upcoming",
+      "range": "ช่วงเวลา / range",
+      "rangeOption": "{{count}} วัน",
+      "load": "load / ภาระงาน",
+      "loadLabel": "ความหนาแน่นของงานรายวัน",
+      "tomorrow": "พรุ่งนี้",
+      "taskCount": "{{count}} งาน",
+      "addTask": "Add task",
+      "addTaskLabel": "เพิ่มงานวัน{{date}}",
+      "free": "ว่าง / free"
     },
     "project": {
       "eyebrow": "04 - โปรเจกต์ / project",
-      "title": "Project"
+      "title": "Project",
+      "nameLabel": "ชื่อโปรเจกต์",
+      "renameHint": "click title to rename",
+      "menu": "เมนูโปรเจกต์",
+      "delete": "ลบโปรเจกต์ ({{count}} งาน)",
+      "open": "เปิดอยู่ / open - {{count}}",
+      "showCompleted": "แสดงที่เสร็จแล้ว / show completed",
+      "completed": "เสร็จแล้ว / completed - {{count}}",
+      "seeAll": "ดูทั้งหมด / see all",
+      "notFound": "ไม่พบโปรเจกต์นี้",
+      "notFoundNote": "โปรเจกต์อาจถูกลบไปแล้ว",
+      "backToToday": "กลับไปหน้า Today",
+      "confirmTitle": "ลบโปรเจกต์?",
+      "confirmBody": "โปรเจกต์ \"{{name}}\" และงานในโปรเจกต์ {{count}} งานจะถูกลบ กด Undo ได้ภายใน 5 วินาที",
+      "confirmDelete": "ลบโปรเจกต์",
+      "cancel": "Cancel",
+      "changeColor": "เปลี่ยนสี / color"
     },
     "completed": {
       "eyebrow": "05 - เสร็จแล้ว / completed",
-      "title": "Completed"
+      "title": "Completed",
+      "subtitle": "งานที่ทำเสร็จแล้ว ใหม่สุดก่อน ติ๊กออกเพื่อนำงานกลับมา",
+      "group": "เสร็จแล้ว / completed - {{count}}",
+      "inProject": "โปรเจกต์: {{name}}",
+      "showAll": "ดูทุกโปรเจกต์ / all projects",
+      "loadMore": "โหลดเพิ่ม / load more",
+      "empty": "ยังไม่มีงานที่ทำเสร็จ"
     },
     "settings": {
       "eyebrow": "06 - ตั้งค่า / settings",
@@ -93,7 +134,8 @@
     "comingSoon": "หน้านี้กำลังสร้าง"
   },
   "dialogs": {
-    "close": "ปิด"
+    "close": "ปิด",
+    "closeLabel": "ปิด"
   },
   "theme": {
     "light": "Light",
@@ -102,7 +144,29 @@
   },
   "errors": {
     "generic": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง",
-    "network": "เชื่อมต่อไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ต"
+    "network": "เชื่อมต่อไม่ได้ กรุณาตรวจสอบอินเทอร์เน็ต",
+    "api": {
+      "VALIDATION_ERROR": "ข้อมูลไม่ถูกต้อง กรุณาตรวจสอบอีกครั้ง",
+      "UNAUTHORIZED": "กรุณาเข้าสู่ระบบก่อน",
+      "FORBIDDEN": "คุณไม่มีสิทธิ์เข้าถึงข้อมูลนี้",
+      "NOT_FOUND": "ไม่พบข้อมูลที่ต้องการ อาจถูกลบไปแล้ว",
+      "RATE_LIMITED": "ส่งคำขอถี่เกินไป กรุณารอสักครู่แล้วลองใหม่",
+      "TURNSTILE_FAILED": "ยืนยันว่าไม่ใช่บอทไม่สำเร็จ กรุณาลองใหม่อีกครั้ง",
+      "INVALID_CREDENTIALS": "อีเมลหรือรหัสผ่านไม่ถูกต้อง ลองอีกครั้งหรือรีเซ็ตรหัสผ่าน",
+      "WRONG_PASSWORD": "รหัสผ่านปัจจุบันไม่ถูกต้อง",
+      "EMAIL_NOT_VERIFIED": "กรุณายืนยันอีเมลก่อนเข้าสู่ระบบ เราส่งลิงก์ยืนยันไปที่อีเมลของคุณแล้ว",
+      "EMAIL_TAKEN": "อีเมลนี้ถูกใช้งานแล้ว · เข้าสู่ระบบแทน",
+      "EMAIL_TAKEN_LINE": "อีเมลนี้มีบัญชีที่ใช้ LINE อยู่แล้ว · เข้าสู่ระบบด้วย LINE หรือใช้ \"ลืมรหัสผ่าน\" เพื่อตั้งรหัสผ่าน",
+      "INVALID_TOKEN": "ลิงก์นี้หมดอายุหรือถูกใช้ไปแล้ว กรุณาขอลิงก์ใหม่",
+      "TASK_LIMIT": "มีงานที่ยังไม่เสร็จครบ {{limit}} งานแล้ว กรุณาปิดหรือลบงานเก่าก่อน",
+      "PROJECT_LIMIT": "มีโปรเจกต์ครบ {{limit}} โปรเจกต์แล้ว",
+      "SUBTASK_LIMIT": "งานนี้มีงานย่อยครบ {{limit}} รายการแล้ว",
+      "ATTACHMENT_LIMIT": "แนบรูปได้สูงสุด {{limit}} รูปต่องาน",
+      "STORAGE_LIMIT": "พื้นที่เก็บรูปเต็มแล้ว",
+      "FILE_TOO_LARGE": "ไฟล์ใหญ่เกินไป",
+      "UNSUPPORTED_FILE": "รองรับเฉพาะไฟล์รูป JPEG, PNG, WebP หรือ HEIC",
+      "INTERNAL_ERROR": "เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง"
+    }
   },
   "auth": {
     "or": "or / หรือ",
@@ -408,5 +472,128 @@
         }
       ]
     }
+  },
+  "toast": {
+    "region": "การแจ้งเตือน",
+    "undo": "Undo",
+    "dismiss": "ปิดการแจ้งเตือน",
+    "completed": "ทำเสร็จแล้ว: {{title}}",
+    "deleted": "ลบงานแล้ว: {{title}}",
+    "rescheduled": "ย้าย {{count}} งานมาเป็นวันนี้แล้ว",
+    "projectDeleted": "ลบโปรเจกต์ {{name}} แล้ว"
+  },
+  "task": {
+    "complete": "ทำเครื่องหมายว่าเสร็จ: {{title}}",
+    "uncomplete": "ทำเครื่องหมายว่ายังไม่เสร็จ: {{title}}",
+    "today": "วันนี้",
+    "tomorrow": "พรุ่งนี้",
+    "overdueDate": "▲ {{date}}",
+    "subtaskProgress": "{{done}}/{{total}}",
+    "subtaskProgressLabel": "งานย่อยเสร็จ {{done}} จาก {{total}}",
+    "addTask": "Add task",
+    "addTaskPlaceholder": "พิมพ์ชื่องาน แล้วกด Enter",
+    "addTaskHint": {
+      "today": "due: today",
+      "inbox": "to: inbox",
+      "project": "to: {{name}}"
+    }
+  },
+  "projectColors": {
+    "blue": "สีน้ำเงิน",
+    "orange": "สีส้ม",
+    "violet": "สีม่วง",
+    "green": "สีเขียวเข้ม",
+    "black": "สีดำ"
+  },
+  "newProject": {
+    "title": "new project",
+    "name": "ชื่อโปรเจกต์ / name",
+    "namePlaceholder": "เช่น งาน, ส่วนตัว",
+    "cancel": "Cancel",
+    "create": "Create project",
+    "color": "สี / color"
+  },
+  "drawer": {
+    "label": "รายละเอียดงาน",
+    "heading": "งาน / task",
+    "close": "ปิดรายละเอียดงาน",
+    "title": "ชื่องาน",
+    "notes": "บันทึก / notes",
+    "notesPlaceholder": "รายละเอียดเพิ่มเติม",
+    "project": "โปรเจกต์ / project",
+    "inbox": "Inbox",
+    "dueDate": "วันที่ / due date",
+    "dueTime": "เวลา / time",
+    "clearDate": "ล้างวันที่",
+    "priority": "ความสำคัญ / priority",
+    "subtasks": "งานย่อย / subtasks - {{done}}/{{total}}",
+    "subtaskTitle": "ชื่องานย่อย",
+    "completeSubtask": "ทำเครื่องหมายว่าเสร็จ: {{title}}",
+    "uncompleteSubtask": "ทำเครื่องหมายว่ายังไม่เสร็จ: {{title}}",
+    "deleteSubtask": "ลบงานย่อย: {{title}}",
+    "addSubtask": "เพิ่มงานย่อย / add subtask",
+    "addSubtaskPlaceholder": "พิมพ์งานย่อย แล้วกด Enter",
+    "delete": "ลบงาน / delete task",
+    "notFound": "ไม่พบงานนี้ อาจถูกลบไปแล้ว"
+  },
+  "dates": {
+    "weekdayShort": [
+      "อา",
+      "จ",
+      "อ",
+      "พ",
+      "พฤ",
+      "ศ",
+      "ส"
+    ]
+  },
+  "priorities": {
+    "high": "P1 - สำคัญมาก",
+    "medium": "P2 - สำคัญ",
+    "low": "P3 - ไม่เร่ง",
+    "none": "P4 - ไม่ระบุ"
+  },
+  "search": {
+    "placeholder": "ค้นหางานหรือโปรเจกต์",
+    "results": "ผลการค้นหา",
+    "tasks": "tasks - {{count}}",
+    "projects": "projects - {{count}}",
+    "taskMeta": "{{place}} - {{date}}",
+    "projectTaskCount": "{{count}} งาน",
+    "completed": "เสร็จแล้ว / done",
+    "noResults": "ไม่พบงานหรือโปรเจกต์ที่ตรงกับ \"{{query}}\"",
+    "hintMove": "up / down - เลื่อน",
+    "hintOpen": "enter - เปิด",
+    "hintClose": "esc - ปิด",
+    "escKey": "Esc",
+    "enterKey": "Enter"
+  },
+  "quickAdd": {
+    "title": "quick add",
+    "titleField": "งานใหม่ / new task",
+    "placeholder": "เช่น โทรหาแม่ พรุ่งนี้ บ่ายสอง p1",
+    "chooseProject": "เลือกโปรเจกต์",
+    "chooseDate": "เลือกวันที่",
+    "choosePriority": "เลือกความสำคัญ",
+    "noDate": "ไม่มีวันที่",
+    "clearDate": "ล้างวันที่",
+    "cancel": "Cancel",
+    "add": "Add task",
+    "enterKey": "Enter"
+  },
+  "dnd": {
+    "handle": "ลากเพื่อย้าย: {{name}}",
+    "roleDescription": "ย้ายได้",
+    "instructions": "กด Space เพื่อหยิบ ใช้ปุ่มลูกศรเพื่อย้าย กด Space อีกครั้งเพื่อวาง หรือกด Esc เพื่อยกเลิก",
+    "picked": "หยิบ {{name}} แล้ว",
+    "over": "{{name}} อยู่เหนือ {{target}}",
+    "notOver": "{{name}} ไม่ได้อยู่เหนือที่วาง",
+    "dropped": "วาง {{name}} ที่ {{target}} แล้ว",
+    "droppedNowhere": "วาง {{name}} โดยไม่ได้ย้าย",
+    "cancelled": "ยกเลิกการย้าย {{name}}",
+    "targetTask": "ตำแหน่งของ {{title}}",
+    "targetProject": "โปรเจกต์ {{name}}",
+    "targetDay": "วัน{{date}}",
+    "dropToReschedule": "วางที่นี่ เพื่อย้ายมาเป็น{{date}} / drop to reschedule"
   }
 }

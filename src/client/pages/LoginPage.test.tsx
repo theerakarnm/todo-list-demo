@@ -2,7 +2,7 @@ import { act, fireEvent, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import th from "../i18n/th.json";
 import { answer, apiError, lastJsonSentTo, signedInAs, signedOut, testMe } from "../test/fake-api";
-import { openPage } from "../test/render-app";
+import { findPageAlert, getPageAlert, openPage } from "../test/render-app";
 import { goToExternalPage } from "../auth/external-page";
 
 vi.mock("../auth/external-page", () => ({ goToExternalPage: vi.fn() }));
@@ -43,7 +43,7 @@ describe("Login page", () => {
   });
 
   it("signs in with email and password, then goes to the page in ?next=", async () => {
-    answer("POST /api/auth/sign-in/email", { body: {} });
+    answer("POST /api/auth/sign-in/email", {});
     const router = await openPage(`/login?next=${encodeURIComponent("/app/inbox")}`);
     signedInAs(testMe());
 
@@ -63,7 +63,7 @@ describe("Login page", () => {
 
     logIn();
 
-    expect((await screen.findByRole("alert")).textContent).toContain("รหัสผ่านไม่ถูกต้อง");
+    expect((await findPageAlert()).textContent).toContain("รหัสผ่านไม่ถูกต้อง");
     expect(screen.getByLabelText(th.auth.passwordLabel).getAttribute("aria-invalid")).toBe("true");
   });
 
@@ -76,11 +76,11 @@ describe("Login page", () => {
 
     logIn();
 
-    expect((await screen.findByRole("alert")).textContent).toContain(message);
+    expect((await findPageAlert()).textContent).toContain(message);
   });
 
   it("starts LINE sign-in and comes back to ?next= afterwards", async () => {
-    answer("POST /api/auth/sign-in/social", { body: { url: "https://access.line.me/oauth2/v2.1/authorize?x=1", redirect: true } });
+    answer("POST /api/auth/sign-in/social", { url: "https://access.line.me/oauth2/v2.1/authorize?x=1", redirect: true });
     await openPage(`/login?next=${encodeURIComponent("/app/upcoming")}`);
 
     act(() => screen.getByRole("button", { name: th.auth.continueWithLine }).click());
@@ -99,6 +99,6 @@ describe("Login page", () => {
   ])("explains a LINE error that comes back as ?error=%s", async (error, message) => {
     await openPage(`/login?error=${error}`);
 
-    expect(screen.getByRole("alert").textContent).toContain(message);
+    expect(getPageAlert().textContent).toContain(message);
   });
 });

@@ -4,7 +4,7 @@ import { goToExternalPage } from "../auth/external-page";
 import th from "../i18n/th.json";
 import { answer, apiError, lastJsonSentTo, requestsTo, signedOut, TEST_TURNSTILE_SITE_KEY } from "../test/fake-api";
 import { stubTurnstile } from "../test/fake-turnstile";
-import { openPage } from "../test/render-app";
+import { findPageAlert, openPage } from "../test/render-app";
 
 vi.mock("../auth/external-page", () => ({ goToExternalPage: vi.fn() }));
 
@@ -45,7 +45,7 @@ describe("Signup page", () => {
   });
 
   it("sends the sign-up with the Turnstile token, then asks the user to check their email", async () => {
-    answer("POST /api/auth/sign-up/email", { body: {} });
+    answer("POST /api/auth/sign-up/email", {});
     await openSignupWithTurnstileSolved();
 
     signUp();
@@ -68,7 +68,7 @@ describe("Signup page", () => {
 
     signUp();
 
-    const alert = await screen.findByRole("alert");
+    const alert = await findPageAlert();
     expect(alert.textContent).toBe("อีเมลนี้ถูกใช้งานแล้ว · เข้าสู่ระบบแทน");
     expect(screen.getByRole("link", { name: "เข้าสู่ระบบแทน" }).getAttribute("href")).toBe("/login");
     expect(screen.getByLabelText(th.auth.emailLabel).getAttribute("aria-invalid")).toBe("true");
@@ -78,12 +78,12 @@ describe("Signup page", () => {
 
   it("points a LINE account's email to LINE sign-in or forgot password", async () => {
     answer("POST /api/auth/sign-up/email", apiError(409, "EMAIL_TAKEN_LINE"));
-    answer("POST /api/auth/sign-in/social", { body: { url: "https://access.line.me/authorize" } });
+    answer("POST /api/auth/sign-in/social", { url: "https://access.line.me/authorize" });
     await openSignupWithTurnstileSolved();
 
     signUp();
 
-    await screen.findByRole("alert");
+    await findPageAlert();
     expect(screen.getByRole("link", { name: "ลืมรหัสผ่าน" }).getAttribute("href")).toBe("/forgot-password");
     act(() => screen.getByRole("button", { name: "เข้าสู่ระบบด้วย LINE" }).click());
     await waitFor(() => expect(goToExternalPage).toHaveBeenCalledWith("https://access.line.me/authorize"));
@@ -98,6 +98,6 @@ describe("Signup page", () => {
 
     signUp();
 
-    expect((await screen.findByRole("alert")).textContent).toContain(message);
+    expect((await findPageAlert()).textContent).toContain(message);
   });
 });

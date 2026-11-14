@@ -1,16 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { Dialog } from "../components/Dialog";
 import { Icon } from "../components/Icon";
-import { SidebarContent } from "./SidebarContent";
+import { type ShellActions, SidebarContent } from "./SidebarContent";
 
-type MobileDrawerProps = {
-  onClose: () => void;
-  onOpenSearch: () => void;
-  onOpenQuickAdd: () => void;
-};
+type MobileDrawerProps = ShellActions & { onClose: () => void };
 
 /** Slide-out drawer with the full sidebar. A modal dialog: focus stays inside, Esc and the overlay close it. */
-export function MobileDrawer({ onClose, onOpenSearch, onOpenQuickAdd }: MobileDrawerProps) {
+export function MobileDrawer({ onClose, ...actions }: MobileDrawerProps) {
   const { t } = useTranslation();
 
   return (
@@ -28,7 +24,7 @@ export function MobileDrawer({ onClose, onOpenSearch, onOpenQuickAdd }: MobileDr
             <Icon name="close" />
           </button>
         </form>
-        <SidebarContent onOpenSearch={onOpenSearch} onOpenQuickAdd={onOpenQuickAdd} />
+        <SidebarContent {...actions} />
       </div>
     </Dialog>
   );

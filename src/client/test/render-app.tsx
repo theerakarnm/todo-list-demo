@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { createMemoryRouter, RouterProvider } from "react-router";
 import { AppProviders } from "../AppProviders";
 import { routes } from "../routes";
@@ -21,4 +21,14 @@ export async function openPage(path: string) {
   const router = renderAppAt(path);
   await screen.findByRole("heading", { level: 1 });
   return router;
+}
+
+// The toast region outside <main> is an alert too (empty until a toast comes), so look inside the page.
+/** The page's own inline error. */
+export function findPageAlert() {
+  return within(screen.getByRole("main")).findByRole("alert");
+}
+
+export function getPageAlert() {
+  return within(screen.getByRole("main")).getByRole("alert");
 }

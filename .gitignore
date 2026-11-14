@@ -18,6 +18,10 @@ build/
 # wrangler local state (D1 migrations state, caches)
 .wrangler/
 
+# Playwright output
+test-results/
+playwright-report/
+
 # OS / editor
 .DS_Store
 *.log

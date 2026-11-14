@@ -1,0 +1,85 @@
+/*
+ * Search and Quick Add, ported from docs/design/search and docs/design/quick-add
+ * with the semantic tokens.
+ */
+@layer components {
+  .search-input {
+    flex: 1;
+    min-width: 0;
+    min-height: 60px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--fg);
+    font: inherit;
+    font-size: 20px;
+    outline: none;
+  }
+
+  .search-input::placeholder {
+    color: var(--fg-muted);
+  }
+
+  /* One result: a sidebar-style row; the one ↑/↓ is on is inverted like the current page. */
+  .search-result {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+    padding: 6px 16px;
+    border: var(--rule-thin) solid transparent;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .search-result[aria-selected="true"] {
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+  }
+
+  .search-meta {
+    flex: none;
+    font-size: 11px;
+    color: var(--fg-muted);
+  }
+
+  .search-result[aria-selected="true"] .search-meta {
+    color: inherit;
+  }
+
+  .search-snippet {
+    display: block;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--fg-muted);
+  }
+
+  .search-result[aria-selected="true"] .search-snippet {
+    color: inherit;
+  }
+
+  /* The matched text: orange like the mockup, dark ink in both themes. */
+  .search-mark {
+    background: var(--highlight);
+    color: var(--on-highlight);
+  }
+
+  /* A Quick Add chip: the native select or date input lies invisibly on top of it. */
+  .quick-chip {
+    position: relative;
+  }
+
+  .quick-chip-control {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+
+  .quick-chip:has(.quick-chip-control:focus-visible) {
+    outline: 2px solid var(--highlight);
+    outline-offset: 2px;
+  }
+}

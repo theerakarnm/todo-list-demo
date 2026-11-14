@@ -28,11 +28,20 @@ export const createTaskSchema = taskFields
   })
   .refine(dueTimeNeedsDueDate.check, dueTimeNeedsDueDate.options);
 
-/** Body of `PATCH /api/tasks/:id`. */
+/**
+ * Body of `PATCH /api/tasks/:id`. A due time alone is fine (the task may already
+ * have a date); the server checks the merged result.
+ */
 export const updateTaskSchema = taskFields
   .extend({ completed: z.boolean() })
   .partial()
-  .refine(dueTimeNeedsDueDate.check, dueTimeNeedsDueDate.options);
+  .refine((patch) => !(patch.dueTime && patch.dueDate === null), dueTimeNeedsDueDate.options);
+
+/** Body of `POST /api/tasks/reschedule-overdue/undo`: the list reschedule-overdue returned. */
+export const undoRescheduleSchema = z.object({
+  tasks: z.array(z.object({ id: idSchema, dueDate: localDateSchema })).max(LIMITS.activeTasksPerUser),
+});
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
+export type UndoRescheduleInput = z.infer<typeof undoRescheduleSchema>;

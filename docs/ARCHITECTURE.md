@@ -20,7 +20,7 @@ Decisions marked **(owner)** were made by the owner. Decisions marked **(default
 | API framework | **Hono** **(owner)** |
 | Database | **Cloudflare D1** (SQLite) via **Drizzle ORM** + Drizzle migrations **(owner)** |
 | Auth | **Better Auth** (Drizzle adapter on D1): email/password + LINE **(owner)** |
-| Email | **Resend**, from `no-reply@eukron.com` (SPF/DKIM on eukron.com). Only for email verification and password reset **(owner)** |
+| Email | **Resend**, from `no-reply@mail.eukron.com` (env `EMAIL_FROM`; SPF/DKIM on mail.eukron.com). Only for email verification and password reset **(owner)** |
 | File storage | **Cloudflare R2**, private bucket, for task images and profile photos (§16) **(owner)** |
 | Bot protection | **Cloudflare Turnstile** on sign-up and forgot-password **(owner)** |
 | Rate limiting | **Workers Rate Limiting binding** **(owner)** |
@@ -82,11 +82,13 @@ JSON over HTTPS under `/api`, all Zod-validated, all queries scoped by the sessi
 
 - `/api/auth/*` — Better Auth handler.
 - `GET /api/sync?since=<ms>` — every task, project and subtask of the user with `updated_at > since`, **including soft-deleted rows** (tombstones), plus a new `cursor`. `since` omitted = full load of active data + projects. Logbook items are not part of the full load.
-- `GET /api/logbook?before=<completed_at>` — completed tasks, 50 per page.
+  - Response: `{ tasks, projects, subtasks, settings: { timezone, weekStart }, cursor }`. A changed task also brings all its subtasks, so a task that comes back (un-completed) arrives whole.
+  - `cursor` is the request start time minus 30 s. A write takes its `updated_at` before it reaches D1, so it can land just after the read with an older timestamp; the overlap makes the next poll pick it up. Rows sent twice are harmless.
+- `GET /api/logbook?before=<completed_at>&beforeId=<id>` — completed tasks, 50 per page, newest first. Response `{ tasks, subtasks, next }` (the subtasks of the page's tasks, which the sync full load leaves out); `next` holds the `before`/`beforeId` of the following page (or `null`), and the id breaks ties between tasks completed in the same millisecond. An optional `projectId` keeps one project's tasks (the project page's completed section).
 - `GET /api/search?q=` — `LIKE '%q%'` on title and notes, scoped by `user_id`, max 50 results, active + completed. **No FTS5**: SQLite FTS5 cannot segment Thai, so it would miss words in the middle of a Thai sentence **(owner)**.
 - `PUT /api/tasks/:id` (create-or-update, idempotent), `PATCH /api/tasks/:id`, `DELETE /api/tasks/:id` (soft), `POST /api/tasks/:id/restore`. Same shape for `projects` and `subtasks`.
 - `POST /api/tasks/:id/attachments` (multipart), `GET /api/files/:key` (owner-checked stream from R2, `Cache-Control: private`), `DELETE /api/attachments/:id`; `PUT /api/me/avatar`, `DELETE /api/me/avatar`.
-- `POST /api/tasks/reschedule-overdue` (moves every overdue active task to today; returns the previous dates so Undo can restore them).
+- `POST /api/tasks/reschedule-overdue` (moves every overdue active task to today in the user's time zone; returns `{ today, tasks: [{ id, dueDate }] }` with the previous dates). Undo sends that `tasks` list to `POST /api/tasks/reschedule-overdue/undo`, one request however many tasks moved.
 - `POST /api/push/subscribe`, `DELETE /api/push/subscribe`.
 - `PATCH /api/settings`, `DELETE /api/account` (hard-deletes the user and every row they own).
 
@@ -140,7 +142,7 @@ Errors use one shape: `{ "error": { "code": "TASK_LIMIT", "message": "<Thai text
 - **Local:** `wrangler dev` / Vite dev server with a local D1. Secrets in `.dev.vars` (never committed; `.dev.vars.example` is).
 - **Production:** `jotlist.eukron.com`. No staging.
 - **Deploy:** GitHub Actions on push to `main` → install, type-check, test, `wrangler d1 migrations apply --remote`, `wrangler deploy`. `develop` does not deploy. Cloudflare API token and app secrets live in GitHub Actions secrets and Worker secrets.
-- Secrets: `BETTER_AUTH_SECRET`, `LINE_CLIENT_ID/SECRET`, `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`, `VAPID_PUBLIC_KEY/PRIVATE_KEY/SUBJECT`.
+- Secrets: `BETTER_AUTH_SECRET`, `LINE_LOGIN_CHANNEL_ID/SECRET`, `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`, `VAPID_PUBLIC_KEY/PRIVATE_KEY/SUBJECT`.
 
 ## 13. Owner to-do before implementation
 1. Apply for LINE Login **email permission** in the LINE Developers Console (needs a screenshot of the consent screen).
