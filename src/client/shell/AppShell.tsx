@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Outlet } from "react-router";
 import { useSyncPolling } from "../data/sync-query";
 import { NewProjectDialog } from "../projects/NewProjectDialog";
+import { SearchDialog } from "../search/SearchDialog";
 import { TaskDrawer } from "../tasks/TaskDrawer";
 import { DesktopSidebar } from "./DesktopSidebar";
 import { MobileBottomBar } from "./MobileBottomBar";
@@ -44,7 +45,7 @@ export default function AppShell() {
       {openDialog === "drawer" && (
         <MobileDrawer onClose={closeDialog} {...actions} />
       )}
-      {openDialog === "search" && <PlaceholderDialog title={t("nav.search")} onClose={closeDialog} />}
+      {openDialog === "search" && <SearchDialog onClose={closeDialog} />}
       {openDialog === "quickAdd" && <PlaceholderDialog title={t("nav.addTask")} onClose={closeDialog} />}
       {openDialog === "newProject" && <NewProjectDialog onClose={closeDialog} />}
       <TaskDrawer />

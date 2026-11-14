@@ -245,5 +245,20 @@
     "medium": "P2 - สำคัญ",
     "low": "P3 - ไม่เร่ง",
     "none": "P4 - ไม่ระบุ"
+  },
+  "search": {
+    "placeholder": "ค้นหางานหรือโปรเจกต์",
+    "results": "ผลการค้นหา",
+    "tasks": "tasks - {{count}}",
+    "projects": "projects - {{count}}",
+    "taskMeta": "{{place}} - {{date}}",
+    "projectTaskCount": "{{count}} งาน",
+    "completed": "เสร็จแล้ว / done",
+    "noResults": "ไม่พบงานหรือโปรเจกต์ที่ตรงกับ \"{{query}}\"",
+    "hintMove": "up / down - เลื่อน",
+    "hintOpen": "enter - เปิด",
+    "hintClose": "esc - ปิด",
+    "escKey": "Esc",
+    "enterKey": "Enter"
   }
 }
