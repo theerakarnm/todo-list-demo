@@ -9,23 +9,8 @@ import {
   todayGroups,
   upcomingDays,
 } from "./selectors";
-import type { SyncStore } from "./sync-store";
-import { aProject, aSubtask, aTask } from "./test-rows";
-import type { Project, Subtask, Task } from "./types";
-
-function storeWith(
-  rows: { tasks?: Task[]; projects?: Project[]; subtasks?: Subtask[] },
-  timezone = "Asia/Bangkok",
-): SyncStore {
-  const byId = <T extends { id: string }>(list: T[] = []) => Object.fromEntries(list.map((row) => [row.id, row]));
-  return {
-    tasks: byId(rows.tasks),
-    projects: byId(rows.projects),
-    subtasks: byId(rows.subtasks),
-    settings: { timezone, weekStart: "mon" },
-    cursor: 0,
-  };
-}
+import { aProject, aSubtask, aTask, storeWith } from "./test-rows";
+import type { Task } from "./types";
 
 const ids = (tasks: Task[]) => tasks.map((task) => task.id);
 

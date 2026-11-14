@@ -31,15 +31,20 @@ function mergeRows<T extends Row>(current: RowsById<T>, changed: T[]) {
   return next;
 }
 
+export type ChangedRows = { tasks?: Task[]; projects?: Project[]; subtasks?: Subtask[] };
+
+/** The store with rows from the server applied: a sync delta or a mutation's answer. */
+export function applyRows<Store extends Omit<SyncStore, "settings" | "cursor">>(store: Store, rows: ChangedRows): Store {
+  return {
+    ...store,
+    tasks: mergeRows(store.tasks, rows.tasks ?? []),
+    projects: mergeRows(store.projects, rows.projects ?? []),
+    subtasks: mergeRows(store.subtasks, rows.subtasks ?? []),
+  };
+}
+
 /** The store after a sync response: the first one (no store yet) is the full load. */
 export function mergeSync(store: SyncStore | undefined, response: SyncResponse): SyncStore {
-  const empty = { tasks: {}, projects: {}, subtasks: {} };
-  const base = store ?? empty;
-  return {
-    tasks: mergeRows(base.tasks, response.tasks),
-    projects: mergeRows(base.projects, response.projects),
-    subtasks: mergeRows(base.subtasks, response.subtasks),
-    settings: response.settings,
-    cursor: response.cursor,
-  };
+  const base = store ?? { tasks: {}, projects: {}, subtasks: {} };
+  return { ...applyRows(base, response), settings: response.settings, cursor: response.cursor };
 }
