@@ -110,6 +110,20 @@ export const attachmentRoutes = new Hono<SessionEnv>()
     return c.json(await updateAttachment(db, id, { deletedAt: now, updatedAt: now }), 200);
   })
 
+  // Undo of a delete. A deleted image does not count toward the limits, so both are checked again.
+  .post("/:id/restore", validate("param", idParamSchema), async (c) => {
+    const db = createDb(c.env.DB);
+    const userId = c.get("userId");
+    const { id } = c.req.valid("param");
+    const attachment = await findOwnAttachment(db, userId, id);
+    if (!attachment.deletedAt) return c.json(attachment, 200);
+
+    await assertUsableTask(db, userId, attachment.taskId);
+    await assertRoomForAttachment(db, attachment.taskId);
+    await assertRoomInStorage(db, userId, attachment.bytes);
+    return c.json(await updateAttachment(db, id, { deletedAt: null }), 200);
+  })
+
   // Drag-to-reorder in the gallery: only this row gets a new position.
   .patch("/:id", validate("param", idParamSchema), validate("json", updateAttachmentSchema), async (c) => {
     const db = createDb(c.env.DB);

@@ -229,6 +229,86 @@ describe("DELETE /api/attachments/:id", () => {
   });
 });
 
+describe("POST /api/attachments/:id/restore", () => {
+  const restore = (userId: string, id: string) => apiAs(userId).post(`/api/attachments/${id}/restore`);
+
+  it("brings a deleted image back with a new updated_at, and its file is still served", async () => {
+    const userId = await createTestUser();
+    const attachment = await uploadPng(userId, await createTask(userId));
+    const deleted = await bodyOf<Attachment>(await apiAs(userId).delete(`/api/attachments/${attachment.id}`));
+
+    const response = await restore(userId, attachment.id);
+
+    expect(response.status).toBe(200);
+    const restored = await bodyOf<Attachment>(response);
+    expect(restored).toMatchObject({ id: attachment.id, position: attachment.position, deletedAt: null });
+    expect(restored.updatedAt).toBeGreaterThanOrEqual(deleted.updatedAt);
+    expect((await apiAs(userId).get(`/api/files/${attachment.r2Key}`)).status).toBe(200);
+  });
+
+  it("is idempotent: restoring a live image answers it unchanged", async () => {
+    const userId = await createTestUser();
+    const attachment = await uploadPng(userId, await createTask(userId));
+    await apiAs(userId).delete(`/api/attachments/${attachment.id}`);
+    const first = await bodyOf<Attachment>(await restore(userId, attachment.id));
+
+    const again = await restore(userId, attachment.id);
+
+    expect(again.status).toBe(200);
+    expect(await bodyOf<Attachment>(again)).toEqual(first);
+  });
+
+  it("answers 404 for another user's image and leaves it deleted", async () => {
+    const owner = await createTestUser();
+    const intruder = await createTestUser();
+    const attachment = await uploadPng(owner, await createTask(owner));
+    await apiAs(owner).delete(`/api/attachments/${attachment.id}`);
+
+    expect((await restore(intruder, attachment.id)).status).toBe(404);
+    const row = await env.DB.prepare("SELECT deleted_at FROM attachments WHERE id = ?").bind(attachment.id).first();
+    expect(row?.deleted_at).toEqual(expect.any(Number));
+  });
+
+  it("answers 404 when the image's task is deleted", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+    const attachment = await uploadPng(userId, taskId);
+    await apiAs(userId).delete(`/api/attachments/${attachment.id}`);
+    await apiAs(userId).delete(`/api/tasks/${taskId}`);
+
+    const response = await restore(userId, attachment.id);
+
+    expect(response.status).toBe(404);
+    expect((await bodyOf<ApiError>(response)).error.code).toBe("NOT_FOUND");
+  });
+
+  it("refuses with 409 ATTACHMENT_LIMIT when the task already has 10 images again", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+    const attachment = await uploadPng(userId, taskId);
+    await apiAs(userId).delete(`/api/attachments/${attachment.id}`);
+    await seedAttachments(userId, taskId, LIMITS.attachmentsPerTask);
+
+    const response = await restore(userId, attachment.id);
+
+    expect(response.status).toBe(409);
+    expect((await bodyOf<ApiError>(response)).error.code).toBe("ATTACHMENT_LIMIT");
+  });
+
+  it("refuses with 409 STORAGE_LIMIT when the image no longer fits in the 200 MB", async () => {
+    const userId = await createTestUser();
+    const taskId = await createTask(userId);
+    const attachment = await uploadPng(userId, taskId);
+    await apiAs(userId).delete(`/api/attachments/${attachment.id}`);
+    await seedAttachments(userId, await createTask(userId), 1, { bytes: LIMITS.storageBytesPerUser - attachment.bytes + 1 });
+
+    const response = await restore(userId, attachment.id);
+
+    expect(response.status).toBe(409);
+    expect((await bodyOf<ApiError>(response)).error.code).toBe("STORAGE_LIMIT");
+  });
+});
+
 describe("PATCH /api/attachments/:id", () => {
   it("moves an image within the gallery and bumps updated_at", async () => {
     const userId = await createTestUser();
