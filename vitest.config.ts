@@ -26,6 +26,8 @@ export default defineConfig({
         test: {
           name: "client",
           environment: "jsdom",
+          // CSS is ignored in tests by default; contrast.test.ts reads the design tokens.
+          css: { include: [/tokens\.css/] },
           include: ["src/client/**/*.test.{ts,tsx}", "src/shared/**/*.test.ts"],
         },
       },

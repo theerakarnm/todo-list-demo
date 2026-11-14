@@ -1,0 +1,171 @@
+/*
+ * Design-system primitives ported from the <style> block of the mockups
+ * (docs/design/today/Today.dc.html). Same sizes, borders and hover states,
+ * written with the semantic tokens so they work in both themes.
+ */
+@layer components {
+  .mono {
+    font-family: var(--font-mono);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 12px;
+    line-height: 1.55;
+    font-weight: 400;
+  }
+
+  .display {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-stretch: 75%;
+    font-variation-settings: "wdth" 75;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  .muted {
+    color: var(--fg-muted);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 48px;
+    padding: 0 22px;
+    border: var(--rule-thin) solid var(--fg);
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+    font-weight: 600;
+    font-size: 15px;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .btn:hover {
+    background: var(--highlight);
+    color: var(--on-highlight);
+  }
+
+  .btn-outline {
+    background: transparent;
+    color: var(--fg);
+  }
+
+  .btn-outline:hover {
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+  }
+
+  .kbd {
+    display: inline-block;
+    padding: 1px 7px;
+    border: var(--rule-thin) solid currentColor;
+    border-bottom-width: 4px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    flex: none;
+  }
+
+  .icon-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    flex: none;
+    background: transparent;
+    border: var(--rule-thin) solid transparent;
+    color: var(--fg);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .icon-button:hover {
+    border-color: var(--fg);
+    color: var(--fg);
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: var(--rule-thin) solid transparent;
+    text-decoration: none;
+    color: var(--fg);
+    font-size: 15px;
+    font-weight: 500;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .nav-item:hover {
+    border-color: var(--fg);
+    color: var(--fg);
+  }
+
+  .nav-item[aria-current="page"] {
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+  }
+
+  .nav-item[aria-current="page"]:hover {
+    color: var(--inverse-fg);
+  }
+
+  .count-badge {
+    min-width: 26px;
+    padding: 1px 6px;
+    border: var(--rule-thin) solid currentColor;
+    text-align: center;
+    font-size: 12px;
+  }
+
+  .section-label {
+    padding: 0 12px;
+    margin-top: 6px;
+    color: var(--fg-muted);
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    flex: none;
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+    display: grid;
+    place-items: center;
+    font-weight: 700;
+  }
+
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 12px;
+    border: var(--rule-thin) solid var(--fg);
+    color: var(--fg-muted);
+    text-decoration: none;
+    font-size: 15px;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .search-row:hover {
+    background: var(--inverse-bg);
+    color: var(--inverse-fg);
+  }
+}

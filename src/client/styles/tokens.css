@@ -1,0 +1,91 @@
+/*
+ * JotList design tokens.
+ * The palette, spacing, rules, easing and fonts are copied verbatim from the
+ * :root block of the mockups in docs/design. Components use the semantic
+ * variables (--bg, --fg, ...) so that dark mode only swaps those.
+ */
+:root {
+  /* Palette */
+  --ink-black: #1a1a1a;
+  --ink-blue: #0078bf;
+  --ink-orange: #ff6c2f;
+  --ink-green: #003223;
+  --paper: #f2ede1;
+  --stock-violet: #7c3aed;
+  --stock-night: #0b0b0e;
+  --bg-page: #f2ede1;
+  --fg-1: #1a1a1a;
+  --fg-on-dark: #f2ede1;
+  --accent: #0078bf;
+  --accent-2: #ff6c2f;
+  --text-link-hover: #0078bf;
+  --shadow: none;
+
+  /* Spacing */
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-14: 14px;
+  --space-16: 16px;
+  --space-18: 18px;
+  --space-24: 24px;
+  --space-32: 32px;
+  --space-44: 44px;
+
+  /* Shape: square corners and printed rule lines */
+  --radius: 0;
+  --rule-hair: 1px;
+  --rule-thin: 1.5px;
+  --rule-bold: 2px;
+  --rule-roller: 3px;
+  --key-bottom: 8px;
+
+  /* Motion */
+  --ease-stamp: cubic-bezier(0.895, 0.03, 0.685, 0.22);
+  --ease-out: cubic-bezier(0.215, 0.61, 0.355, 1);
+  --ease-inout: cubic-bezier(0.455, 0.03, 0.515, 0.955);
+  --ease-roll: cubic-bezier(0.445, 0.05, 0.55, 0.95);
+  --dur-ink-flip: 240ms;
+
+  /* Type */
+  --font-display: "Bricolage Grotesque", "Noto Sans Thai", sans-serif;
+  --font-thai: "Noto Sans Thai", "Bricolage Grotesque", sans-serif;
+  --font-mono: "IBM Plex Mono", "Noto Sans Thai", monospace;
+  --font-body: "Noto Sans Thai", "Bricolage Grotesque", sans-serif;
+  --text-label: 400 12px/1.55 var(--font-mono);
+  --text-label-sm: 400 11px/1.55 var(--font-mono);
+  --text-mono-sm: 400 13px/1.55 var(--font-mono);
+
+  /* Semantic colours: light theme (the mockups) */
+  --bg: var(--paper);
+  --fg: var(--ink-black);
+  --fg-muted: #5c5849;
+  --rule-color: var(--ink-black);
+  --inverse-bg: var(--ink-black);
+  --inverse-fg: var(--paper);
+  --link-hover: var(--ink-blue);
+  --highlight: var(--ink-orange);
+  --on-highlight: var(--ink-black);
+  --overlay: rgb(26 26 26 / 0.45);
+  color-scheme: light;
+}
+
+/*
+ * Dark theme: night stock with paper-coloured ink.
+ * Contrast on --stock-night (#0b0b0e): fg 16.8:1, fg-muted 7.3:1,
+ * link-hover 7.5:1, highlight 7.0:1 (checked by contrast.test.ts).
+ */
+[data-theme="dark"] {
+  --bg: var(--stock-night);
+  --fg: var(--fg-on-dark);
+  --fg-muted: #a39d8c;
+  --rule-color: var(--fg-on-dark);
+  --inverse-bg: var(--fg-on-dark);
+  --inverse-fg: var(--stock-night);
+  --link-hover: #4fa8e0;
+  --overlay: rgb(0 0 0 / 0.6);
+  color-scheme: dark;
+}
