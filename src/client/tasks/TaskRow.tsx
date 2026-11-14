@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { PROJECT_COLOR_HEX } from "../../shared/constants";
 import { Icon } from "../components/Icon";
 import type { Project, Task } from "../data/types";
@@ -39,6 +39,10 @@ export function TaskRow({ task, project, progress, dateStyle, today, completedOn
   const { t } = useTranslation();
   const done = task.completedAt !== null;
   const dueLabel = done ? null : dueLabelFor(task, today, dateStyle);
+  // Opening the drawer keeps the page's own query, e.g. the Completed page's ?project=.
+  const [searchParams] = useSearchParams();
+  const drawerParams = new URLSearchParams(searchParams);
+  drawerParams.set("task", task.id);
 
   return (
     <div className="task-row" data-done={done}>
@@ -53,7 +57,7 @@ export function TaskRow({ task, project, progress, dateStyle, today, completedOn
         </span>
       </button>
       <div className="task-body">
-        <Link className="task-title" to={{ search: `?task=${task.id}` }}>
+        <Link className="task-title" to={{ search: `?${drawerParams}` }}>
           {task.title}
         </Link>
         <span className="task-meta">

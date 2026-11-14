@@ -5,9 +5,9 @@ import "../i18n";
 import { aProject, aTask } from "../data/test-rows";
 import { TaskRow } from "./TaskRow";
 
-function renderRow(fields: Parameters<typeof aTask>[0], dateStyle: "full" | "time" = "full") {
+function renderRow(fields: Parameters<typeof aTask>[0], dateStyle: "full" | "time" = "full", path = "/") {
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[path]}>
       <TaskRow
         task={aTask(fields)}
         project={aProject({ id: "p1", name: "งาน" })}
@@ -38,6 +38,12 @@ describe("TaskRow", () => {
     renderRow({ id: "t1", dueDate });
 
     expect(screen.getByText(text)).toBeTruthy();
+  });
+
+  it("opens the drawer without losing the page's own query", () => {
+    renderRow({ id: "t1", title: "จ่ายค่าไฟ" }, "full", "/app/logbook?project=p1");
+
+    expect(screen.getByRole("link", { name: "จ่ายค่าไฟ" }).getAttribute("href")).toBe("/app/logbook?project=p1&task=t1");
   });
 
   it("shows a muted P4 when there is no priority", () => {
