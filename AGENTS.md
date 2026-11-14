@@ -3,7 +3,7 @@
 Instructions for any AI coding agent working in this repo. `CLAUDE.md` points here; this file is the single source of truth.
 
 ## What this is
-`todo-list-demo` — a To-Do List web app made as a demo for a YouTube video. The MVP feature list lives in [README.md](README.md). Treat that list as the full scope: do not add features that are not in it.
+`todo-list-demo` — **JotList** (`https://jotlist.eukron.com`), a To-Do List web app made as a demo for a YouTube video. The MVP feature list lives in [README.md](README.md). Treat that list as the full scope: do not add features that are not in it.
 
 ## Current phase: design — no implementation yet
 The owner is still designing the app.
@@ -12,7 +12,7 @@ The owner is still designing the app.
 - When this phase ends, the owner will update this section.
 
 ## Tech stack
-**Not decided yet.** Do not pick a framework, database, auth provider or hosting on your own. If a task needs one, stop and ask.
+**Decided — see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).** In short: one Cloudflare Worker (Hono API + React/Vite frontend as static assets), D1 via Drizzle, Better Auth (email/password + LINE), Resend for auth emails only, Web Push reminders via a 1-minute cron, polling sync (no realtime), Thai-only UI through i18n files. Do not swap any part of the stack or add a new service without the owner's say-so; if something in the doc doesn't work, stop and ask.
 
 ## Product rules (from the MVP spec)
 These hold whatever stack is chosen:
@@ -24,6 +24,8 @@ These hold whatever stack is chosen:
 - Task order inside a view is user-controlled (drag-and-drop), so tasks need a persisted sort position.
 - Layout: desktop = left sidebar + main area; mobile = bottom bar + slide drawer.
 - Theme: light, dark, or follow system.
+- Max **1,000 active tasks** (not completed, not deleted) per account.
+- All user-facing text is Thai and lives in the i18n file — no hard-coded strings in components.
 
 ## Git workflow
 - `main` — stable; never push or commit to it directly.

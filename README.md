@@ -1,8 +1,8 @@
-# todo-list-demo
+# JotList (todo-list-demo)
 
-A To-Do List web app built as a demo for a YouTube video.
+A To-Do List web app built as a demo for a YouTube video. Live at `https://jotlist.eukron.com` (not deployed yet). Thai UI.
 
-> **Status: design phase.** The feature list below is the MVP scope. No UI or app code has been written yet.
+> **Status: design phase.** The feature list below is the MVP scope. Architecture is decided ([docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)); UI design is in progress. No app code has been written yet.
 
 ## MVP features
 
@@ -23,11 +23,11 @@ A To-Do List web app built as a demo for a YouTube video.
 
 ### C. Search & reminders
 - **Instant Search** — real-time search over task titles and notes.
-- **Basic Reminders** — browser/push notification or email at the task's due time.
+- **Basic Reminders** — Web Push notification at the task's due time (tasks with a due time only). Email reminders come after the MVP.
 
 ### D. Auth & sync
-- **Authentication** — email/password sign-up and sign-in, plus social login (e.g. Google).
-- **Cross-device sync** — data syncs through the cloud automatically; desktop and mobile always show the same data.
+- **Authentication** — email/password sign-up (with email verification and password reset) and LINE login. Accounts with the same email are one account.
+- **Cross-device sync** — data syncs through the cloud automatically; other devices catch up when the app is reopened or within 30 seconds.
 
 ### E. UX/UI standards
 - **Optimistic UI** — completing or moving a task updates the screen immediately, without waiting for the server.
@@ -35,10 +35,10 @@ A To-Do List web app built as a demo for a YouTube video.
 - **Dark / Light mode** — follows the system setting, or the user picks one.
 
 ## Out of scope for the MVP
-Nested subtasks (more than one level), recurring tasks, sharing/collaboration, tags/labels, attachments.
+Nested subtasks (more than one level), recurring tasks, sharing/collaboration, tags/labels, attachments, offline mode, realtime sync, email reminders, Google login.
 
 ## Getting started
-Not yet — the tech stack and setup steps will be added once the design is final.
+Not yet — setup steps will be added when implementation starts. Stack: Cloudflare Workers + Hono + D1 (Drizzle) + React/Vite. See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## License
 [MIT](LICENSE)
