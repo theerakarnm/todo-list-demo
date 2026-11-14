@@ -74,11 +74,13 @@ export function useOptimisticMutation<Variables, Result>(mutation: OptimisticMut
     scope: WRITE_SCOPE,
     mutationFn: mutation.request,
     onMutate: async (variables: Variables) => {
-      const before = queryClient.getQueryData<SyncStore>(SYNC_QUERY_KEY);
       // Screens offer changes only once the store is loaded; the first load is never cancelled.
-      if (!before) return { changes: [] };
+      if (!queryClient.getQueryData<SyncStore>(SYNC_QUERY_KEY)) return { changes: [] };
       // A poll already on its way would bring back the old rows.
       await queryClient.cancelQueries({ queryKey: SYNC_QUERY_KEY });
+      // Read after the wait: changes made at the same time (several images) have landed by now.
+      const before = queryClient.getQueryData<SyncStore>(SYNC_QUERY_KEY);
+      if (!before) return { changes: [] };
       queryClient.setQueryData(SYNC_QUERY_KEY, mutation.apply(before, variables));
       // Compared with what the cache holds now: structural sharing copies changed rows.
       const after = queryClient.getQueryData<SyncStore>(SYNC_QUERY_KEY) ?? before;
