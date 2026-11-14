@@ -20,7 +20,7 @@ Decisions marked **(owner)** were made by the owner. Decisions marked **(default
 | API framework | **Hono** **(owner)** |
 | Database | **Cloudflare D1** (SQLite) via **Drizzle ORM** + Drizzle migrations **(owner)** |
 | Auth | **Better Auth** (Drizzle adapter on D1): email/password + LINE **(owner)** |
-| Email | **Resend**, from `no-reply@eukron.com` (SPF/DKIM on eukron.com). Only for email verification and password reset **(owner)** |
+| Email | **Resend**, from `no-reply@mail.eukron.com` (env `EMAIL_FROM`; SPF/DKIM on mail.eukron.com). Only for email verification and password reset **(owner)** |
 | File storage | **Cloudflare R2**, private bucket, for task images and profile photos (§16) **(owner)** |
 | Bot protection | **Cloudflare Turnstile** on sign-up and forgot-password **(owner)** |
 | Rate limiting | **Workers Rate Limiting binding** **(owner)** |
@@ -142,7 +142,7 @@ Errors use one shape: `{ "error": { "code": "TASK_LIMIT", "message": "<Thai text
 - **Local:** `wrangler dev` / Vite dev server with a local D1. Secrets in `.dev.vars` (never committed; `.dev.vars.example` is).
 - **Production:** `jotlist.eukron.com`. No staging.
 - **Deploy:** GitHub Actions on push to `main` → install, type-check, test, `wrangler d1 migrations apply --remote`, `wrangler deploy`. `develop` does not deploy. Cloudflare API token and app secrets live in GitHub Actions secrets and Worker secrets.
-- Secrets: `BETTER_AUTH_SECRET`, `LINE_CLIENT_ID/SECRET`, `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`, `VAPID_PUBLIC_KEY/PRIVATE_KEY/SUBJECT`.
+- Secrets: `BETTER_AUTH_SECRET`, `LINE_LOGIN_CHANNEL_ID/SECRET`, `RESEND_API_KEY`, `TURNSTILE_SECRET_KEY`, `VAPID_PUBLIC_KEY/PRIVATE_KEY/SUBJECT`.
 
 ## 13. Owner to-do before implementation
 1. Apply for LINE Login **email permission** in the LINE Developers Console (needs a screenshot of the consent screen).
