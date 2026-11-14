@@ -5,6 +5,7 @@ import * as authSchema from "../db/auth-schema";
 import { sendEmail } from "../email/send-email";
 import { resetPasswordTemplate, verifyEmailTemplate } from "../email/templates";
 import { betterAuthLogger } from "./better-auth-logger";
+import { isLinePlaceholderEmail, lineProfileToUser } from "./line-linking";
 
 /** Where links in auth emails land in the client app. */
 const VERIFY_EMAIL_PAGE = "/verify-email";
@@ -41,10 +42,21 @@ export function createAuth(env: Env, request: Request) {
       minPasswordLength: 8,
       revokeSessionsOnPasswordReset: true,
       async sendResetPassword({ user, token }) {
+        if (isLinePlaceholderEmail(user.email)) return;
         const link = `${origin}${RESET_PASSWORD_PAGE}?token=${encodeURIComponent(token)}`;
         await sendEmail(env, { to: user.email, ...resetPasswordTemplate(link) });
       },
     },
+    socialProviders: {
+      line: {
+        clientId: env.LINE_LOGIN_CHANNEL_ID ?? "",
+        clientSecret: env.LINE_LOGIN_CHANNEL_SECRET ?? "",
+        // Better Auth's LINE provider asks for openid, profile and email by default.
+        mapProfileToUser: (profile) => lineProfileToUser(env.DB, profile),
+      },
+    },
+    // OAuth errors (e.g. the user cancels on LINE) come back to the login page as ?error=...
+    onAPIError: { errorURL: `${origin}/login` },
     emailVerification: {
       autoSignInAfterVerification: true,
       // An unverified user who tries to sign in gets a fresh link (the old one may be lost or expired).
