@@ -26,16 +26,23 @@ function initialDisplayName(name: string, email: string) {
   return displayName.slice(0, LIMITS.displayNameLength);
 }
 
+type SettingsOwner = { id: string; name: string; email: string };
+
+/** Creates the user's settings row unless it already exists. */
+export async function ensureUserSettings(db: D1Database, owner: SettingsOwner, timezone = DEFAULT_TIMEZONE) {
+  await drizzle(db)
+    .insert(userSettings)
+    .values({ userId: owner.id, displayName: initialDisplayName(owner.name, owner.email), timezone })
+    .onConflictDoNothing();
+}
+
 /** Runs on every sign-in; only the first one creates the row, with the browser's time zone when known. */
 export async function createUserSettingsOnce(db: D1Database, userId: string, timezone = DEFAULT_TIMEZONE) {
-  const orm = drizzle(db);
-  const [owner] = await orm.select({ name: user.name, email: user.email }).from(user).where(eq(user.id, userId));
-  if (!owner) return;
-
-  await orm
-    .insert(userSettings)
-    .values({ userId, displayName: initialDisplayName(owner.name, owner.email), timezone })
-    .onConflictDoNothing();
+  const [owner] = await drizzle(db)
+    .select({ id: user.id, name: user.name, email: user.email })
+    .from(user)
+    .where(eq(user.id, userId));
+  if (owner) await ensureUserSettings(db, owner, timezone);
 }
 
 export async function findUserSettings(db: D1Database, userId: string) {
