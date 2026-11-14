@@ -84,6 +84,7 @@ export function TaskDetails({ task }: { task: Task }) {
               <input
                 type="radio"
                 name="task-priority"
+                aria-label={t(`priorities.${priority}`)}
                 checked={task.priority === priority}
                 onChange={() => updateTask(task, { priority })}
               />

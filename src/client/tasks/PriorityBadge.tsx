@@ -7,7 +7,7 @@ export function PriorityBadge({ priority }: { priority: Priority }) {
   const { t } = useTranslation();
   const badge = PRIORITY_BADGES[priority];
   return (
-    <span className={`priority-badge priority-${priority} mono`} title={t("task.priorityLabel", { badge })}>
+    <span className={`priority-badge priority-${priority} mono`} title={t(`priorities.${priority}`)}>
       <Icon name="flag" size={11} strokeWidth={1.8} />
       {badge}
     </span>

@@ -182,7 +182,6 @@
     "overdueDate": "▲ {{date}}",
     "subtaskProgress": "{{done}}/{{total}}",
     "subtaskProgressLabel": "งานย่อยเสร็จ {{done}} จาก {{total}}",
-    "priorityLabel": "ความสำคัญ {{badge}}",
     "addTask": "Add task",
     "addTaskPlaceholder": "พิมพ์ชื่องาน แล้วกด Enter",
     "addTaskHint": {
@@ -240,5 +239,11 @@
       "ศ",
       "ส"
     ]
+  },
+  "priorities": {
+    "high": "P1 - สำคัญมาก",
+    "medium": "P2 - สำคัญ",
+    "low": "P3 - ไม่เร่ง",
+    "none": "P4 - ไม่ระบุ"
   }
 }

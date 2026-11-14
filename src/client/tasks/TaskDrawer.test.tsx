@@ -28,7 +28,7 @@ describe("TaskDrawer", () => {
     fireEvent.change(title, { target: { value: "ส่งใบเสนอราคา v2" } });
     fireEvent.blur(title);
     fireEvent.change(drawer.getByRole("combobox", { name: th.drawer.project }), { target: { value: "p1" } });
-    fireEvent.click(drawer.getByRole("radio", { name: "P1" }));
+    fireEvent.click(drawer.getByRole("radio", { name: th.priorities.high }));
 
     await waitFor(() => expect(calls).toHaveLength(3));
     expect(calls[0]?.body).toEqual({ title: "ส่งใบเสนอราคา v2" });
