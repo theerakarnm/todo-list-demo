@@ -11,11 +11,14 @@ function isIanaTimeZone(timeZone: string) {
   }
 }
 
+/** An IANA time zone such as "Asia/Bangkok". */
+export const timezoneSchema = z.string().refine(isIanaTimeZone, { message: "Unknown time zone" });
+
 /** Body of `PATCH /api/settings`. */
 export const updateSettingsSchema = z
   .object({
     displayName: titleSchema(LIMITS.displayNameLength),
-    timezone: z.string().refine(isIanaTimeZone, { message: "Unknown time zone" }),
+    timezone: timezoneSchema,
     theme: z.enum(THEMES),
     startPage: z.enum(START_PAGES),
     weekStart: z.enum(WEEK_STARTS),

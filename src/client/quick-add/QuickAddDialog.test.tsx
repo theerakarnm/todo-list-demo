@@ -108,7 +108,7 @@ describe("QuickAddDialog", () => {
   });
 
   it("takes the task back off the screen and explains the 1,000 task limit", async () => {
-    const { queryClient, type, save } = renderQuickAdd({}, async () => apiError("TASK_LIMIT", 409));
+    const { queryClient, type, save } = renderQuickAdd({}, async () => apiError(409, "TASK_LIMIT"));
 
     type("งานที่ 1001");
     save();

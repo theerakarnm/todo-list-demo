@@ -1,8 +1,14 @@
 import { Hono } from "hono";
+import { authRoutes } from "./auth/auth-routes";
+import { accountRoutes } from "./routes/account";
 import { handleError, handleNotFound } from "./errors";
 import { requestId } from "./middleware/request-id";
 import { securityHeaders } from "./middleware/security-headers";
+import { configRoutes } from "./routes/config";
 import { healthRoutes } from "./routes/health";
+import { meRoutes } from "./routes/me";
+import { onboardingRoutes } from "./routes/onboarding";
+import { settingsRoutes } from "./routes/settings";
 import { logbookRoutes } from "./routes/logbook";
 import { projectRoutes } from "./routes/projects";
 import { searchRoutes } from "./routes/search";
@@ -16,6 +22,12 @@ export const app = new Hono<AppEnv>()
   .use(requestId)
   .use(securityHeaders)
   .route("/api/health", healthRoutes)
+  .route("/api/config", configRoutes)
+  .route("/api/auth", authRoutes)
+  .route("/api/me", meRoutes)
+  .route("/api/settings", settingsRoutes)
+  .route("/api/onboarding", onboardingRoutes)
+  .route("/api/account", accountRoutes)
   .route("/api/tasks", taskRoutes)
   .route("/api/projects", projectRoutes)
   .route("/api/subtasks", subtaskRoutes)

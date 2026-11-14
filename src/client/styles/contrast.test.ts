@@ -44,6 +44,14 @@ describe.each([
   });
 });
 
+describe("LINE button", () => {
+  const color = themeColors(":root");
+
+  it("keeps its text at AA contrast on LINE green", () => {
+    expect(contrastRatio(color("--on-line-green"), color("--line-green"))).toBeGreaterThanOrEqual(4.5);
+  });
+});
+
 describe("dark theme accents", () => {
   const color = themeColors('[data-theme="dark"]');
 

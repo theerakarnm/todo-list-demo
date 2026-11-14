@@ -9,7 +9,7 @@ type PublicPlaceholderProps = {
   children?: ReactNode;
 };
 
-/** Stand-in for public screens (landing, auth, onboarding, legal) until their lanes build them. */
+/** A plain public screen: wordmark, title and one line of text (the Not Found page). */
 export function PublicPlaceholder({ title, description, children }: PublicPlaceholderProps) {
   const { t } = useTranslation();
 

@@ -3,6 +3,8 @@
 // APP_ENV is not here: it is a var in wrangler.jsonc, so `bun run cf-typegen` declares it.
 interface JotListSecrets {
   BETTER_AUTH_SECRET?: string;
+  /** The app's public origin, e.g. https://jotlist.eukron.com. When unset, the request's origin is used. */
+  BETTER_AUTH_URL?: string;
   LINE_LOGIN_CHANNEL_ID?: string;
   LINE_LOGIN_CHANNEL_SECRET?: string;
   TURNSTILE_SITE_KEY?: string;

@@ -6,11 +6,11 @@ import { createDb } from "../db/client";
 import { tasks } from "../db/schema";
 import { getViewSettings } from "../db/settings-queries";
 import { setDueDates } from "../db/task-queries";
-import type { AppEnv } from "../types";
+import type { SessionEnv } from "../types";
 import { validate } from "../validate";
 
-// Mounted inside taskRoutes, which already checks the user and the rate limit.
-export const rescheduleOverdueRoutes = new Hono<AppEnv>()
+// Mounted inside taskRoutes, whose requireSession already checks the session and the rate limit.
+export const rescheduleOverdueRoutes = new Hono<SessionEnv>()
 
   // Moves every overdue active task to today ("today" in the user's time zone)
   // and returns the previous dates, which the Undo toast sends to /undo.

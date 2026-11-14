@@ -56,7 +56,7 @@ describe("useOptimisticMutation", () => {
       const store = queryClient.getQueryData<SyncStore>(SYNC_QUERY_KEY) as SyncStore;
       queryClient.setQueryData(SYNC_QUERY_KEY, { ...store, tasks: { ...store.tasks, t2: aTask({ id: "t2", title: "แก้แล้ว" }) } });
     });
-    answer(apiError("TASK_LIMIT", 409));
+    answer(apiError(409, "TASK_LIMIT"));
 
     expect(await screen.findByText("มีงานที่ยังไม่เสร็จครบ 1,000 งานแล้ว กรุณาปิดหรือลบงานเก่าก่อน")).toBeTruthy();
     expect(tasksIn(queryClient).t1?.title).toBe("เดิม");
@@ -67,7 +67,7 @@ describe("useOptimisticMutation", () => {
     let answerCreate: (response: Response) => void = () => {};
     stubApi({
       "PUT /api/tasks/:id": () => new Promise<Response>((resolve) => (answerCreate = resolve)),
-      "PATCH /api/tasks/:id": () => apiError("NOT_FOUND", 404),
+      "PATCH /api/tasks/:id": () => apiError(404, "NOT_FOUND"),
     });
     const { result, queryClient } = renderHookWithStore(
       () => ({ create: useCreateTask(), rename: useRename() }),
@@ -79,7 +79,7 @@ describe("useOptimisticMutation", () => {
     const id = Object.keys(tasksIn(queryClient))[0] ?? "";
     act(() => result.current.rename.mutate({ id, title: "แก้ชื่อ" }));
     await waitFor(() => expect(tasksIn(queryClient)[id]?.title).toBe("แก้ชื่อ"));
-    answerCreate(apiError("TASK_LIMIT", 409));
+    answerCreate(apiError(409, "TASK_LIMIT"));
 
     await waitFor(() => expect(screen.getAllByText(/./, { selector: ".toast span" })).toHaveLength(2));
     expect(tasksIn(queryClient)).toEqual({});

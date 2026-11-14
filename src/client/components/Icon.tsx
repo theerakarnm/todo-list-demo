@@ -11,6 +11,7 @@ const ICON_PATHS = {
   expand: "M6 3 L11 8 L6 13 M14 2 V14",
   menu: "M2 4 H14 M2 8 H14 M2 12 H14",
   close: "M3 3 L13 13 M13 3 L3 13",
+  eye: "M1.5 8 C4 3.5 12 3.5 14.5 8 C12 12.5 4 12.5 1.5 8 Z M8 6 V10",
   check: "M2.5 8.5 L6.5 12.5 L13.5 4",
   flag: "M4 14 V2 M4 3 H12 L10 6 L12 9 H4",
   subtasks: "M3 2.5 H13 V13.5 H3 Z M5.5 6 H10.5 M5.5 9 H9",

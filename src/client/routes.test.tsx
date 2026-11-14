@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { AppProviders } from "./AppProviders";
 import th from "./i18n/th.json";
 import { routes } from "./routes";
+import { signedInAs, signedOut, testMe } from "./test/fake-api";
 import { stubSystemPrefersDark } from "./theme/test-utils";
 
 function renderAt(path: string) {
@@ -19,24 +20,40 @@ function renderAt(path: string) {
 
 describe("routes", () => {
   it.each([
-    ["/", th.pages.landing.title],
+    ["/", th.landing.hero.line1 + th.landing.hero.line2 + th.landing.hero.line3 + th.landing.hero.highlight],
     ["/login", th.pages.login.title],
     ["/signup", th.pages.signup.title],
     ["/forgot-password", th.pages.forgotPassword.title],
     ["/reset-password", th.pages.resetPassword.title],
     ["/verify-email", th.pages.verifyEmail.title],
-    ["/onboarding/1", th.pages.onboardingName.title],
-    ["/onboarding/2", th.pages.onboardingProjects.title],
     ["/privacy", th.pages.privacy.title],
     ["/terms", th.pages.terms.title],
+    ["/no-such-page", th.pages.notFound.title],
+  ])("%s shows its page to a signed-out visitor", async (path, title) => {
+    signedOut();
+    renderAt(path);
+
+    expect(await screen.findByRole("heading", { level: 1, name: title })).toBeTruthy();
+  });
+
+  it.each([
+    ["/onboarding/1", th.pages.onboardingName.title],
+    ["/onboarding/2", th.pages.onboardingProjects.title],
+  ])("%s shows its page to a new user", async (path, title) => {
+    signedInAs(testMe({ settings: { onboardedAt: null } }));
+    renderAt(path);
+
+    expect(await screen.findByRole("heading", { level: 1, name: title })).toBeTruthy();
+  });
+
+  it.each([
     ["/app/today", th.pages.today.title],
     ["/app/inbox", th.pages.inbox.title],
     ["/app/upcoming", th.pages.upcoming.title],
     ["/app/logbook", th.pages.completed.title],
     ["/app/projects/abc", th.pages.project.title],
     ["/app/settings", th.pages.settings.title],
-    ["/no-such-page", th.pages.notFound.title],
-  ])("%s shows its page", async (path, title) => {
+  ])("%s shows its page to a signed-in user", async (path, title) => {
     renderAt(path);
 
     expect(await screen.findByRole("heading", { level: 1, name: title })).toBeTruthy();

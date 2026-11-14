@@ -7,6 +7,7 @@ export const LIMITS = {
   subtaskTitleLength: 500,
   projectNameLength: 50,
   displayNameLength: 50,
+  passwordMinLength: 8,
   positionLength: 128,
   logbookPageSize: 50,
   searchResults: 50,

@@ -1,5 +1,11 @@
 import { cleanup, configure } from "@testing-library/react";
-import { afterEach } from "vitest";
+import { afterEach, beforeEach } from "vitest";
+import { queryClient } from "../api/query-client";
+import { installFakeApi } from "./fake-api";
+
+// A fresh fake API server (signed in by default) and an empty query cache for every test.
+beforeEach(installFakeApi);
+afterEach(() => queryClient.clear());
 
 // Testing Library only cleans up by itself when Vitest globals are on; they are off here.
 afterEach(cleanup);
@@ -19,6 +25,14 @@ HTMLDialogElement.prototype.close = function close(this: HTMLDialogElement) {
   this.removeEventListener("keydown", closeOnEscape);
   this.dispatchEvent(new Event("close"));
 };
+
+// A <form method="dialog"> closes its dialog when submitted, as in browsers.
+document.addEventListener("submit", (event) => {
+  const form = event.target as HTMLFormElement;
+  if (form.getAttribute("method") !== "dialog") return;
+  event.preventDefault();
+  form.closest("dialog")?.close();
+});
 
 function closeOnEscape(this: HTMLDialogElement, event: KeyboardEvent) {
   if (event.key === "Escape") this.close();

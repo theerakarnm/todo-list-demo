@@ -70,7 +70,7 @@ describe("TodayPage", () => {
   });
 
   it("puts the task back and explains in Thai when the server rejects the change", async () => {
-    stubApi({ "PATCH /api/tasks/:id": () => apiError("NOT_FOUND", 404) });
+    stubApi({ "PATCH /api/tasks/:id": () => apiError(404, "NOT_FOUND") });
     renderWithStore(<TodayPage />, storeWith({ tasks: [aTask({ id: "t1", title: "จ่ายค่าไฟ", dueDate: "2026-11-14" })] }));
 
     fireEvent.click(screen.getByRole("button", { name: "ทำเครื่องหมายว่าเสร็จ: จ่ายค่าไฟ" }));

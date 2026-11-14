@@ -1,7 +1,19 @@
-import { useTranslation } from "react-i18next";
-import { PublicPlaceholder } from "../components/PublicPlaceholder";
+import { SiteFooter } from "../components/SiteFooter";
+import { Features } from "../landing/Features";
+import { Hero } from "../landing/Hero";
+import { LandingNav } from "../landing/LandingNav";
+import { StartCta } from "../landing/StartCta";
 
 export default function LandingPage() {
-  const { t } = useTranslation();
-  return <PublicPlaceholder title={t("pages.landing.title")} />;
+  return (
+    <div className="min-h-dvh bg-bg text-fg">
+      <LandingNav />
+      <main>
+        <Hero />
+        <Features />
+        <StartCta />
+      </main>
+      <SiteFooter />
+    </div>
+  );
 }

@@ -8,13 +8,12 @@ import { findOwnProject } from "../db/project-queries";
 import { projects, subtasks, tasks } from "../db/schema";
 import { ApiError } from "../errors";
 import { assertRoomForActiveTasks, assertRoomForProject } from "../limits";
-import { apiRateLimit } from "../middleware/api-rate-limit";
-import { currentUser } from "../middleware/current-user";
-import type { AppEnv } from "../types";
+import { requireSession } from "../middleware/require-session";
+import type { SessionEnv } from "../types";
 import { validate } from "../validate";
 
-export const projectRoutes = new Hono<AppEnv>()
-  .use(currentUser, apiRateLimit)
+export const projectRoutes = new Hono<SessionEnv>()
+  .use(requireSession)
 
   // Create-or-update with the client's UUIDv7, so a retried create never duplicates.
   .put("/:id", validate("param", idParamSchema), validate("json", createProjectSchema), async (c) => {

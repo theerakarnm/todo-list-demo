@@ -7,9 +7,8 @@ import { subtaskColumns } from "../db/columns";
 import { subtasks, tasks } from "../db/schema";
 import { ApiError } from "../errors";
 import { assertRoomForSubtask } from "../limits";
-import { apiRateLimit } from "../middleware/api-rate-limit";
-import { currentUser } from "../middleware/current-user";
-import type { AppEnv } from "../types";
+import { requireSession } from "../middleware/require-session";
+import type { SessionEnv } from "../types";
 import { validate } from "../validate";
 
 /** Subtasks live under a task that is the user's and not deleted. Otherwise 404. */
@@ -41,8 +40,8 @@ async function updateSubtask(db: Db, id: string, changes: Partial<typeof subtask
     .get();
 }
 
-export const subtaskRoutes = new Hono<AppEnv>()
-  .use(currentUser, apiRateLimit)
+export const subtaskRoutes = new Hono<SessionEnv>()
+  .use(requireSession)
 
   // Create-or-update with the client's UUIDv7, so a retried create never duplicates.
   .put("/:id", validate("param", idParamSchema), validate("json", createSubtaskSchema), async (c) => {

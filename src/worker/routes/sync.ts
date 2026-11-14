@@ -5,9 +5,8 @@ import { createDb, type Db } from "../db/client";
 import { projectColumns, subtaskColumns, taskColumns } from "../db/columns";
 import { projects, subtasks, tasks } from "../db/schema";
 import { getViewSettings } from "../db/settings-queries";
-import { apiRateLimit } from "../middleware/api-rate-limit";
-import { currentUser } from "../middleware/current-user";
-import type { AppEnv } from "../types";
+import { requireSession } from "../middleware/require-session";
+import type { SessionEnv } from "../types";
 import { validate } from "../validate";
 
 /**
@@ -68,8 +67,8 @@ function changesSince(db: Db, userId: string, since: number) {
   ]);
 }
 
-export const syncRoutes = new Hono<AppEnv>()
-  .use(currentUser, apiRateLimit)
+export const syncRoutes = new Hono<SessionEnv>()
+  .use(requireSession)
   .get("/", validate("query", syncQuerySchema), async (c) => {
     const cursor = Date.now() - CURSOR_OVERLAP_MS;
     const db = createDb(c.env.DB);

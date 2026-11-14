@@ -76,7 +76,7 @@ describe("task mutations", () => {
   });
 
   it("create: takes the task back off the list when the account is full", async () => {
-    stubApi({ "PUT /api/tasks/:id": () => apiError("TASK_LIMIT", 409) });
+    stubApi({ "PUT /api/tasks/:id": () => apiError(409, "TASK_LIMIT") });
     const { result, queryClient } = renderHookWithStore(useCreateTask, storeWith({}));
 
     act(() => result.current({ title: "งานที่ 1,001", projectId: null, dueDate: null }));
@@ -86,7 +86,7 @@ describe("task mutations", () => {
   });
 
   it("reschedule overdue: offers no Undo when the server refuses", async () => {
-    stubApi({ "POST /api/tasks/reschedule-overdue": () => apiError("RATE_LIMITED", 429) });
+    stubApi({ "POST /api/tasks/reschedule-overdue": () => apiError(429, "RATE_LIMITED") });
     const overdue = aTask({ id: "t1", dueDate: "2026-11-10" });
     const { result, queryClient } = renderHookWithStore(useRescheduleOverdue, storeWith({ tasks: [overdue] }));
 

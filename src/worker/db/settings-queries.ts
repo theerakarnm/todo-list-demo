@@ -9,7 +9,7 @@ export async function getViewSettings(db: Db, userId: string) {
     .from(userSettings)
     .where(eq(userSettings.userId, userId))
     .get();
-  // Sign-up always creates the settings row, so a missing one is a bug.
+  // requireSession makes sure the settings row exists, so a missing one is a bug.
   if (!settings) throw new Error("user_settings row missing");
   return settings;
 }
