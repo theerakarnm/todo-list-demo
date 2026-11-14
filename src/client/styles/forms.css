@@ -71,7 +71,7 @@
 
   .btn:disabled {
     opacity: 0.6;
-    cursor: wait;
+    cursor: not-allowed;
   }
 
   .btn-line,
@@ -85,6 +85,25 @@
 
   .btn-line:hover {
     border-color: var(--fg);
+  }
+
+  /* A button inside a sentence that looks like the links around it. */
+  .link-button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.15em;
+    text-decoration-color: var(--highlight);
+    cursor: pointer;
+  }
+
+  .link-button:hover {
+    color: var(--link-hover);
   }
 
   .halftone-dot {

@@ -5,13 +5,18 @@ import { errorMessage } from "./error-message";
 import { goToExternalPage } from "./external-page";
 import { FormError } from "./FormError";
 
-/** "Continue with LINE" in LINE green (ARCHITECTURE §15). After LINE, the user comes back to `next`. */
-export function LineSignInButton({ next }: { next: string }) {
-  const { t } = useTranslation();
-  const lineSignIn = useMutation({
+/** Sends the browser to LINE; after LINE the user comes back to `next`. */
+export function useLineSignIn(next: string) {
+  return useMutation({
     mutationFn: () => startLineSignIn(next),
     onSuccess: ({ url }) => goToExternalPage(url),
   });
+}
+
+/** "Continue with LINE" in LINE green (ARCHITECTURE §15). */
+export function LineSignInButton({ next }: { next: string }) {
+  const { t } = useTranslation();
+  const lineSignIn = useLineSignIn(next);
 
   return (
     <>

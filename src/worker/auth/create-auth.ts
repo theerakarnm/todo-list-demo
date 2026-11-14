@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { drizzle } from "drizzle-orm/d1";
+import { LIMITS } from "../../shared/constants";
 import * as authSchema from "../db/auth-schema";
 import { createUserSettingsOnce } from "../db/user-settings";
 import { sendEmail } from "../email/send-email";
@@ -40,7 +41,7 @@ export function createAuth(env: Env, request: Request) {
     emailAndPassword: {
       enabled: true,
       requireEmailVerification: true,
-      minPasswordLength: 8,
+      minPasswordLength: LIMITS.passwordMinLength,
       revokeSessionsOnPasswordReset: true,
       async sendResetPassword({ user, token }) {
         if (isLinePlaceholderEmail(user.email)) return;

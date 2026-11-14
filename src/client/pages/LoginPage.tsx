@@ -6,10 +6,10 @@ import { ApiRequestError } from "../api/request-error";
 import { signInWithEmail } from "../auth/auth-api";
 import { AuthLayout, OrDivider } from "../auth/AuthLayout";
 import { errorMessage } from "../auth/error-message";
+import { EmailField, PasswordField } from "../auth/fields";
 import { FormError } from "../auth/FormError";
 import { LineSignInButton } from "../auth/LineSignInButton";
 import { safeNextPath } from "../auth/next-path";
-import { PasswordInput } from "../auth/PasswordInput";
 import { meQuery } from "../auth/use-me";
 
 export default function LoginPage() {
@@ -39,34 +39,16 @@ export default function LoginPage() {
       )}
       <OrDivider />
       <form onSubmit={handleSubmit}>
-        <div className="field mb-5">
-          <label className="mono" htmlFor="email">
-            {t("auth.emailLabel")}
-          </label>
-          <input
-            id="email"
-            name="email"
-            className="input"
-            type="email"
-            autoComplete="email"
-            required
-            placeholder={t("auth.emailPlaceholder")}
-          />
-        </div>
-        <div className="field">
-          <label className="mono" htmlFor="password">
-            {t("auth.passwordLabel")}
-          </label>
-          <PasswordInput
-            id="password"
-            name="password"
-            autoComplete="current-password"
-            required
-            invalid={wrongPassword}
-            aria-describedby={signIn.isError ? "password-error" : undefined}
-          />
+        <EmailField id="email" label={t("auth.emailLabel")} className="mb-5" />
+        <PasswordField
+          id="password"
+          label={t("auth.passwordLabel")}
+          autoComplete="current-password"
+          invalid={wrongPassword}
+          describedBy={signIn.isError ? "password-error" : undefined}
+        >
           {signIn.isError && <FormError id="password-error">{errorMessage(signIn.error, t)}</FormError>}
-        </div>
+        </PasswordField>
         <div className="mt-2.5 text-right">
           <Link to="/forgot-password" className="inline-flex min-h-11 items-center text-sm">
             {t("auth.login.forgotPassword")}
