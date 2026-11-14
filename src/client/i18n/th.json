@@ -205,5 +205,28 @@
     "namePlaceholder": "เช่น งาน, ส่วนตัว",
     "cancel": "Cancel",
     "create": "Create project"
+  },
+  "drawer": {
+    "label": "รายละเอียดงาน",
+    "heading": "งาน / task",
+    "close": "ปิดรายละเอียดงาน",
+    "title": "ชื่องาน",
+    "notes": "บันทึก / notes",
+    "notesPlaceholder": "รายละเอียดเพิ่มเติม",
+    "project": "โปรเจกต์ / project",
+    "inbox": "Inbox",
+    "dueDate": "วันที่ / due date",
+    "dueTime": "เวลา / time",
+    "clearDate": "ล้างวันที่",
+    "priority": "ความสำคัญ / priority",
+    "subtasks": "งานย่อย / subtasks - {{done}}/{{total}}",
+    "subtaskTitle": "ชื่องานย่อย",
+    "completeSubtask": "ทำเครื่องหมายว่าเสร็จ: {{title}}",
+    "uncompleteSubtask": "ทำเครื่องหมายว่ายังไม่เสร็จ: {{title}}",
+    "deleteSubtask": "ลบงานย่อย: {{title}}",
+    "addSubtask": "เพิ่มงานย่อย / add subtask",
+    "addSubtaskPlaceholder": "พิมพ์งานย่อย แล้วกด Enter",
+    "delete": "ลบงาน / delete task",
+    "notFound": "ไม่พบงานนี้ อาจถูกลบไปแล้ว"
   }
 }

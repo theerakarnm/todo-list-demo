@@ -52,3 +52,8 @@ export function stubApi(routes: Record<string, Handler>) {
 export function apiError(code: ErrorCode, status: number) {
   return Response.json({ error: { code, message: code } }, { status });
 }
+
+/** A handler for PUT create routes: answers with the sent row, as the server stores it. */
+export async function echoCreatedRow(request: Request, params: Record<string, string>) {
+  return { completedAt: null, createdAt: 1, updatedAt: 1, deletedAt: null, ...(await request.json()), id: params.id };
+}

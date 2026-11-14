@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { aProject, aTask, storeWith } from "../data/test-rows";
 import th from "../i18n/th.json";
-import { apiError, stubApi } from "../test/fake-api";
+import { apiError, echoCreatedRow, stubApi } from "../test/fake-api";
 import { renderWithStore } from "../test/render";
 import TodayPage from "./TodayPage";
 
@@ -94,7 +94,7 @@ describe("TodayPage", () => {
   });
 
   it("adds a task due today inline", async () => {
-    const calls = stubApi({ "PUT /api/tasks/:id": async (request) => ({ ...(await request.json()), updatedAt: 0 }) });
+    const calls = stubApi({ "PUT /api/tasks/:id": echoCreatedRow });
     renderWithStore(<TodayPage />, storeWith({}));
 
     fireEvent.click(screen.getByRole("button", { name: new RegExp(th.task.addTask) }));

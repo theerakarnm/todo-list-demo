@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Outlet } from "react-router";
 import { NewProjectDialog } from "../projects/NewProjectDialog";
+import { TaskDrawer } from "../tasks/TaskDrawer";
 import { DesktopSidebar } from "./DesktopSidebar";
 import { MobileBottomBar } from "./MobileBottomBar";
 import { MobileDrawer } from "./MobileDrawer";
@@ -44,6 +45,7 @@ export default function AppShell() {
       {openDialog === "search" && <PlaceholderDialog title={t("nav.search")} onClose={closeDialog} />}
       {openDialog === "quickAdd" && <PlaceholderDialog title={t("nav.addTask")} onClose={closeDialog} />}
       {openDialog === "newProject" && <NewProjectDialog onClose={closeDialog} />}
+      <TaskDrawer />
     </div>
   );
 }

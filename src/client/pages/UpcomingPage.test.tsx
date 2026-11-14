@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { aTask, storeWith } from "../data/test-rows";
 import th from "../i18n/th.json";
-import { stubApi } from "../test/fake-api";
+import { echoCreatedRow, stubApi } from "../test/fake-api";
 import { renderWithStore } from "../test/render";
 import UpcomingPage from "./UpcomingPage";
 
@@ -50,7 +50,7 @@ describe("UpcomingPage", () => {
   });
 
   it("adds a task to that day from its Add task button", async () => {
-    const calls = stubApi({ "PUT /api/tasks/:id": async (request) => ({ ...(await request.json()), updatedAt: 0 }) });
+    const calls = stubApi({ "PUT /api/tasks/:id": echoCreatedRow });
     renderWithStore(<UpcomingPage />, storeWith({}));
 
     fireEvent.click(screen.getByRole("button", { name: "เพิ่มงานวันจันทร์ 16 พ.ย." }));

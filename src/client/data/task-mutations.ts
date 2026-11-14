@@ -81,7 +81,7 @@ export function useUpdateTask() {
     apply: (store, { id, changes }) => {
       const task = store.tasks[id];
       if (!task) return store;
-      const dueTime = changes.dueDate === null ? null : (changes.dueTime ?? task.dueTime);
+      const dueTime = changes.dueDate === null ? null : changes.dueTime === undefined ? task.dueTime : changes.dueTime;
       return putRows(store, { tasks: [{ ...task, ...changes, dueTime }] });
     },
     confirm: (task) => ({ tasks: [task] }),

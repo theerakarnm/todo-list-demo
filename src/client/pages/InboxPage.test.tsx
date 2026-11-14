@@ -2,7 +2,7 @@ import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { aTask, storeWith } from "../data/test-rows";
 import th from "../i18n/th.json";
-import { stubApi } from "../test/fake-api";
+import { echoCreatedRow, stubApi } from "../test/fake-api";
 import { renderWithStore } from "../test/render";
 import InboxPage from "./InboxPage";
 
@@ -17,7 +17,7 @@ describe("InboxPage", () => {
   });
 
   it("adds a task inline with Enter and stays open for the next one; Esc closes", async () => {
-    const calls = stubApi({ "PUT /api/tasks/:id": async (request) => ({ ...(await request.json()), updatedAt: 0 }) });
+    const calls = stubApi({ "PUT /api/tasks/:id": echoCreatedRow });
     renderWithStore(<InboxPage />, storeWith({}));
 
     fireEvent.click(screen.getByRole("button", { name: new RegExp(th.task.addTask) }));
