@@ -96,7 +96,6 @@
     "close": "ปิด"
   },
   "theme": {
-    "legend": "ธีม / theme",
     "light": "Light",
     "dark": "Dark",
     "system": "System"
@@ -298,5 +297,19 @@
     "deleteConfirmTitle": "ลบบัญชีถาวร?",
     "deleteConfirmBody": "งาน โปรเจกต์ รูปภาพ และการตั้งค่าทั้งหมดจะถูกลบทันที แล้วออกจากระบบ กู้คืนไม่ได้",
     "deleteConfirm": "ลบบัญชีถาวร"
+  },
+  "settingsGeneral": {
+    "themeLegend": "ธีม / theme",
+    "startPageLegend": "หน้าเริ่มต้น / start page",
+    "startPage": {
+      "today": "Today",
+      "inbox": "Inbox"
+    },
+    "weekStartLegend": "สัปดาห์เริ่มวัน / week starts on",
+    "weekStart": {
+      "sun": "วันอาทิตย์",
+      "mon": "วันจันทร์"
+    },
+    "timezoneLabel": "เขตเวลา / timezone"
   }
 }

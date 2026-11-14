@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useLocation, useSearchParams } from "react-router";
+import { useThemeFromSettings } from "../settings/use-theme-from-settings";
 import { loginPathFor, safeNextPath, startPath } from "./next-path";
 import { useMe } from "./use-me";
 
@@ -6,6 +7,7 @@ import { useMe } from "./use-me";
 export function SignedInOnly() {
   const { data: me, isPending } = useMe();
   const location = useLocation();
+  useThemeFromSettings(me?.settings.theme);
 
   if (isPending) return null;
   if (!me) return <Navigate to={loginPathFor(location.pathname + location.search)} replace />;

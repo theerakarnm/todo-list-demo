@@ -3,8 +3,8 @@ import { useMe } from "../auth/use-me";
 import { AppPage } from "../components/AppPage";
 import { PageHeader } from "../components/PageHeader";
 import { AccountSettings } from "../settings/AccountSettings";
+import { GeneralSettings } from "../settings/GeneralSettings";
 import { SettingsTabs } from "../settings/SettingsTabs";
-import { ThemeSwitcher } from "../theme/ThemeSwitcher";
 
 export default function SettingsPage() {
   const { t } = useTranslation();
@@ -17,7 +17,11 @@ export default function SettingsPage() {
         title={t("pages.settings.title")}
         subtitle={t("pages.settings.subtitle")}
       />
-      {me && <SettingsTabs panels={{ account: <AccountSettings me={me} />, general: <ThemeSwitcher /> }} />}
+      {me && (
+        <SettingsTabs
+          panels={{ account: <AccountSettings me={me} />, general: <GeneralSettings settings={me.settings} /> }}
+        />
+      )}
     </AppPage>
   );
 }

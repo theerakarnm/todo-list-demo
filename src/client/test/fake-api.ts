@@ -67,9 +67,13 @@ export function requestsTo(route: Route) {
   return sent.filter((entry) => entry.route === route).map((entry) => entry.request);
 }
 
+/** The JSON body of the last request to this route; waits for the request if it has not been sent yet. */
 export async function lastJsonSentTo(route: Route) {
-  const request = requestsTo(route).at(-1);
-  if (!request) throw new Error(`No request was sent to ${route}`);
+  const request = await vi.waitFor(() => {
+    const last = requestsTo(route).at(-1);
+    if (!last) throw new Error(`No request was sent to ${route}`);
+    return last;
+  });
   return request.clone().json();
 }
 
