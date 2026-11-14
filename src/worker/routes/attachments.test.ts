@@ -228,3 +228,37 @@ describe("DELETE /api/attachments/:id", () => {
     expect(row?.deleted_at).toBeNull();
   });
 });
+
+describe("PATCH /api/attachments/:id", () => {
+  it("moves an image within the gallery and bumps updated_at", async () => {
+    const userId = await createTestUser();
+    const attachment = await uploadPng(userId, await createTask(userId));
+    await env.DB.prepare("UPDATE attachments SET updated_at = 1000 WHERE id = ?").bind(attachment.id).run();
+
+    const response = await apiAs(userId).patch(`/api/attachments/${attachment.id}`, { position: "Zz" });
+
+    expect(response.status).toBe(200);
+    const moved = await bodyOf<Attachment>(response);
+    expect(moved).toMatchObject({ id: attachment.id, position: "Zz" });
+    expect(moved.updatedAt).toBeGreaterThan(1000);
+  });
+
+  it("rejects a position that is not a fractional-index key", async () => {
+    const userId = await createTestUser();
+    const attachment = await uploadPng(userId, await createTask(userId));
+
+    const response = await apiAs(userId).patch(`/api/attachments/${attachment.id}`, { position: "not a key!" });
+
+    expect(response.status).toBe(400);
+  });
+
+  it("answers 404 for another user's attachment and for a deleted one", async () => {
+    const owner = await createTestUser();
+    const intruder = await createTestUser();
+    const attachment = await uploadPng(owner, await createTask(owner));
+
+    expect((await apiAs(intruder).patch(`/api/attachments/${attachment.id}`, { position: "a5" })).status).toBe(404);
+    await apiAs(owner).delete(`/api/attachments/${attachment.id}`);
+    expect((await apiAs(owner).patch(`/api/attachments/${attachment.id}`, { position: "a5" })).status).toBe(404);
+  });
+});

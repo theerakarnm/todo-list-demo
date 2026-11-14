@@ -2,6 +2,7 @@ import { and, eq, isNull, max } from "drizzle-orm";
 import { generateKeyBetween } from "fractional-indexing";
 import { Hono } from "hono";
 import { LIMITS } from "../../shared/constants";
+import { updateAttachmentSchema } from "../../shared/schemas/attachment";
 import { idParamSchema } from "../../shared/schemas/fields";
 import { createDb, type Db } from "../db/client";
 import { attachmentColumns } from "../db/columns";
@@ -114,4 +115,13 @@ export const attachmentRoutes = new Hono<SessionEnv>()
     const deleted = await updateAttachment(db, id, { deletedAt: now, updatedAt: now });
     await c.env.FILES.delete(attachment.r2Key);
     return c.json(deleted, 200);
+  })
+
+  // Drag-to-reorder in the gallery: only this row gets a new position.
+  .patch("/:id", validate("param", idParamSchema), validate("json", updateAttachmentSchema), async (c) => {
+    const db = createDb(c.env.DB);
+    const { id } = c.req.valid("param");
+    const attachment = await findOwnAttachment(db, c.get("userId"), id);
+    if (attachment.deletedAt) throw new ApiError("NOT_FOUND");
+    return c.json(await updateAttachment(db, id, c.req.valid("json")), 200);
   });
