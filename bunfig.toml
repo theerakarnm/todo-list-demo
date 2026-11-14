@@ -1,0 +1,4 @@
+# `bun test` would run Bun's own test runner, not Vitest.
+# Point it at a folder with one hint test so it passes and tells you what to run instead.
+[test]
+root = "./bun-test-noop"
