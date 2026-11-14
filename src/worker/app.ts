@@ -6,6 +6,7 @@ import { securityHeaders } from "./middleware/security-headers";
 import { configRoutes } from "./routes/config";
 import { healthRoutes } from "./routes/health";
 import { meRoutes } from "./routes/me";
+import { onboardingRoutes } from "./routes/onboarding";
 import { settingsRoutes } from "./routes/settings";
 import type { AppEnv } from "./types";
 
@@ -17,7 +18,8 @@ export const app = new Hono<AppEnv>()
   .route("/api/config", configRoutes)
   .route("/api/auth", authRoutes)
   .route("/api/me", meRoutes)
-  .route("/api/settings", settingsRoutes);
+  .route("/api/settings", settingsRoutes)
+  .route("/api/onboarding", onboardingRoutes);
 
 app.notFound(handleNotFound);
 app.onError(handleError);
