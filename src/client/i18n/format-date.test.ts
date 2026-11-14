@@ -1,5 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { formatDayMonth, formatLoadBarDay, formatLocalDate, formatShortThaiDate } from "./format-date";
+import {
+  formatDayMonth,
+  formatLoadBarDay,
+  formatLocalDate,
+  formatShortThaiDate,
+  formatWeekdayDayMonth,
+} from "./format-date";
 
 describe("formatShortThaiDate", () => {
   it("writes the Thai weekday, day and short month like the mockups", () => {
@@ -22,5 +28,6 @@ describe("local date labels", () => {
     expect(formatDayMonth("2026-11-13")).toBe("13 พ.ย.");
     expect(formatLoadBarDay("2026-11-15")).toBe("อา 15");
     expect(formatLoadBarDay("2026-11-19")).toBe("พฤ 19");
+    expect(formatWeekdayDayMonth("2026-11-20")).toBe("ศ 20 พ.ย.");
   });
 });

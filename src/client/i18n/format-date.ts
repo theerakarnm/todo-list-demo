@@ -42,3 +42,9 @@ export function formatLoadBarDay(localDate: string) {
   const date = localDateAsUtcNoon(localDate);
   return `${th.dates.weekdayShort[date.getUTCDay()]} ${date.getUTCDate()}`;
 }
+
+/** "ศ 20 พ.ย." next to a task in the Search results. */
+export function formatWeekdayDayMonth(localDate: string) {
+  const weekday = th.dates.weekdayShort[localDateAsUtcNoon(localDate).getUTCDay()];
+  return `${weekday} ${formatDayMonth(localDate)}`;
+}
