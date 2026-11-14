@@ -71,29 +71,47 @@ describe("a signed-in user whose settings row is missing", () => {
     expect((await me.json<{ settings: { timezone: string } }>()).settings.timezone).toBe("Asia/Bangkok");
   });
 
-  it("creates the row on the first request", async () => {
+  it("inserts the row on the first request", async () => {
     const userId = await userWithoutSettings();
 
-    await apiAs(userId).get("/api/sync");
+    const statements = await statementsPreparedDuring(() => apiAs(userId).get("/api/sync"));
 
+    expect(writesToUserSettings(statements)).toEqual([expect.stringMatching(/^\s*insert/i)]);
     const row = await env.DB.prepare("SELECT timezone FROM user_settings WHERE user_id = ?").bind(userId).first();
     expect(row).not.toBeNull();
   });
 });
 
 describe("a signed-in user whose settings row exists", () => {
-  it("is not written to on later requests", async () => {
+  it("costs no INSERT or UPDATE on user_settings, only the read", async () => {
     const userId = await createTestUser();
     await env.DB.prepare("UPDATE user_settings SET display_name = ?, timezone = ? WHERE user_id = ?")
       .bind("ชื่อใหม่", "Asia/Tokyo", userId)
       .run();
-    const prepare = vi.spyOn(env.DB, "prepare");
 
-    expect((await apiAs(userId).get("/api/sync")).status).toBe(200);
+    const statements = await statementsPreparedDuring(async () => {
+      expect((await apiAs(userId).get("/api/sync")).status).toBe(200);
+    });
 
-    const inserts = prepare.mock.calls.filter(([sql]) => /insert\s+into\s+"?user_settings"?/i.test(sql));
-    expect(inserts).toEqual([]);
+    // The read shows the spy sees the Worker's own statements, so the empty list below means something.
+    expect(statements.some((sql) => /^\s*select\b[\s\S]*\bfrom\s+"?user_settings"?/i.test(sql))).toBe(true);
+    expect(writesToUserSettings(statements)).toEqual([]);
     const row = await env.DB.prepare("SELECT display_name, timezone FROM user_settings WHERE user_id = ?").bind(userId).first();
     expect(row).toEqual({ display_name: "ชื่อใหม่", timezone: "Asia/Tokyo" });
   });
 });
+
+/** The SQL of every statement prepared on D1 while `run` runs. */
+async function statementsPreparedDuring(run: () => Promise<unknown>) {
+  const prepare = vi.spyOn(env.DB, "prepare");
+  try {
+    await run();
+    return prepare.mock.calls.map(([sql]) => sql);
+  } finally {
+    prepare.mockRestore();
+  }
+}
+
+function writesToUserSettings(statements: string[]) {
+  return statements.filter((sql) => /^\s*(insert\s+into|update)\s+"?user_settings"?/i.test(sql));
+}
