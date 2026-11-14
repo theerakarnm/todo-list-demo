@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull, max, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, max, sql } from "drizzle-orm";
 import { generateKeyBetween } from "fractional-indexing";
 import { zonedDateTimeToUtcMs } from "../../shared/time-zone";
 import { ApiError } from "../errors";
@@ -82,6 +82,39 @@ export async function setDueDates(db: Db, userId: string, timeZone: string, chan
     SET due_date = changes.due_date, remind_at = changes.remind_at, reminder_sent_at = NULL, updated_at = ${Date.now()}
     FROM (
       SELECT value ->> 'id' AS id, value ->> 'dueDate' AS due_date, value ->> 'remindAt' AS remind_at
+      FROM json_each(${JSON.stringify(rows)})
+    ) AS changes
+    WHERE tasks.id = changes.id AND tasks.user_id = ${userId}`);
+}
+
+/**
+ * After the user's time zone changes, every active task with a due time gets
+ * the remind_at of its due date and time in the new zone. A reminder already
+ * sent is armed again when its new time is still ahead of `now`; one whose new
+ * time has passed stays sent.
+ */
+export async function moveRemindersToTimeZone(db: Db, userId: string, timeZone: string, now: number) {
+  const timed = await db
+    .select({ id: tasks.id, dueDate: tasks.dueDate, dueTime: tasks.dueTime })
+    .from(tasks)
+    .where(
+      and(
+        eq(tasks.userId, userId),
+        isNotNull(tasks.dueTime),
+        isNull(tasks.completedAt),
+        isNull(tasks.deletedAt),
+      ),
+    );
+  const rows = timed.flatMap(({ id, dueDate, dueTime }) =>
+    dueDate && dueTime ? [{ id, remindAt: zonedDateTimeToUtcMs(dueDate, dueTime, timeZone) }] : [],
+  );
+  if (rows.length === 0) return;
+  await db.run(sql`
+    UPDATE tasks
+    SET remind_at = changes.remind_at,
+      reminder_sent_at = CASE WHEN changes.remind_at > ${now} THEN NULL ELSE tasks.reminder_sent_at END
+    FROM (
+      SELECT value ->> 'id' AS id, value ->> 'remindAt' AS remind_at
       FROM json_each(${JSON.stringify(rows)})
     ) AS changes
     WHERE tasks.id = changes.id AND tasks.user_id = ${userId}`);
