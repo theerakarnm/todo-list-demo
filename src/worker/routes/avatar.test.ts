@@ -1,5 +1,5 @@
 import { env } from "cloudflare:test";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, onTestFinished, vi } from "vitest";
 import { LIMITS } from "../../shared/constants";
 import { apiAs, bodyOf } from "../test/api";
 import { pngFile, renamedExeFile } from "../test/images";
@@ -65,6 +65,43 @@ describe("PUT /api/me/avatar", () => {
     expect(tooLarge.status).toBe(413);
     expect(await avatarKeyInMe(userId)).toBe(avatarKey);
     expect((await env.FILES.list({ prefix: `u/${userId}/` })).objects.map((object) => object.key)).toEqual([avatarKey]);
+  });
+});
+
+describe("PUT /api/me/avatar without a settings row", () => {
+  const avatarFiles = async (userId: string) =>
+    (await env.FILES.list({ prefix: `u/${userId}/avatar/` })).objects.map((object) => object.key);
+  const deleteSettingsRow = (userId: string) =>
+    env.DB.prepare("DELETE FROM user_settings WHERE user_id = ?").bind(userId).run();
+
+  it("saves the photo when the row was missing before the request", async () => {
+    const userId = await createTestUser();
+    await deleteSettingsRow(userId);
+
+    const avatarKey = await putAvatar(userId);
+
+    const row = await env.DB.prepare("SELECT avatar_key FROM user_settings WHERE user_id = ?").bind(userId).first();
+    expect(row?.avatar_key).toBe(avatarKey);
+    expect(await avatarFiles(userId)).toEqual([avatarKey]);
+  });
+
+  it("deletes the uploaded file and answers 404 when the row is gone by the time the key is saved", async () => {
+    onTestFinished(() => {
+      vi.restoreAllMocks();
+    });
+    const userId = await createTestUser();
+    const put = env.FILES.put.bind(env.FILES);
+    // The row disappears (e.g. the account is being deleted) while the file uploads.
+    vi.spyOn(env.FILES, "put").mockImplementation(async (...args: Parameters<R2Bucket["put"]>) => {
+      const stored = await put(...args);
+      await deleteSettingsRow(userId);
+      return stored;
+    });
+
+    const response = await apiAs(userId).putForm("/api/me/avatar", avatarForm(pngFile(512)));
+
+    expect(response.status).toBe(404);
+    expect(await avatarFiles(userId)).toEqual([]);
   });
 });
 

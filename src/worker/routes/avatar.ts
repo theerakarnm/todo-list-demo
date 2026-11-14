@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { createDb, type Db } from "../db/client";
 import { userSettings } from "../db/schema";
+import { ApiError } from "../errors";
 import { newAvatarFileKey } from "../files/file-keys";
 import { assertImageFile, imageBodyLimit, uploadAvatarSchema } from "../files/uploads";
 import type { SessionEnv } from "../types";
@@ -16,8 +17,15 @@ async function findAvatarKey(db: Db, userId: string) {
   return row?.avatarKey ?? null;
 }
 
-function saveAvatarKey(db: Db, userId: string, avatarKey: string | null) {
-  return db.update(userSettings).set({ avatarKey }).where(eq(userSettings.userId, userId));
+/** False when the user has no settings row to save it in. */
+async function saveAvatarKey(db: Db, userId: string, avatarKey: string | null) {
+  const saved = await db
+    .update(userSettings)
+    .set({ avatarKey })
+    .where(eq(userSettings.userId, userId))
+    .returning({ userId: userSettings.userId })
+    .get();
+  return saved !== undefined;
 }
 
 // Mounted inside meRoutes, whose requireSession already checks the session and the rate limit.
@@ -34,7 +42,11 @@ export const avatarRoutes = new Hono<SessionEnv>()
     const avatarKey = newAvatarFileKey(userId);
     await c.env.FILES.put(avatarKey, file, { httpMetadata: { contentType: mime } });
     const previousKey = await findAvatarKey(db, userId);
-    await saveAvatarKey(db, userId, avatarKey);
+    // requireSession made the row, so it is only gone if the account is being deleted: leave no file behind.
+    if (!(await saveAvatarKey(db, userId, avatarKey))) {
+      await c.env.FILES.delete(avatarKey);
+      throw new ApiError("NOT_FOUND");
+    }
     if (previousKey) await c.env.FILES.delete(previousKey);
     return c.json({ avatarKey }, 200);
   })
