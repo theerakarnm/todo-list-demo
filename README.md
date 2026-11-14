@@ -69,6 +69,17 @@ Without `RESEND_API_KEY`, no email is sent.
 In development the Worker logs one line instead (`{"level":"info","event":"email.mock","subject":...,"link":...}`), so you can open verification and reset links from the terminal.
 Anywhere else it logs only `{"level":"warn","event":"email.skipped","subject":...}`, because the link holds a token.
 The tests always run in development without a key, even when `.dev.vars` holds a real key.
+They also use fixed test values for the Better Auth, LINE and Turnstile settings (`vitest.config.ts`), and fake every outside HTTP call.
+
+### Auth
+Better Auth runs at `/api/auth/*` (`src/worker/auth/`), with email and password plus LINE Login.
+Sign-up and forgot-password need a Turnstile token in the `x-turnstile-token` header; the client gets the public site key from `GET /api/config`.
+Email accounts must verify their email before they can sign in.
+In development without `RESEND_API_KEY`, open the verification and reset links from the `email.mock` log line.
+The verification link lands on `/verify-email`, and the reset link on `/reset-password?token=...`.
+LINE Login needs `LINE_LOGIN_CHANNEL_ID` and `LINE_LOGIN_CHANNEL_SECRET`, with the callback URL `<origin>/api/auth/callback/line` registered in the LINE Developers Console.
+A LINE email that matches a verified account signs in to that account; one that matches only an unverified sign-up replaces it; without an email, LINE gets a separate account.
+The browser's time zone is saved at `POST /api/onboarding/complete` (field `timezone`); until then it is `Asia/Bangkok`.
 
 ### Scripts
 
