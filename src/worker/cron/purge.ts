@@ -1,6 +1,7 @@
-import { and, eq, inArray, lt, notExists, or, sql } from "drizzle-orm";
+import { and, eq, inArray, lt, notExists, or } from "drizzle-orm";
 import { todayInTimeZone } from "../../shared/time-zone";
 import type { Db } from "../db/client";
+import { inJsonList } from "../db/in-list";
 import { attachments, cronRuns, projects, subtasks, tasks } from "../db/schema";
 
 /** Soft-deleted rows stay this long, so Undo and restore keep working (ARCHITECTURE section 4). */
@@ -71,8 +72,7 @@ function purgePages(db: Db, files: R2Bucket, cutoff: number): [keyof Counts, Pur
         if (page.length === 0) return 0;
         // The R2 objects first: if the rows delete then fails, the next purge finds them again.
         await files.delete(page.map((file) => file.key));
-        const ids = JSON.stringify(page.map((file) => file.id));
-        await db.delete(attachments).where(inArray(attachments.id, sql`(SELECT value FROM json_each(${ids}))`));
+        await db.delete(attachments).where(inJsonList(attachments.id, page.map((file) => file.id)));
         return page.length;
       },
     ],

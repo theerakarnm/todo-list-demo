@@ -1,8 +1,9 @@
-import { and, eq, inArray, isNull, lt, sql } from "drizzle-orm";
+import { and, eq, isNull, lt, sql } from "drizzle-orm";
 import { Hono } from "hono";
 import { undoRescheduleSchema } from "../../shared/schemas/task";
 import { todayInTimeZone } from "../../shared/time-zone";
 import { createDb } from "../db/client";
+import { inJsonList } from "../db/in-list";
 import { tasks } from "../db/schema";
 import { getViewSettings } from "../db/settings-queries";
 import { setDueDates } from "../db/task-queries";
@@ -38,11 +39,11 @@ export const rescheduleOverdueRoutes = new Hono<SessionEnv>()
     const previous = c.req.valid("json").tasks;
 
     // Only the user's own tasks; their due times decide the reminders.
-    const ids = JSON.stringify(previous.map(({ id }) => id));
+    const ids = previous.map(({ id }) => id);
     const owned = await db
       .select({ id: tasks.id, dueTime: tasks.dueTime })
       .from(tasks)
-      .where(and(eq(tasks.userId, userId), inArray(tasks.id, sql`(SELECT value FROM json_each(${ids}))`)));
+      .where(and(eq(tasks.userId, userId), inJsonList(tasks.id, ids)));
     const dueTimes = new Map(owned.map((task) => [task.id, task.dueTime]));
 
     const changes = previous

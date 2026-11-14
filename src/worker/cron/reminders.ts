@@ -1,5 +1,6 @@
-import { and, inArray, isNull, lte, sql } from "drizzle-orm";
+import { and, inArray, isNull, lte } from "drizzle-orm";
 import type { Db } from "../db/client";
+import { inJsonList } from "../db/in-list";
 import { projects, tasks } from "../db/schema";
 import type { Vapid } from "../push/vapid";
 import { deliver, type PushPayload, subscriptionsByUser } from "./deliver";
@@ -37,7 +38,7 @@ async function projectNames(db: Db, projectIds: string[]) {
   const rows = await db
     .select({ id: projects.id, name: projects.name })
     .from(projects)
-    .where(sql`${projects.id} IN (SELECT value FROM json_each(${JSON.stringify(projectIds)}))`);
+    .where(inJsonList(projects.id, projectIds));
   return new Map(rows.map((row) => [row.id, row.name]));
 }
 

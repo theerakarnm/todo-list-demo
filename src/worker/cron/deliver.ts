@@ -1,5 +1,6 @@
-import { eq, sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import type { Db } from "../db/client";
+import { inJsonList } from "../db/in-list";
 import { pushSubscriptions } from "../db/schema";
 import { type PushTarget, sendPush } from "../push/send-push";
 import type { Vapid } from "../push/vapid";
@@ -25,7 +26,7 @@ export async function subscriptionsByUser(db: Db, userIds: string[]) {
       auth: pushSubscriptions.auth,
     })
     .from(pushSubscriptions)
-    .where(sql`${pushSubscriptions.userId} IN (SELECT value FROM json_each(${JSON.stringify(userIds)}))`);
+    .where(inJsonList(pushSubscriptions.userId, userIds));
   const byUser = new Map<string, Subscription[]>();
   for (const row of rows) byUser.set(row.userId, [...(byUser.get(row.userId) ?? []), row]);
   return byUser;

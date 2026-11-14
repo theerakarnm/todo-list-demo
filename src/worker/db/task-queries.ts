@@ -1,9 +1,10 @@
-import { and, eq, inArray, isNotNull, isNull, max, sql } from "drizzle-orm";
+import { and, eq, isNotNull, isNull, max, sql } from "drizzle-orm";
 import { generateKeyBetween } from "fractional-indexing";
 import { zonedDateTimeToUtcMs } from "../../shared/time-zone";
 import { ApiError } from "../errors";
 import type { Db } from "./client";
 import { subtaskColumns, taskColumns } from "./columns";
+import { inJsonList } from "./in-list";
 import { getViewSettings } from "./settings-queries";
 import { subtasks, tasks } from "./schema";
 
@@ -27,7 +28,7 @@ export function subtasksOfTasks(db: Db, userId: string, taskIds: string[]) {
       and(
         eq(subtasks.userId, userId),
         isNull(subtasks.deletedAt),
-        inArray(subtasks.taskId, sql`(SELECT value FROM json_each(${JSON.stringify(taskIds)}))`),
+        inJsonList(subtasks.taskId, taskIds),
       ),
     );
 }
