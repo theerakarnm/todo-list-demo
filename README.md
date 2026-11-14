@@ -69,7 +69,7 @@ Without `RESEND_API_KEY`, no email is sent.
 In development the Worker logs one line instead (`{"level":"info","event":"email.mock","subject":...,"link":...}`), so you can open verification and reset links from the terminal.
 Anywhere else it logs only `{"level":"warn","event":"email.skipped","subject":...}`, because the link holds a token.
 The tests always run in development without a key, even when `.dev.vars` holds a real key.
-They also use fixed test values for the Better Auth, LINE and Turnstile settings (`vitest.config.ts`), and fake every outside HTTP call.
+They also use fixed test values for the Better Auth, LINE, Turnstile and VAPID settings (`vitest.config.ts`), and fake every outside HTTP call.
 
 ### Auth
 Better Auth runs at `/api/auth/*` (`src/worker/auth/`), with email and password plus LINE Login.
@@ -86,6 +86,12 @@ Signed-out visitors on `/app/*` go to `/login?next=<path>` and come back after s
 The Signup and Forgot password pages load the Turnstile widget with the site key from `GET /api/config`.
 Locally the widget only passes when `TURNSTILE_SITE_KEY` is valid for `localhost` (for example Cloudflare's test keys).
 Client tests replace `fetch` with a fake API server (`src/client/test/fake-api.ts`); by default the user is signed in and onboarded.
+
+### Reminders
+Reminders and the daily digest are Web Push messages sent by the 1-minute Cron Trigger (`src/worker/cron.ts`), signed with VAPID and encrypted with WebCrypto (`src/worker/push/`).
+Make the key pair once with `bun scripts/generate-vapid-keys.ts` and set `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` and `VAPID_SUBJECT`; without them the cron sends nothing and leaves reminders unsent.
+The browser gets the public key from `GET /api/push/public-key` and registers with `POST /api/push/subscribe`; `DELETE /api/push/subscribe` removes it.
+The same cron hard-deletes rows soft-deleted more than 7 days ago, with their R2 objects, once a day at the first run after 03:00 UTC.
 
 ### Scripts
 
