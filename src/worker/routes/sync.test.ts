@@ -175,6 +175,21 @@ describe("GET /api/sync?since", () => {
     expect(body.attachments.find((row) => row.id === deletedId)?.deletedAt).toEqual(expect.any(Number));
   });
 
+  it("sends an image deleted and then restored as live again", async () => {
+    const userId = await createTestUser();
+    const taskId = await put(userId, "tasks", { title: "ใบเสร็จ" });
+    const imageId = await attach(userId, taskId);
+    await ageAllRows(userId);
+
+    await apiAs(userId).delete(`/api/attachments/${imageId}`);
+    const afterDelete = await sync(userId, 5000);
+    await apiAs(userId).post(`/api/attachments/${imageId}/restore`);
+    const afterRestore = await sync(userId, 5000);
+
+    expect(afterDelete.attachments).toEqual([expect.objectContaining({ id: imageId, deletedAt: expect.any(Number) })]);
+    expect(afterRestore.attachments).toEqual([expect.objectContaining({ id: imageId, deletedAt: null })]);
+  });
+
   it("overlaps the cursor, so a write that lands just before it is never lost", async () => {
     const userId = await createTestUser();
     const first = await sync(userId);
