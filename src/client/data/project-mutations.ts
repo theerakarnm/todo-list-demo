@@ -14,7 +14,7 @@ import type { SyncStore } from "./sync-store";
 import type { Project, Subtask, Task } from "./types";
 import { uuidv7 } from "./uuidv7";
 
-export type ProjectChanges = Partial<Pick<Project, "name" | "color">>;
+export type ProjectChanges = Partial<Pick<Project, "name" | "color" | "position">>;
 
 /** Creates a project at the end of the sidebar list and returns its id. */
 export function useCreateProject() {

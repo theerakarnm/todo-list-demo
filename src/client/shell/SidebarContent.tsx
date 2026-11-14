@@ -16,10 +16,15 @@ export type ShellActions = {
 /** Everything in the sidebar column; shared by the desktop sidebar and the mobile drawer. */
 export function SidebarContent({
   collapsed = false,
+  dragAndDrop = false,
   onOpenSearch,
   onOpenQuickAdd,
   onNewProject,
-}: ShellActions & { collapsed?: boolean }) {
+}: ShellActions & {
+  collapsed?: boolean;
+  /** Projects can be reordered and take dropped tasks: the desktop sidebar only (the mobile drawer is a modal). */
+  dragAndDrop?: boolean;
+}) {
   const { t } = useTranslation();
   const store = useSyncStore();
   const now = useNow();
@@ -62,7 +67,7 @@ export function SidebarContent({
         )}
       </button>
       <SmartViewsNav collapsed={collapsed} counts={counts} />
-      <ProjectsNav projects={projects} collapsed={collapsed} onNewProject={onNewProject} />
+      <ProjectsNav projects={projects} collapsed={collapsed} dragAndDrop={dragAndDrop} onNewProject={onNewProject} />
     </>
   );
 }

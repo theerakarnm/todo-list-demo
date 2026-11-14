@@ -16,7 +16,7 @@ export function DesktopSidebar(actions: ShellActions) {
         collapsed ? "w-[76px]" : "w-[272px]"
       }`}
     >
-      <SidebarContent collapsed={collapsed} {...actions} />
+      <SidebarContent collapsed={collapsed} dragAndDrop {...actions} />
       <button
         type="button"
         className={`nav-item mt-auto text-fg-muted hover:text-fg ${collapsed ? "justify-center px-0" : ""}`}

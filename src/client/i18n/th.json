@@ -272,5 +272,20 @@
     "cancel": "Cancel",
     "add": "Add task",
     "enterKey": "Enter"
+  },
+  "dnd": {
+    "handle": "ลากเพื่อย้าย: {{name}}",
+    "roleDescription": "ย้ายได้",
+    "instructions": "กด Space เพื่อหยิบ ใช้ปุ่มลูกศรเพื่อย้าย กด Space อีกครั้งเพื่อวาง หรือกด Esc เพื่อยกเลิก",
+    "picked": "หยิบ {{name}} แล้ว",
+    "over": "{{name}} อยู่เหนือ {{target}}",
+    "notOver": "{{name}} ไม่ได้อยู่เหนือที่วาง",
+    "dropped": "วาง {{name}} ที่ {{target}} แล้ว",
+    "droppedNowhere": "วาง {{name}} โดยไม่ได้ย้าย",
+    "cancelled": "ยกเลิกการย้าย {{name}}",
+    "targetTask": "ตำแหน่งของ {{title}}",
+    "targetProject": "โปรเจกต์ {{name}}",
+    "targetDay": "วัน{{date}}",
+    "dropToReschedule": "วางที่นี่ เพื่อย้ายมาเป็น{{date}} / drop to reschedule"
   }
 }

@@ -1,3 +1,4 @@
+import type { CSSProperties, ReactNode, Ref } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router";
 import { PROJECT_COLOR_HEX } from "../../shared/constants";
@@ -19,6 +20,11 @@ type TaskRowProps = {
   /** For completed tasks: the local date they were completed. */
   completedOn?: string;
   onToggle: (task: Task) => void;
+  /** Drag and drop: the grip before the checkbox, and the row's place while it moves. */
+  handle?: ReactNode;
+  rowRef?: Ref<HTMLDivElement>;
+  style?: CSSProperties;
+  dragging?: boolean;
 };
 
 function DueDate({ label }: { label: DueLabel }) {
@@ -36,7 +42,19 @@ function DueDate({ label }: { label: DueLabel }) {
 }
 
 /** One task in a list: checkbox, title (opens the TaskDrawer) and its details. */
-export function TaskRow({ task, project, progress, dateStyle, today, completedOn, onToggle }: TaskRowProps) {
+export function TaskRow({
+  task,
+  project,
+  progress,
+  dateStyle,
+  today,
+  completedOn,
+  onToggle,
+  handle,
+  rowRef,
+  style,
+  dragging,
+}: TaskRowProps) {
   const { t } = useTranslation();
   const done = task.completedAt !== null;
   const dueLabel = done ? null : dueLabelFor(task, today, dateStyle);
@@ -46,7 +64,8 @@ export function TaskRow({ task, project, progress, dateStyle, today, completedOn
   drawerParams.set("task", task.id);
 
   return (
-    <div className="task-row" data-done={done}>
+    <div ref={rowRef} style={style} className="task-row" data-done={done} data-dragging={dragging}>
+      {handle}
       <button
         type="button"
         className="task-check"

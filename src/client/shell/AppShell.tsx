@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { Outlet, useLocation } from "react-router";
 import { todayFor } from "../data/selectors";
 import { useSyncPolling, useSyncStore } from "../data/sync-query";
+import { AppDndContext } from "../dnd/AppDndContext";
 import { NewProjectDialog } from "../projects/NewProjectDialog";
 import { QuickAddDialog } from "../quick-add/QuickAddDialog";
 import { pageDefaults } from "../quick-add/page-defaults";
@@ -48,11 +49,13 @@ export default function AppShell() {
   return (
     <QuickAddContext value={openQuickAddWith}>
       <div className="flex min-h-dvh bg-bg text-fg">
-        <DesktopSidebar {...actions} />
-        <div className="flex min-w-0 flex-1 flex-col pb-[calc(60px+env(safe-area-inset-bottom))] lg:pb-0">
-          <MobileTopBar menuOpen={openDialog === "drawer"} onOpenMenu={openDrawer} />
-          <Outlet />
-        </div>
+        <AppDndContext>
+          <DesktopSidebar {...actions} />
+          <div className="flex min-w-0 flex-1 flex-col pb-[calc(60px+env(safe-area-inset-bottom))] lg:pb-0">
+            <MobileTopBar menuOpen={openDialog === "drawer"} onOpenMenu={openDrawer} />
+            <Outlet />
+          </div>
+        </AppDndContext>
         <MobileBottomBar onOpenSearch={openSearch} onOpenQuickAdd={openQuickAdd} />
 
         {openDialog === "drawer" && <MobileDrawer onClose={closeDialog} {...actions} />}

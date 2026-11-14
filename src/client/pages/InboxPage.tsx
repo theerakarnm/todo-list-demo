@@ -19,7 +19,7 @@ export default function InboxPage() {
     <AppPage>
       <PageHeader eyebrow={t("pages.inbox.eyebrow")} title={t("pages.inbox.title")} subtitle={t("pages.inbox.subtitle")} />
       <GroupHeading label={t("pages.inbox.group", { count: tasks.length })} />
-      <TaskList tasks={tasks} dateStyle="full" />
+      <TaskList tasks={tasks} dateStyle="full" drag="sort" />
       {store && (
         <AddTaskRow
           hint={t("task.addTaskHint.inbox")}

@@ -75,7 +75,7 @@ function ProjectView({ project }: { project: Project }) {
         </label>
       </div>
       <div className="border-t-2 border-rule">
-        <TaskList tasks={tasks} dateStyle="full" showProject={false} />
+        <TaskList tasks={tasks} dateStyle="full" showProject={false} drag="sort" />
       </div>
       <AddTaskRow
         hint={t("task.addTaskHint.project", { name: project.name })}

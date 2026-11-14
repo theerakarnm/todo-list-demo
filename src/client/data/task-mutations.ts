@@ -14,8 +14,13 @@ import type { SyncStore } from "./sync-store";
 import type { Subtask, Task } from "./types";
 import { uuidv7 } from "./uuidv7";
 
-/** Fields the user can edit on a task. Clearing the due date clears the due time too. */
-export type TaskChanges = Partial<Pick<Task, "title" | "notes" | "priority" | "projectId" | "dueDate" | "dueTime">>;
+/**
+ * Fields the user can edit on a task (position by dragging it).
+ * Clearing the due date clears the due time too.
+ */
+export type TaskChanges = Partial<
+  Pick<Task, "title" | "notes" | "priority" | "projectId" | "dueDate" | "dueTime" | "position">
+>;
 
 function useStoreSnapshot() {
   const queryClient = useQueryClient();
@@ -83,7 +88,7 @@ export function useCreateTask() {
 export function useUpdateTask() {
   const snapshot = useStoreSnapshot();
   const update = useOptimisticMutation({
-    request: ({ id, changes }: { id: string; changes: TaskChanges & { position?: string } }) =>
+    request: ({ id, changes }: { id: string; changes: TaskChanges }) =>
       request(api.api.tasks[":id"].$patch({ param: { id }, json: changes })),
     apply: (store, { id, changes }) => {
       const task = store.tasks[id];
