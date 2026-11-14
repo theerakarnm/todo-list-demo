@@ -15,3 +15,9 @@ export async function findSignInMethods(db: D1Database, email: string) {
   if (rows.length === 0) return null;
   return rows.flatMap((row) => (row.providerId ? [row.providerId] : []));
 }
+
+/** The provider ids ("credential", "line") a user can sign in with. */
+export async function findProvidersOfUser(db: D1Database, userId: string) {
+  const rows = await drizzle(db).select({ providerId: account.providerId }).from(account).where(eq(account.userId, userId));
+  return rows.map((row) => row.providerId);
+}

@@ -2,6 +2,7 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { drizzle } from "drizzle-orm/d1";
 import * as authSchema from "../db/auth-schema";
+import { createUserSettingsOnce } from "../db/user-settings";
 import { sendEmail } from "../email/send-email";
 import { resetPasswordTemplate, verifyEmailTemplate } from "../email/templates";
 import { betterAuthLogger } from "./better-auth-logger";
@@ -53,6 +54,14 @@ export function createAuth(env: Env, request: Request) {
         clientSecret: env.LINE_LOGIN_CHANNEL_SECRET ?? "",
         // Better Auth's LINE provider asks for openid, profile and email by default.
         mapProfileToUser: (profile) => lineProfileToUser(env.DB, profile),
+      },
+    },
+    databaseHooks: {
+      session: {
+        create: {
+          // The first sign-in, with any provider, creates the user's settings row.
+          after: (session) => createUserSettingsOnce(env.DB, session.userId),
+        },
       },
     },
     // OAuth errors (e.g. the user cancels on LINE) come back to the login page as ?error=...

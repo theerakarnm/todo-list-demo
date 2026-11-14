@@ -2,11 +2,8 @@ import { env } from "cloudflare:test";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type FakeInternet, fakeInternet } from "../test/fake-internet";
 import { newTestEmail, PASSES_TURNSTILE, signUpVerifiedUser, TEST_PASSWORD } from "../test/sign-up-user";
-import { type TestBrowser, testBrowser } from "../test/test-browser";
-
-const LINE_TOKEN_URL = "https://api.line.me/oauth2/v2.1/token";
-
-type LineProfile = { sub: string; name: string; picture?: string; email?: string };
+import { newLineProfile, signInWithLine } from "../test/line-sign-in";
+import { testBrowser } from "../test/test-browser";
 
 let internet: FakeInternet;
 
@@ -17,48 +14,6 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals();
 });
-
-function base64Url(value: object) {
-  const utf8Bytes = new TextEncoder().encode(JSON.stringify(value));
-  return btoa(String.fromCharCode(...utf8Bytes)).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/, "");
-}
-
-/** The id_token LINE's token endpoint returns. Better Auth reads its claims; the signature is not checked. */
-function lineIdToken(profile: LineProfile) {
-  const now = Math.floor(Date.now() / 1000);
-  const claims = { iss: "https://access.line.me", aud: "test-line-channel-id", iat: now, exp: now + 3600, ...profile };
-  return `${base64Url({ alg: "HS256", typ: "JWT" })}.${base64Url(claims)}.signature`;
-}
-
-function newLineProfile(overrides: Partial<LineProfile> = {}): LineProfile {
-  return { sub: `U${crypto.randomUUID().replaceAll("-", "")}`, name: "สมชาย LINE", ...overrides };
-}
-
-/**
- * Signs in with LINE the way a browser does: start at /sign-in/social, then come
- * back to the OAuth callback with LINE's code and the state. LINE's token
- * endpoint is faked to return this profile.
- */
-async function signInWithLine(profile: LineProfile, browser: TestBrowser = testBrowser()) {
-  internet.on(LINE_TOKEN_URL, () =>
-    Response.json({
-      access_token: "line-access-token",
-      token_type: "Bearer",
-      expires_in: 2592000,
-      scope: "openid profile email",
-      id_token: lineIdToken(profile),
-    }),
-  );
-  const start = await browser.postJson("/api/auth/sign-in/social", { provider: "line", callbackURL: "/today" });
-  const authorizeUrl = new URL((await start.json<{ url: string }>()).url);
-  const state = authorizeUrl.searchParams.get("state") ?? "";
-
-  const callback = await browser.request(`/api/auth/callback/line?code=line-code&state=${encodeURIComponent(state)}`);
-  const session = await (await browser.request("/api/auth/get-session")).json<{
-    user: { id: string; email: string; emailVerified: boolean; name: string; image: string | null };
-  } | null>();
-  return { callback, authorizeUrl, user: session?.user ?? null, browser };
-}
 
 async function userCount(email: string) {
   const row = await env.DB.prepare("SELECT count(*) AS count FROM user WHERE email = ?").bind(email).first<{ count: number }>();
@@ -88,7 +43,7 @@ describe("LINE sign-in and account linking", () => {
   it("creates a new verified account for a new LINE email", async () => {
     const email = newTestEmail("line");
 
-    const { callback, user } = await signInWithLine(newLineProfile({ email, picture: "https://profile.line-scdn.net/p" }));
+    const { callback, user } = await signInWithLine(internet, newLineProfile({ email, picture: "https://profile.line-scdn.net/p" }));
 
     expect(callback.status).toBe(302);
     expect(callback.headers.get("Location")).toBe("/today");
@@ -100,7 +55,7 @@ describe("LINE sign-in and account linking", () => {
     const emailBrowser = await signUpVerifiedUser(internet, email);
     const emailUser = await (await emailBrowser.request("/api/auth/get-session")).json<{ user: { id: string } }>();
 
-    const { user } = await signInWithLine(newLineProfile({ email }));
+    const { user } = await signInWithLine(internet, newLineProfile({ email }));
 
     expect(user?.id).toBe(emailUser.user.id);
     expect(await providersOf(emailUser.user.id)).toEqual(["credential", "line"]);
@@ -112,7 +67,7 @@ describe("LINE sign-in and account linking", () => {
     await testBrowser().postJson("/api/auth/sign-up/email", { name: "attacker", email, password: TEST_PASSWORD }, PASSES_TURNSTILE);
     const pending = await env.DB.prepare("SELECT id FROM user WHERE email = ?").bind(email).first<{ id: string }>();
 
-    const { user } = await signInWithLine(newLineProfile({ email }));
+    const { user } = await signInWithLine(internet, newLineProfile({ email }));
 
     expect(user).toMatchObject({ email, emailVerified: true });
     expect(user?.id).not.toBe(pending?.id);
@@ -127,7 +82,7 @@ describe("LINE sign-in and account linking", () => {
   it("gives a LINE user without an email a separate LINE-only account", async () => {
     const profile = newLineProfile();
 
-    const { callback, user } = await signInWithLine(profile);
+    const { callback, user } = await signInWithLine(internet, profile);
 
     expect(callback.status).toBe(302);
     expect(user?.email).toBe(`line_${profile.sub.toLowerCase()}@line.invalid`);
@@ -139,8 +94,8 @@ describe("LINE sign-in and account linking", () => {
     const withoutEmail = newLineProfile();
 
     for (const profile of [withEmail, withoutEmail]) {
-      const first = await signInWithLine(profile);
-      const second = await signInWithLine(profile);
+      const first = await signInWithLine(internet, profile);
+      const second = await signInWithLine(internet, profile);
       expect(first.user).not.toBeNull();
       expect(second.user?.id).toBe(first.user?.id);
     }
@@ -150,7 +105,7 @@ describe("LINE sign-in and account linking", () => {
 describe("forgot password for a LINE account", () => {
   it("lets a LINE user with an email set a password for the same account", async () => {
     const email = newTestEmail("line");
-    const { user } = await signInWithLine(newLineProfile({ email }));
+    const { user } = await signInWithLine(internet, newLineProfile({ email }));
     await testBrowser().postJson("/api/auth/request-password-reset", { email }, PASSES_TURNSTILE);
     const token = new URL(internet.linkInLastEmailTo(email)).searchParams.get("token");
     await testBrowser().postJson("/api/auth/reset-password", { token, newPassword: TEST_PASSWORD });
@@ -162,7 +117,7 @@ describe("forgot password for a LINE account", () => {
   });
 
   it("never emails the placeholder address of a LINE-only account", async () => {
-    const { user } = await signInWithLine(newLineProfile());
+    const { user } = await signInWithLine(internet, newLineProfile());
 
     await testBrowser().postJson("/api/auth/request-password-reset", { email: user?.email }, PASSES_TURNSTILE);
 
