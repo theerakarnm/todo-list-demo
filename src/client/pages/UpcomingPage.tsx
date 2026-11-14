@@ -1,3 +1,4 @@
+import { useDroppable } from "@dnd-kit/core";
 import { useTranslation } from "react-i18next";
 import { AppPage } from "../components/AppPage";
 import { Icon } from "../components/Icon";
@@ -6,6 +7,7 @@ import { upcomingDays } from "../data/selectors";
 import { useSyncStore } from "../data/sync-query";
 import type { Task } from "../data/types";
 import { useNow } from "../data/use-now";
+import { dragData, dragId } from "../dnd/drag-ids";
 import { formatLocalDate } from "../i18n/format-date";
 import { useOpenQuickAdd } from "../quick-add/quick-add-context";
 import { LoadBar } from "../tasks/LoadBar";
@@ -18,9 +20,14 @@ function DaySection({ day, isTomorrow }: { day: Day; isTomorrow: boolean }) {
   const { t } = useTranslation();
   const openQuickAdd = useOpenQuickAdd();
   const dateLabel = formatLocalDate(day.date);
+  // The whole day is a drop target: drop a task here to give it this date.
+  const target = { type: "day", id: day.date } as const;
+  const { setNodeRef, isOver, active } = useDroppable({ id: dragId(target), data: target });
+  const dragged = dragData(active?.data.current);
+  const showDropHint = isOver && dragged?.type === "task" && !day.tasks.some((task) => task.id === dragged.id);
 
   return (
-    <div>
+    <div ref={setNodeRef}>
       <div className="mt-[26px] flex flex-wrap items-center justify-between gap-3 border-t-2 border-rule pt-2.5 pb-1">
         <h2 className="m-0 text-[22px] leading-[1.4] font-extrabold">
           {isTomorrow ? (
@@ -44,12 +51,19 @@ function DaySection({ day, isTomorrow }: { day: Day; isTomorrow: boolean }) {
           </button>
         </div>
       </div>
-      {day.tasks.length > 0 ? (
-        <TaskList tasks={day.tasks} dateStyle="time" />
-      ) : (
-        <div className="task-row min-h-12">
-          <span className="mono muted pl-4">{t("pages.upcoming.free")}</span>
+      {showDropHint && (
+        <div className="drop-hint">
+          <span className="mono">{t("dnd.dropToReschedule", { date: dateLabel })}</span>
         </div>
+      )}
+      {day.tasks.length > 0 ? (
+        <TaskList tasks={day.tasks} dateStyle="time" drag="move" />
+      ) : (
+        !showDropHint && (
+          <div className="task-row min-h-12">
+            <span className="mono muted pl-4">{t("pages.upcoming.free")}</span>
+          </div>
+        )
       )}
     </div>
   );
