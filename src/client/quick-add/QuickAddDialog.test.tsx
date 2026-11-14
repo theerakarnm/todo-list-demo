@@ -84,7 +84,8 @@ describe("QuickAddDialog", () => {
     const { calls, type, save } = renderQuickAdd();
 
     type("ส่งรายงาน p1 พรุ่งนี้");
-    fireEvent.change(screen.getByRole("combobox", { name: th.quickAdd.choosePriority }), { target: { value: "low" } });
+    const priority = screen.getByRole("combobox", { name: th.quickAdd.choosePriority });
+    fireEvent.change(priority, { target: { value: "low" } });
     fireEvent.change(screen.getByRole("combobox", { name: th.quickAdd.chooseProject }), {
       target: { value: home.id },
     });
