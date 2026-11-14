@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { projects } from "../db/schema";
 import { apiAs, bodyOf } from "../test/api";
 import { newId } from "../test/ids";
+import { attachmentForm, pngFile } from "../test/images";
 import { insertSubtask, seedProjects, seedTasks } from "../test/seed";
 import { createTestUser } from "../test/users";
 
@@ -23,7 +24,7 @@ async function createTask(userId: string, projectId: string | null) {
   return id;
 }
 
-function deletedAtOf(table: "tasks" | "subtasks" | "projects", id: string) {
+function deletedAtOf(table: "tasks" | "subtasks" | "projects" | "attachments", id: string) {
   return env.DB.prepare(`SELECT deleted_at FROM ${table} WHERE id = ?`).bind(id).first<number | null>("deleted_at");
 }
 
@@ -116,6 +117,27 @@ describe("DELETE /api/projects/:id and restore", () => {
     expect(await deletedAtOf("tasks", taskId)).toBeNull();
     expect(await deletedAtOf("subtasks", subtaskId)).toBeNull();
     expect(await deletedAtOf("tasks", deletedEarlierId)).not.toBeNull();
+  });
+
+  it("soft-deletes the images of the project's tasks with them, and restore brings back only those", async () => {
+    const userId = await createTestUser();
+    const project = await createProject(userId);
+    const taskId = await createTask(userId, project.id);
+    const upload = async () => {
+      const response = await apiAs(userId).postForm(`/api/tasks/${taskId}/attachments`, attachmentForm(pngFile()));
+      return (await bodyOf<{ id: string }>(response)).id;
+    };
+    const imageId = await upload();
+    const deletedEarlierId = await upload();
+    await apiAs(userId).delete(`/api/attachments/${deletedEarlierId}`);
+    const earlierDeletedAt = await deletedAtOf("attachments", deletedEarlierId);
+
+    const deleted = await bodyOf<Project>(await apiAs(userId).delete(`/api/projects/${project.id}`));
+    expect(await deletedAtOf("attachments", imageId)).toBe(deleted.deletedAt);
+
+    await apiAs(userId).post(`/api/projects/${project.id}/restore`);
+    expect(await deletedAtOf("attachments", imageId)).toBeNull();
+    expect(await deletedAtOf("attachments", deletedEarlierId)).toBe(earlierDeletedAt);
   });
 
   it("refuses the restore when its active tasks would pass 1,000", async () => {
