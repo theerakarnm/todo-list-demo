@@ -208,14 +208,13 @@ describe("Settings → Notifications: daily digest", () => {
 
   it("goes back and shows a Thai toast when the server refuses", async () => {
     fakeBrowser();
-    answer("PATCH /api/settings", apiError(429, "RATE_LIMITED", "ส่งคำขอถี่เกินไป"));
+    answer("PATCH /api/settings", apiError(429, "RATE_LIMITED"));
     await openPage("/app/settings?tab=notifications");
 
     act(() => digestSwitch().click());
 
-    expect((await screen.findAllByRole("alert")).some((alert) => alert.textContent?.includes("ส่งคำขอถี่เกินไป"))).toBe(
-      true,
-    );
+    const alerts = await screen.findAllByRole("alert");
+    expect(alerts.some((alert) => alert.textContent?.includes(th.errors.api.RATE_LIMITED))).toBe(true);
     expect(digestSwitch().checked).toBe(false);
   });
 

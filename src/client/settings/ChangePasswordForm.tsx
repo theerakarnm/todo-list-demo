@@ -1,9 +1,9 @@
 import { useMutation } from "@tanstack/react-query";
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { apiErrorMessage } from "../api/error-message";
 import { ApiRequestError } from "../api/request-error";
 import { changePassword } from "../auth/auth-api";
-import { errorMessage } from "../auth/error-message";
 import { PasswordField } from "../auth/fields";
 import { FormError } from "../auth/FormError";
 
@@ -47,7 +47,7 @@ export function ChangePasswordForm() {
               {t("auth.passwordHint")}
             </p>
           </PasswordField>
-          {change.isError && <FormError>{errorMessage(change.error, t)}</FormError>}
+          {change.isError && <FormError>{apiErrorMessage(t, change.error)}</FormError>}
           <div className="mt-5 flex flex-wrap gap-2.5">
             <button type="submit" className="btn min-h-11 px-3.5 text-sm" disabled={change.isPending}>
               {t("settingsAccount.savePassword")}

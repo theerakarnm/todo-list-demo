@@ -35,11 +35,11 @@ describe("Forgot password page", () => {
   });
 
   it("shows the rate-limit message and resets Turnstile", async () => {
-    answer("POST /api/auth/request-password-reset", apiError(429, "RATE_LIMITED", "ส่งคำขอถี่เกินไป"));
+    answer("POST /api/auth/request-password-reset", apiError(429, "RATE_LIMITED"));
 
     await requestResetLink("narin@example.com");
 
-    expect((await findPageAlert()).textContent).toContain("ส่งคำขอถี่เกินไป");
+    expect((await findPageAlert()).textContent).toContain(th.errors.api.RATE_LIMITED);
     expect(widget.turnstile.reset).toHaveBeenCalled();
   });
 
@@ -76,12 +76,12 @@ describe("Reset password page", () => {
   });
 
   it("explains an expired link and links to a new one", async () => {
-    answer("POST /api/auth/reset-password", apiError(400, "INVALID_TOKEN", "ลิงก์นี้หมดอายุ"));
+    answer("POST /api/auth/reset-password", apiError(400, "INVALID_TOKEN"));
     await openPage("/reset-password?token=old");
 
     setNewPassword();
 
-    expect((await findPageAlert()).textContent).toContain("ลิงก์นี้หมดอายุ");
+    expect((await findPageAlert()).textContent).toContain(th.errors.api.INVALID_TOKEN);
     expect(screen.getByRole("link", { name: th.auth.resetPassword.requestNewLink }).getAttribute("href")).toBe(
       "/forgot-password",
     );

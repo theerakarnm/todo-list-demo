@@ -2,11 +2,11 @@ import { useMutation } from "@tanstack/react-query";
 import type { FormEvent } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
+import { apiErrorMessage } from "../api/error-message";
 import { ApiRequestError } from "../api/request-error";
 import { signUpWithEmail } from "../auth/auth-api";
 import { AuthLayout, OrDivider } from "../auth/AuthLayout";
 import { AuthNotice } from "../auth/AuthNotice";
-import { errorMessage } from "../auth/error-message";
 import { EmailField, PasswordField } from "../auth/fields";
 import { FormError } from "../auth/FormError";
 import { LineSignInButton, useLineSignIn } from "../auth/LineSignInButton";
@@ -71,7 +71,7 @@ export default function SignupPage() {
           </p>
         </PasswordField>
         <div ref={turnstile.containerRef} className="mt-6 min-h-[65px]" />
-        {signUp.isError && !emailTaken && <FormError>{errorMessage(signUp.error, t)}</FormError>}
+        {signUp.isError && !emailTaken && <FormError>{apiErrorMessage(t, signUp.error)}</FormError>}
         <button type="submit" className="btn btn-lg mt-[26px] w-full" disabled={!turnstile.token || signUp.isPending}>
           {t("auth.signup.submit")}
         </button>

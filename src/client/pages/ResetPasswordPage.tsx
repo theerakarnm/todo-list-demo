@@ -2,11 +2,11 @@ import { useMutation } from "@tanstack/react-query";
 import type { FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router";
+import { apiErrorMessage } from "../api/error-message";
 import { ApiRequestError } from "../api/request-error";
 import { resetPassword } from "../auth/auth-api";
 import { AuthLayout } from "../auth/AuthLayout";
 import { AuthNotice } from "../auth/AuthNotice";
-import { errorMessage } from "../auth/error-message";
 import { PasswordField } from "../auth/fields";
 import { FormError } from "../auth/FormError";
 
@@ -50,7 +50,7 @@ export default function ResetPasswordPage() {
               {t("auth.passwordHint")}
             </p>
           </PasswordField>
-          {reset.isError && <FormError>{errorMessage(reset.error, t)}</FormError>}
+          {reset.isError && <FormError>{apiErrorMessage(t, reset.error)}</FormError>}
           <button type="submit" className="btn btn-lg mt-[26px] w-full" disabled={reset.isPending}>
             {t("auth.resetPassword.submit")}
           </button>

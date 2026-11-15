@@ -3,8 +3,8 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { api } from "../api/client";
+import { apiErrorMessage } from "../api/error-message";
 import { throwIfFailed } from "../api/request-error";
-import { errorMessage } from "../auth/error-message";
 import { FormError } from "../auth/FormError";
 import { Dialog } from "../components/Dialog";
 
@@ -42,7 +42,7 @@ export function DeleteAccount() {
         >
           <h2 className="mt-0 mb-3 text-2xl font-extrabold">{t("settingsAccount.deleteConfirmTitle")}</h2>
           <p className="mt-0 mb-6 text-[15px] leading-[1.6]">{t("settingsAccount.deleteConfirmBody")}</p>
-          {deleteAccount.isError && <FormError>{errorMessage(deleteAccount.error, t)}</FormError>}
+          {deleteAccount.isError && <FormError>{apiErrorMessage(t, deleteAccount.error)}</FormError>}
           <div className="mt-6 flex flex-wrap justify-end gap-2.5">
             <form method="dialog">
               <button type="submit" className="btn btn-outline">
