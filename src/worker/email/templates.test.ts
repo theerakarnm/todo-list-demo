@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { VERIFICATION_LINK_HOURS, verifyEmailTemplate } from "./templates";
+import { SUPPORT_EMAIL } from "./layout";
+import { VERIFICATION_LINK_HOURS, verifyEmailTemplate, welcomeEmailTemplate } from "./templates";
 
 const link = "https://jotlist.eukron.com/api/auth/verify-email?token=abc&callbackURL=%2Fverify-email";
 
@@ -43,5 +44,39 @@ describe("verifyEmailTemplate", () => {
     expect(email.text.match(/https?:\/\/\S+/)?.[0]).toBe(link);
     expect(email.text).toContain("Confirm your email address.");
     expect(email.text).toContain("ถ้าคุณไม่ได้สมัคร");
+  });
+});
+
+describe("welcomeEmailTemplate", () => {
+  const appLink = "https://jotlist.eukron.com/today";
+  const email = welcomeEmailTemplate(appLink, "สมชาย");
+
+  it("has the Thai subject and the link", () => {
+    expect(email.subject).toBe("ยินดีต้อนรับสู่ JotList");
+    expect(email.link).toBe(appLink);
+  });
+
+  it("greets by name, shows the stamp and the three steps", () => {
+    expect(email.html).toContain("JOB 002 - JOTLIST");
+    expect(email.html).toContain("สวัสดี สมชาย,");
+    expect(email.html).toContain("ยืนยันแล้ว");
+    expect(email.html).toContain("VERIFIED");
+    for (const step of ["01", "02", "03", "เข้าสู่ระบบ", "SIGN IN", "สร้างรายการแรกของคุณ", "WRITE YOUR FIRST LIST"]) {
+      expect(email.html).toContain(step);
+    }
+    expect(email.html).toContain("KEEP JOTTING, TICK IT OFF");
+  });
+
+  it("links the open button to the app and the support address as mailto", () => {
+    expect(email.html).toContain(`href="${appLink}"`);
+    expect(email.html).toContain("OPEN JOTLIST");
+    expect(email.html).toContain(`href="mailto:${SUPPORT_EMAIL}"`);
+    expect(email.text).toContain(SUPPORT_EMAIL);
+  });
+
+  it("escapes the name and has the app link first in the text", () => {
+    expect(welcomeEmailTemplate(appLink, "<b>x</b>").html).not.toContain("<b>x</b>");
+    expect(email.text.match(/https?:\/\/\S+/)?.[0]).toBe(appLink);
+    expect(email.text.split("\n")).toContain(appLink);
   });
 });
