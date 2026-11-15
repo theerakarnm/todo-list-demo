@@ -5,7 +5,7 @@ import { LIMITS } from "../../shared/constants";
 import * as authSchema from "../db/auth-schema";
 import { createUserSettingsOnce } from "../db/user-settings";
 import { sendEmail } from "../email/send-email";
-import { resetPasswordTemplate, VERIFICATION_LINK_HOURS, verifyEmailTemplate } from "../email/templates";
+import { resetPasswordTemplate, VERIFICATION_LINK_HOURS, verifyEmailTemplate, welcomeEmailTemplate } from "../email/templates";
 import { createBetterAuthLogger } from "./better-auth-logger";
 import { requestTimezone, withTimezoneOf } from "./request-timezone";
 import { isLinePlaceholderEmail, lineProfileToUser } from "./line-linking";
@@ -13,6 +13,7 @@ import { isLinePlaceholderEmail, lineProfileToUser } from "./line-linking";
 /** Where links in auth emails land in the client app. */
 const VERIFY_EMAIL_PAGE = "/verify-email";
 const RESET_PASSWORD_PAGE = "/reset-password";
+const APP_HOME_PAGE = "/today";
 
 /** The app's origin: BETTER_AUTH_URL when set, else the origin of this request. */
 export function appOrigin(env: Env, request: Request) {
@@ -72,6 +73,18 @@ export function createAuth(env: Env, request: Request, requestId?: string) {
     emailVerification: {
       autoSignInAfterVerification: true,
       expiresIn: VERIFICATION_LINK_HOURS * 3600,
+      // Runs only when an email goes from unverified to verified, so once per account.
+      // Awaited, not waitUntil: the request has no execution context in tests, and the send is one fast call.
+      async afterEmailVerification(user) {
+        if (isLinePlaceholderEmail(user.email)) return;
+        try {
+          await sendEmail(env, { to: user.email, ...welcomeEmailTemplate(`${origin}${APP_HOME_PAGE}`, user.name) });
+        } catch (error) {
+          // A failed welcome must never undo verification. No recipient, body or link in the log.
+          const name = error instanceof Error ? error.name : "unknown";
+          console.error(JSON.stringify({ level: "error", event: "welcome_email.failed", error: name }));
+        }
+      },
       // An unverified user who tries to sign in gets a fresh link (the old one may be lost or expired).
       sendOnSignIn: true,
       async sendVerificationEmail({ user, url }) {

@@ -48,6 +48,7 @@ describe("LINE sign-in and account linking", () => {
     expect(callback.status).toBe(302);
     expect(callback.headers.get("Location")).toBe("/today");
     expect(user).toMatchObject({ email, emailVerified: true, name: "สมชาย LINE", image: "https://profile.line-scdn.net/p" });
+    expect(internet.sentEmails).toHaveLength(0);
   });
 
   it("signs in to the verified email account with the same email, linking LINE to it", async () => {

@@ -77,6 +77,51 @@ describe("email sign-up", () => {
   });
 });
 
+describe("the welcome email", () => {
+  const welcomeEmails = () => internet.sentEmails.filter((sent) => sent.to === email && sent.subject === "ยินดีต้อนรับสู่ JotList");
+
+  it("is sent once after verification, which still redirects and signs the user in", async () => {
+    await signUp();
+    const browser = testBrowser();
+
+    const verified = await openEmailLink(browser);
+
+    expect(verified.status).toBe(302);
+    expect(verified.headers.get("Location")).toBe("/verify-email");
+    expect(welcomeEmails()).toHaveLength(1);
+    expect(welcomeEmails()[0]?.html).toContain("https://jotlist.test/today");
+    const session = await (await browser.request("/api/auth/get-session")).json<{ user: { email: string } }>();
+    expect(session.user.email).toBe(email);
+  });
+
+  it("is not sent again when the link is opened again or the user signs in", async () => {
+    await signUp();
+    await openEmailLink();
+
+    await openEmailLink();
+    await signIn();
+
+    expect(welcomeEmails()).toHaveLength(1);
+  });
+
+  it("never breaks verification when the welcome email cannot be sent", async () => {
+    await signUp();
+    internet.on("https://api.resend.com/emails", () => Response.json({ message: "down" }, { status: 500 }));
+    const logs = vi.spyOn(console, "error").mockImplementation(() => {});
+    const browser = testBrowser();
+
+    const verified = await openEmailLink(browser);
+
+    expect(verified.status).toBe(302);
+    expect(verified.headers.get("Location")).toBe("/verify-email");
+    expect((await signIn()).status).toBe(200);
+    const logged = logs.mock.calls.map((call) => String(call[0]));
+    expect(logged.some((line) => line.includes("welcome_email.failed"))).toBe(true);
+    expect(logged.join("")).not.toContain(email);
+    logs.mockRestore();
+  });
+});
+
 describe("the session cookie", () => {
   it("is HttpOnly, Secure and SameSite=Lax, and keeps the user signed in", async () => {
     await signUp();
