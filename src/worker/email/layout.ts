@@ -112,6 +112,7 @@ export function emailLayout({ job, band = false, content }: Layout) {
 <meta name="color-scheme" content="light">
 <meta name="supported-color-schemes" content="light">
 <title>JotList</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@800&family=Noto+Sans+Thai:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{color-scheme:light only;supported-color-schemes:light only}
 @media (max-width:480px){.px{padding-left:20px!important;padding-right:20px!important}}

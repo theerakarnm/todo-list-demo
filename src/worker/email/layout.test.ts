@@ -55,3 +55,11 @@ describe("button", () => {
     expect(html).toContain("text-transform:uppercase");
   });
 });
+
+describe("web fonts", () => {
+  it("loads the brand fonts with display=swap as an enhancement only", () => {
+    const html = emailLayout({ job: "001", content: "" });
+    expect(html).toMatch(/<link rel="stylesheet" href="https:\/\/fonts\.googleapis\.com\/css2\?[^"]*Bricolage\+Grotesque[^"]*Noto\+Sans\+Thai[^"]*IBM\+Plex\+Mono[^"]*display=swap">/);
+    expect(emailTokens.display).toContain("sans-serif");
+  });
+});
