@@ -101,3 +101,22 @@ describe("resetPasswordTemplate", () => {
     expect(email.link).toBe(resetLink);
   });
 });
+
+describe("inline styles in every email", () => {
+  const emails = {
+    verify: verifyEmailTemplate(link, "สมชาย"),
+    welcome: welcomeEmailTemplate("https://jotlist.eukron.com/today", "สมชาย"),
+    reset: resetPasswordTemplate(link, "สมชาย"),
+  };
+
+  for (const [name, { html }] of Object.entries(emails)) {
+    it(`${name}: every style attribute is well-formed and font names use single quotes`, () => {
+      const values = [...html.matchAll(/style="([^"]*)"/g)].map((match) => match[1] ?? "");
+      expect(values.length).toBeGreaterThan(0);
+      for (const value of values) expect(value).toMatch(/^([a-z-]+:[^;]+;)*[a-z-]+:[^;]+$/);
+      expect(html).toMatch(/style="[^"]*font-family:'Bricolage Grotesque'/);
+      expect(html).not.toMatch(/"(Bricolage|Noto|IBM|Helvetica|SFMono|Courier|Sarabun)/);
+      expect(html).not.toMatch(/style="[^"]*"[^\s>]/);
+    });
+  }
+});

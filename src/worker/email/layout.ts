@@ -7,9 +7,9 @@ export const emailTokens = {
   green: "#003223",
   muted: "#5c5849",
   white: "#ffffff",
-  display: `"Bricolage Grotesque", "Noto Sans Thai", "Helvetica Neue", Arial, sans-serif`,
-  thai: `"Noto Sans Thai", "Sarabun", Tahoma, "Helvetica Neue", Arial, sans-serif`,
-  mono: `"IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, "Courier New", monospace`,
+  display: `'Bricolage Grotesque', 'Noto Sans Thai', 'Helvetica Neue', Arial, sans-serif`,
+  thai: `'Noto Sans Thai', 'Sarabun', Tahoma, 'Helvetica Neue', Arial, sans-serif`,
+  mono: `'IBM Plex Mono', 'SFMono-Regular', Menlo, Consolas, 'Courier New', monospace`,
 } as const;
 
 const t = emailTokens;
