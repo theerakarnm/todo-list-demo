@@ -49,7 +49,7 @@ export function createAuth(env: Env, request: Request, requestId?: string) {
       async sendResetPassword({ user, token }) {
         if (isLinePlaceholderEmail(user.email)) return;
         const link = `${origin}${RESET_PASSWORD_PAGE}?token=${encodeURIComponent(token)}`;
-        await sendEmail(env, { to: user.email, ...resetPasswordTemplate(link) });
+        await sendEmail(env, { to: user.email, ...resetPasswordTemplate(link, user.name) });
       },
     },
     socialProviders: {

@@ -12,28 +12,11 @@ import {
   SUPPORT_EMAIL,
   wordmark,
 } from "./layout";
-import type { Email } from "./send-email";
 
 /** How long the link in the verification email works. Better Auth's `expiresIn` is set from this too. */
 export const VERIFICATION_LINK_HOURS = 24;
 
-// Short, plain Thai auth emails. The link is on its own line in the text part.
-
-type AuthEmail = Omit<Email, "to">;
-
-function authEmail(subject: string, intro: string, action: string, link: string, note: string): AuthEmail {
-  return {
-    subject,
-    link,
-    text: [intro, "", `${action}:`, link, "", note, "", "JotList"].join("\n"),
-    html: [
-      `<p>${intro}</p>`,
-      `<p><a href="${link}">${action}</a></p>`,
-      `<p>${note}</p>`,
-      "<p>JotList</p>",
-    ].join(""),
-  };
-}
+const RESET_LINK_HOURS = 1;
 
 export function verifyEmailTemplate(link: string, name: string) {
   const href = escapeHtml(link);
@@ -148,12 +131,51 @@ export function welcomeEmailTemplate(appLink: string, name: string) {
   return { subject: "ยินดีต้อนรับสู่ JotList", html: emailLayout({ job: "002", band: true, content }), text, link: appLink };
 }
 
-export function resetPasswordTemplate(link: string) {
-  return authEmail(
-    "ตั้งรหัสผ่านใหม่ - JotList",
-    "มีคำขอตั้งรหัสผ่านใหม่สำหรับบัญชี JotList ของคุณ",
-    "กดลิงก์นี้เพื่อตั้งรหัสผ่านใหม่ (ใช้ได้ 1 ชั่วโมง)",
+export function resetPasswordTemplate(link: string, name?: string) {
+  const { mono, ink } = emailTokens;
+  const href = escapeHtml(link);
+  const spacer = (height: number) => `<div style="height:${height}px;line-height:${height}px;font-size:0">&nbsp;</div>`;
+  const content = [
+    wordmark(),
+    rule(),
+    spacer(16),
+    monoLabel("01 - ตั้งรหัสผ่านใหม่ / RESET PASSWORD"),
+    headline("ตั้งรหัสผ่านใหม่"),
+    paragraph("Set a new password.", "mono"),
+    spacer(16),
+    paragraph(`${escapeHtml(greeting(name))}<br>มีคำขอตั้งรหัสผ่านใหม่สำหรับบัญชี jotlist ของคุณ`),
+    paragraph("We got a request to set a new password for your jotlist account.", "mono"),
+    spacer(24),
+    button(link, "ตั้งรหัสผ่านใหม่", "SET NEW PASSWORD"),
+    `<p style="margin:12px 0 32px 0;font-family:${mono};font-size:13px;line-height:20px;letter-spacing:1px;text-transform:uppercase;color:${ink}">&#9650; ลิงก์ใช้ได้ ${RESET_LINK_HOURS} ชั่วโมง / LINK VALID ${RESET_LINK_HOURS} HOUR</p>`,
+    dashedBox(
+      [
+        monoLabel("TEAR HERE - ปุ่มกดไม่ได้"),
+        paragraph("คัดลอกลิงก์นี้ไปวางในเบราว์เซอร์ของคุณ"),
+        `<p style="margin:0 0 8px 0;font-family:${mono};font-size:14px;line-height:22px;word-break:break-all"><a href="${href}" style="color:${ink};text-decoration:underline;word-break:break-all">${href}</a></p>`,
+        `<p style="margin:0;font-family:${mono};font-size:13px;line-height:22px;color:${ink}">Button not working? Paste the link above into your browser.</p>`,
+      ].join(""),
+    ),
+    spacer(24),
+    paragraph("ถ้าคุณไม่ได้ขอ ไม่ต้องทำอะไร รหัสผ่านเดิมยังใช้ได้"),
+    paragraph("Didn't ask for this? Ignore this email. Your old password still works.", "mono"),
+  ].join("\n");
+
+  const text = [
+    "ตั้งรหัสผ่านใหม่",
+    "Set a new password.",
+    "",
+    greeting(name),
+    `มีคำขอตั้งรหัสผ่านใหม่สำหรับบัญชี jotlist ของคุณ กดลิงก์ด้านล่างเพื่อตั้งรหัสผ่านใหม่ (ใช้ได้ ${RESET_LINK_HOURS} ชั่วโมง)`,
+    "We got a request to set a new password for your jotlist account. Open the link below (valid 1 hour).",
+    "",
     link,
+    "",
     "ถ้าคุณไม่ได้ขอ ไม่ต้องทำอะไร รหัสผ่านเดิมยังใช้ได้",
-  );
+    "Didn't ask for this? Ignore this email. Your old password still works.",
+    "",
+    "JotList",
+  ].join("\n");
+
+  return { subject: "ตั้งรหัสผ่านใหม่ - JotList", html: emailLayout({ job: "003", content }), text, link };
 }

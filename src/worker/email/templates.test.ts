@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { SUPPORT_EMAIL } from "./layout";
-import { VERIFICATION_LINK_HOURS, verifyEmailTemplate, welcomeEmailTemplate } from "./templates";
+import { VERIFICATION_LINK_HOURS, resetPasswordTemplate, verifyEmailTemplate, welcomeEmailTemplate } from "./templates";
 
 const link = "https://jotlist.eukron.com/api/auth/verify-email?token=abc&callbackURL=%2Fverify-email";
 
@@ -78,5 +78,26 @@ describe("welcomeEmailTemplate", () => {
     expect(welcomeEmailTemplate(appLink, "<b>x</b>").html).not.toContain("<b>x</b>");
     expect(email.text.match(/https?:\/\/\S+/)?.[0]).toBe(appLink);
     expect(email.text.split("\n")).toContain(appLink);
+  });
+});
+
+describe("resetPasswordTemplate", () => {
+  const resetLink = "https://jotlist.eukron.com/reset-password?token=a&b=c";
+
+  it("keeps the subject and says the link is valid 1 hour", () => {
+    const email = resetPasswordTemplate(resetLink, "สมชาย");
+    expect(email.subject).toBe("ตั้งรหัสผ่านใหม่ - JotList");
+    expect(email.html).toContain("1 ชั่วโมง");
+    expect(email.html).toContain("สวัสดี สมชาย,");
+    expect(email.html).toContain("JOB 003 - JOTLIST");
+  });
+
+  it("works without a name, escapes the link, and keeps it first in the text", () => {
+    const email = resetPasswordTemplate(resetLink);
+    expect(email.html).toContain("สวัสดี,");
+    expect(email.html).toContain('href="https://jotlist.eukron.com/reset-password?token=a&amp;b=c"');
+    expect(email.text.match(/https?:\/\/\S+/)?.[0]).toBe(resetLink);
+    expect(email.text.split("\n")).toContain(resetLink);
+    expect(email.link).toBe(resetLink);
   });
 });
