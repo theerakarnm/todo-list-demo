@@ -12,7 +12,7 @@ describe("InboxPage", () => {
   it("lists the Inbox with its count", () => {
     renderWithStore(<InboxPage />, storeWith({ tasks: [aTask({ id: "t1", title: "ซ่อมก๊อกน้ำห้องครัว" })] }));
 
-    expect(screen.getByText("ยังไม่จัด / unsorted - 1")).toBeTruthy();
+    expect(screen.getByText("ยังไม่จัด - 1")).toBeTruthy();
     expect(screen.getByRole("link", { name: "ซ่อมก๊อกน้ำห้องครัว" })).toBeTruthy();
   });
 
@@ -26,7 +26,7 @@ describe("InboxPage", () => {
     fireEvent.keyDown(input, { key: "Enter" });
 
     expect(await screen.findByRole("link", { name: "ไอเดียแคมเปญปีใหม่" })).toBeTruthy();
-    expect(screen.getByText("ยังไม่จัด / unsorted - 1")).toBeTruthy();
+    expect(screen.getByText("ยังไม่จัด - 1")).toBeTruthy();
     await waitFor(() => expect(calls[0]?.body).toMatchObject({ title: "ไอเดียแคมเปญปีใหม่", projectId: null, dueDate: null }));
     expect((input as HTMLInputElement).value).toBe("");
 

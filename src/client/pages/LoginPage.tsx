@@ -2,10 +2,10 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router";
+import { apiErrorMessage } from "../api/error-message";
 import { ApiRequestError } from "../api/request-error";
 import { signInWithEmail } from "../auth/auth-api";
 import { AuthLayout, OrDivider } from "../auth/AuthLayout";
-import { errorMessage } from "../auth/error-message";
 import { EmailField, PasswordField } from "../auth/fields";
 import { FormError } from "../auth/FormError";
 import { LineSignInButton } from "../auth/LineSignInButton";
@@ -47,7 +47,7 @@ export default function LoginPage() {
           invalid={wrongPassword}
           describedBy={signIn.isError ? "password-error" : undefined}
         >
-          {signIn.isError && <FormError id="password-error">{errorMessage(signIn.error, t)}</FormError>}
+          {signIn.isError && <FormError id="password-error">{apiErrorMessage(t, signIn.error)}</FormError>}
         </PasswordField>
         <div className="mt-2.5 text-right">
           <Link to="/forgot-password" className="inline-flex min-h-11 items-center text-sm">

@@ -102,13 +102,13 @@ describe("onboarding step 2", () => {
     expect(await lastJsonSentTo("POST /api/onboarding/complete")).toMatchObject({ starterProjects: [] });
   });
 
-  it("shows the server's message when saving fails", async () => {
-    answer("POST /api/onboarding/complete", apiError(429, "RATE_LIMITED", "ส่งคำขอถี่เกินไป"));
+  it("shows the Thai text for the error code when saving fails", async () => {
+    answer("POST /api/onboarding/complete", apiError(429, "RATE_LIMITED"));
     await finishStepOne();
 
     click(th.onboarding.createWorkspace);
 
-    expect((await findPageAlert()).textContent).toContain("ส่งคำขอถี่เกินไป");
+    expect((await findPageAlert()).textContent).toContain(th.errors.api.RATE_LIMITED);
   });
 });
 

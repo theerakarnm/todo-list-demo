@@ -57,26 +57,26 @@ describe("Login page", () => {
     });
   });
 
-  it("marks the password and shows the server's message for a wrong password", async () => {
-    answer("POST /api/auth/sign-in/email", apiError(401, "INVALID_CREDENTIALS", "รหัสผ่านไม่ถูกต้อง"));
+  it("marks the password and shows the Thai text for a wrong password", async () => {
+    answer("POST /api/auth/sign-in/email", apiError(401, "INVALID_CREDENTIALS"));
     await openPage("/login");
 
     logIn();
 
-    expect((await findPageAlert()).textContent).toContain("รหัสผ่านไม่ถูกต้อง");
+    expect((await findPageAlert()).textContent).toContain(th.errors.api.INVALID_CREDENTIALS);
     expect(screen.getByLabelText(th.auth.passwordLabel).getAttribute("aria-invalid")).toBe("true");
   });
 
   it.each([
-    ["EMAIL_NOT_VERIFIED", 403, "กรุณายืนยันอีเมลก่อน เราส่งลิงก์ใหม่ให้แล้ว"],
-    ["RATE_LIMITED", 429, "ส่งคำขอถี่เกินไป"],
-  ] as const)("shows the server's message for %s", async (code, status, message) => {
-    answer("POST /api/auth/sign-in/email", apiError(status, code, message));
+    ["EMAIL_NOT_VERIFIED", 403],
+    ["RATE_LIMITED", 429],
+  ] as const)("shows the Thai text for %s", async (code, status) => {
+    answer("POST /api/auth/sign-in/email", apiError(status, code));
     await openPage("/login");
 
     logIn();
 
-    expect((await findPageAlert()).textContent).toContain(message);
+    expect((await findPageAlert()).textContent).toContain(th.errors.api[code]);
   });
 
   it("starts LINE sign-in and comes back to ?next= afterwards", async () => {

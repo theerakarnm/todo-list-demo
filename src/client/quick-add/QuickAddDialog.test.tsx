@@ -43,7 +43,7 @@ describe("QuickAddDialog", () => {
     const { calls, onClose, type, save } = renderQuickAdd();
 
     type("โทรนัดช่างแอร์ พรุ่งนี้บ่าย p2");
-    expect(chip(th.quickAdd.chooseProject)).toContain("Inbox");
+    expect(chip(th.quickAdd.chooseProject)).toContain("กล่องรับงาน");
     expect(dateChip()).toContain("พรุ่งนี้");
     expect(chip(th.quickAdd.choosePriority)).toContain("P2");
     save();

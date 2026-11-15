@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { START_PAGES, THEMES, WEEK_STARTS } from "../../shared/constants";
 import type { UpdateSettingsInput } from "../../shared/schemas/settings";
-import { errorMessage } from "../auth/error-message";
+import { apiErrorMessage } from "../api/error-message";
 import { FormError } from "../auth/FormError";
 import type { Me } from "../auth/use-me";
 import { SegmentedChoice } from "./SegmentedChoice";
@@ -18,7 +18,7 @@ export function GeneralSettings({ settings }: { settings: Me["settings"] }) {
     <>
       {updateSettings.isError && (
         <div className="mb-6">
-          <FormError>{errorMessage(updateSettings.error, t)}</FormError>
+          <FormError>{apiErrorMessage(t, updateSettings.error)}</FormError>
         </div>
       )}
       <SegmentedChoice

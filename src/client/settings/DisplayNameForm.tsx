@@ -1,7 +1,7 @@
 import type { FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { LIMITS } from "../../shared/constants";
-import { errorMessage } from "../auth/error-message";
+import { apiErrorMessage } from "../api/error-message";
 import { FormError } from "../auth/FormError";
 import { useUpdateSettings } from "./use-update-settings";
 
@@ -37,7 +37,7 @@ export function DisplayNameForm({ displayName }: { displayName: string }) {
       <p role="status" className="mono muted m-0 text-[11px] empty:hidden">
         {updateSettings.isSuccess && t("settingsAccount.saved")}
       </p>
-      {updateSettings.isError && <FormError>{errorMessage(updateSettings.error, t)}</FormError>}
+      {updateSettings.isError && <FormError>{apiErrorMessage(t, updateSettings.error)}</FormError>}
     </form>
   );
 }

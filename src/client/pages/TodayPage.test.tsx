@@ -33,13 +33,13 @@ describe("TodayPage", () => {
       }),
     );
 
-    expect(screen.getByText("01 - วันนี้ / today - เสาร์ 14 พ.ย.")).toBeTruthy();
+    expect(screen.getByText("01 - วันนี้ - เสาร์ 14 พ.ย.")).toBeTruthy();
     expect(screen.getByRole("img", { name: "เหลือ 2 งาน" }).textContent).toContain("02");
-    const overdue = within(groupOf("▲ เลยกำหนด / overdue - 1") as HTMLElement);
+    const overdue = within(groupOf("▲ เลยกำหนด - 1") as HTMLElement);
     expect(overdue.getByRole("link", { name: "เตรียมสไลด์เดโม" })).toBeTruthy();
     expect(overdue.getByText("▲ 13 พ.ย.")).toBeTruthy();
     expect(overdue.getByText("P1")).toBeTruthy();
-    const today = within(groupOf("วันนี้ / today - 1") as HTMLElement);
+    const today = within(groupOf("วันนี้ - 1") as HTMLElement);
     expect(today.getByRole("link", { name: "ส่งใบเสนอราคาให้ลูกค้า" })).toBeTruthy();
     expect(today.getByText("10:00")).toBeTruthy();
     expect(screen.queryByText("ซักผ้าห่ม")).toBeNull();
@@ -87,7 +87,7 @@ describe("TodayPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: th.pages.today.rescheduleLabel }));
 
-    expect(await screen.findByRole("heading", { name: "วันนี้ / today - 1" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "วันนี้ - 1" })).toBeTruthy();
     expect(screen.queryByText(/เลยกำหนด/)).toBeNull();
     expect(await screen.findByText("ย้าย 1 งานมาเป็นวันนี้แล้ว")).toBeTruthy();
     await waitFor(() => expect(calls).toHaveLength(1));

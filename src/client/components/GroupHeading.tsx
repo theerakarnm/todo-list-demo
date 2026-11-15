@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-/** The ruled header above a group of tasks, e.g. "วันนี้ / today - 6", with an optional action on the right. */
+/** The ruled header above a group of tasks, e.g. "วันนี้ - 6", with an optional action on the right. */
 export function GroupHeading({ label, children }: { label: string; children?: ReactNode }) {
   return (
     <div className="group-heading">

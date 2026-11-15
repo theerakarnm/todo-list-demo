@@ -40,6 +40,9 @@ async function remainingKeys(userId: string) {
   return { rows: results.map((row) => row.r2_key).sort(), files: objects.objects.map((object) => object.key).sort() };
 }
 
+// 1,005 R2 objects are slow under the full parallel suite, so they need more than vitest's 5s default.
+const MANY_FILES_TIMEOUT_MS = 30_000;
+
 describe("purgeDeletedAttachments", () => {
   it("removes the rows and files of images deleted before the cutoff, or whose task was", async () => {
     const userId = await createTestUser();
@@ -88,7 +91,7 @@ describe("purgeDeletedAttachments", () => {
     expect((await purgeDeletedAttachments(env.DB, env.FILES, CUTOFF)).purged).toBe(1005);
 
     expect(await remainingKeys(userId)).toEqual({ rows: [], files: [] });
-  });
+  }, MANY_FILES_TIMEOUT_MS);
 
   it("stops after maxPages pages and says it is not done, so a later call goes on", async () => {
     const userId = await createTestUser();

@@ -311,7 +311,7 @@ describe("DELETE /api/tasks/:id and POST /api/tasks/:id/restore", () => {
 });
 
 describe("task routes outside development", () => {
-  it("answer 401 until lane 1 adds real sign-in", async () => {
+  it("answer 401 to a request without a session", async () => {
     const response = await app.request(`/api/tasks/${newId()}`, { method: "DELETE" }, { ...env, APP_ENV: "production" });
 
     expect(response.status).toBe(401);

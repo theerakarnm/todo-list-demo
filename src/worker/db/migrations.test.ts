@@ -23,6 +23,7 @@ describe("D1 migrations", () => {
         "subtasks",
         "attachments",
         "push_subscriptions",
+        "cron_runs",
       ]),
     );
   });

@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router";
 import { PROJECT_COLOR_HEX } from "../../shared/constants";
 import { STARTER_PROJECT_COLORS, STARTER_PROJECT_KEYS, type StarterProjectKey, TICKED_BY_DEFAULT } from "../../shared/schemas/onboarding";
-import { errorMessage } from "../auth/error-message";
+import { apiErrorMessage } from "../api/error-message";
 import { FormError } from "../auth/FormError";
 import { useMe } from "../auth/use-me";
 import { completeOnboarding } from "../onboarding/complete-onboarding";
@@ -58,7 +58,7 @@ export default function OnboardingProjectsPage() {
             </label>
           ))}
         </fieldset>
-        {finish.isError && <FormError>{errorMessage(finish.error, t)}</FormError>}
+        {finish.isError && <FormError>{apiErrorMessage(t, finish.error)}</FormError>}
         <div className="mt-6 flex flex-wrap gap-3.5">
           <button type="submit" className="btn btn-lg flex-[1_1_240px]" disabled={finish.isPending}>
             {t("onboarding.createWorkspace")}

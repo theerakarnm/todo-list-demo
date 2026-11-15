@@ -9,19 +9,19 @@ test("turn on the daily digest, set a time and find both after a reload", async 
   await page.context().route(/^(?!http:\/\/localhost:5199\/)/, (route) => route.abort());
 
   await page.goto("/app/settings?tab=notifications");
-  await page.getByLabel("อีเมล / email").fill(e2eEmail());
-  await page.getByLabel("รหัสผ่าน / password").fill(E2E_PASSWORD);
-  await page.getByRole("button", { name: "Log in" }).click();
+  await page.getByLabel("อีเมล", { exact: true }).fill(e2eEmail());
+  await page.getByLabel("รหัสผ่าน", { exact: true }).fill(E2E_PASSWORD);
+  await page.getByRole("button", { name: "เข้าสู่ระบบ", exact: true }).click();
 
   // A new account goes through onboarding once; this test may run before or after the smoke test.
-  await expect(page.getByRole("tab", { name: "Notifications" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tab", { name: "การแจ้งเตือน" })).toHaveAttribute("aria-selected", "true");
 
-  const digest = page.getByRole("checkbox", { name: "สรุปงานประจำวัน / daily digest" });
-  const time = page.getByLabel("ส่งเวลา / time");
+  const digest = page.getByRole("checkbox", { name: "สรุปงานประจำวัน" });
+  const time = page.getByLabel("เวลาส่ง");
   await expect(digest).not.toBeChecked();
 
   const switchSaved = page.waitForResponse((response) => response.request().method() === "PATCH" && response.ok());
-  await page.getByText("สรุปงานประจำวัน / daily digest").click();
+  await page.getByText("สรุปงานประจำวัน", { exact: true }).click();
   await switchSaved;
 
   const timeSaved = page.waitForResponse((response) => response.request().method() === "PATCH" && response.ok());
@@ -29,7 +29,7 @@ test("turn on the daily digest, set a time and find both after a reload", async 
   await timeSaved;
 
   await page.reload();
-  await expect(page.getByRole("tab", { name: "Notifications" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tab", { name: "การแจ้งเตือน" })).toHaveAttribute("aria-selected", "true");
   await expect(digest).toBeChecked();
   await expect(time).toHaveValue("06:45");
 });
