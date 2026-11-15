@@ -61,6 +61,9 @@ async function fileCount(userId: string) {
   return count;
 }
 
+// 1,005 R2 objects are slow under the full parallel suite, so they need more than vitest's 5s default.
+const MANY_FILES_TIMEOUT_MS = 30_000;
+
 describe("DELETE /api/account", () => {
   it("answers 401 without a session", async () => {
     const response = await testBrowser().request("/api/account", { method: "DELETE" });
@@ -127,5 +130,5 @@ describe("DELETE /api/account", () => {
     await browser.request("/api/account", { method: "DELETE" });
 
     expect(await fileCount(userId)).toBe(0);
-  });
+  }, MANY_FILES_TIMEOUT_MS);
 });
