@@ -120,3 +120,11 @@ describe("inline styles in every email", () => {
     });
   }
 });
+
+describe("verifyEmailTemplate copy", () => {
+  it("thanks the user for signing up to use jotlist", () => {
+    const email = verifyEmailTemplate(link, "สมชาย");
+    expect(email.html).toContain("ขอบคุณที่สมัครใช้ jotlist");
+    expect(email.text).toContain("ขอบคุณที่สมัครใช้ jotlist");
+  });
+});
