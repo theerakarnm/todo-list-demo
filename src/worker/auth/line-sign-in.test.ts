@@ -56,9 +56,13 @@ describe("LINE sign-in and account linking", () => {
     const emailBrowser = await signUpVerifiedUser(internet, email);
     const emailUser = await (await emailBrowser.request("/api/auth/get-session")).json<{ user: { id: string } }>();
 
+    const emailsBefore = internet.sentEmails.length;
+
     const { user } = await signInWithLine(internet, newLineProfile({ email }));
 
     expect(user?.id).toBe(emailUser.user.id);
+    expect(internet.sentEmails.slice(emailsBefore)).toEqual([]);
+    expect(internet.sentEmails.slice(emailsBefore).some((sent) => sent.subject === "ยินดีต้อนรับสู่ JotList")).toBe(false);
     expect(await providersOf(emailUser.user.id)).toEqual(["credential", "line"]);
     expect(await userCount(email)).toBe(1);
   });
