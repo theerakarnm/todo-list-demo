@@ -44,6 +44,17 @@ describe("email sign-up", () => {
     expect(link.searchParams.get("callbackURL")).toBe("/verify-email");
   });
 
+  it("makes the verification link valid for 24 hours", async () => {
+    await signUp();
+
+    // The link's token is a signed JWT; its `exp` claim (seconds) is the expiry.
+    const token = new URL(internet.linkInLastEmailTo(email)).searchParams.get("token") ?? "";
+    const { exp } = JSON.parse(atob(token.split(".")[1]?.replace(/-/g, "+").replace(/_/g, "/") ?? "")) as { exp: number };
+    const hoursAhead = (exp * 1000 - Date.now()) / 3_600_000;
+    expect(hoursAhead).toBeGreaterThan(23.9);
+    expect(hoursAhead).toBeLessThanOrEqual(24);
+  });
+
   it("cannot sign in until the email is verified", async () => {
     await signUp();
 

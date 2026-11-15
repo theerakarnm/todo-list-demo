@@ -5,7 +5,7 @@ import { LIMITS } from "../../shared/constants";
 import * as authSchema from "../db/auth-schema";
 import { createUserSettingsOnce } from "../db/user-settings";
 import { sendEmail } from "../email/send-email";
-import { resetPasswordTemplate, verifyEmailTemplate } from "../email/templates";
+import { resetPasswordTemplate, VERIFICATION_LINK_HOURS, verifyEmailTemplate } from "../email/templates";
 import { createBetterAuthLogger } from "./better-auth-logger";
 import { requestTimezone, withTimezoneOf } from "./request-timezone";
 import { isLinePlaceholderEmail, lineProfileToUser } from "./line-linking";
@@ -71,6 +71,7 @@ export function createAuth(env: Env, request: Request, requestId?: string) {
     onAPIError: { errorURL: `${origin}/login` },
     emailVerification: {
       autoSignInAfterVerification: true,
+      expiresIn: VERIFICATION_LINK_HOURS * 3600,
       // An unverified user who tries to sign in gets a fresh link (the old one may be lost or expired).
       sendOnSignIn: true,
       async sendVerificationEmail({ user, url }) {
