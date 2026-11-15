@@ -76,7 +76,7 @@ export function createAuth(env: Env, request: Request, requestId?: string) {
       async sendVerificationEmail({ user, url }) {
         const link = withTimezoneOf(request, new URL(url));
         link.searchParams.set("callbackURL", VERIFY_EMAIL_PAGE);
-        await sendEmail(env, { to: user.email, ...verifyEmailTemplate(link.href) });
+        await sendEmail(env, { to: user.email, ...verifyEmailTemplate(link.href, user.name) });
       },
     },
   });
