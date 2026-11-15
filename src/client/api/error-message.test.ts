@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { ERROR_CODES, type ErrorCode } from "../../shared/error-codes";
 import i18n from "../i18n";
 import th from "../i18n/th.json";
@@ -36,6 +36,18 @@ describe("apiErrorMessage", () => {
   it("fills the limit into a limit code's text", () => {
     const error = new ApiRequestError(409, "TASK_LIMIT", "server text");
     expect(apiErrorMessage(t, error)).toBe("มีงานที่ยังไม่เสร็จครบ 1,000 งานแล้ว กรุณาปิดหรือลบงานเก่าก่อน");
+  });
+
+  it("formats the limit number with the th-TH locale", () => {
+    const spy = vi.spyOn(Number.prototype, "toLocaleString");
+    try {
+      const error = new ApiRequestError(409, "TASK_LIMIT", "server text");
+      const message = apiErrorMessage(t, error);
+      expect(spy).toHaveBeenCalledWith("th-TH");
+      expect(message).toContain("1,000");
+    } finally {
+      spy.mockRestore();
+    }
   });
 
   it("shows the th.json text for an image refused before upload", () => {

@@ -7,7 +7,7 @@ import { ApiRequestError } from "./request-error";
 /** An error code that has its own Thai text at `errors.api.<code>` in th.json. */
 type ApiMessageCode = keyof typeof th.errors.api;
 
-const formatCount = (count: number) => count.toLocaleString("en-US");
+const formatCount = (count: number) => count.toLocaleString("th-TH");
 const MEGABYTE = 1024 * 1024;
 
 /** The number shown in each limit message (sizes in MB). */
