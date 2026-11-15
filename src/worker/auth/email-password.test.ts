@@ -16,6 +16,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 function signUp(browser = testBrowser()) {
@@ -118,7 +119,6 @@ describe("the welcome email", () => {
     const logged = logs.mock.calls.map((call) => String(call[0]));
     expect(logged.some((line) => line.includes("welcome_email.failed"))).toBe(true);
     expect(logged.join("")).not.toContain(email);
-    logs.mockRestore();
   });
 });
 
