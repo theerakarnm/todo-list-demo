@@ -13,6 +13,8 @@
     "playwright.config.ts",
     "e2e",
     "scripts",
+    "src/worker/email/layout.ts",
+    "src/worker/email/templates.ts",
     "src/shared/**/*.test.ts"
   ],
   "references": [{ "path": "./tsconfig.shared.json" }]
