@@ -48,6 +48,7 @@ describe("LINE sign-in and account linking", () => {
     expect(callback.status).toBe(302);
     expect(callback.headers.get("Location")).toBe("/today");
     expect(user).toMatchObject({ email, emailVerified: true, name: "สมชาย LINE", image: "https://profile.line-scdn.net/p" });
+    expect(internet.sentEmails).toHaveLength(0);
   });
 
   it("signs in to the verified email account with the same email, linking LINE to it", async () => {
@@ -55,9 +56,13 @@ describe("LINE sign-in and account linking", () => {
     const emailBrowser = await signUpVerifiedUser(internet, email);
     const emailUser = await (await emailBrowser.request("/api/auth/get-session")).json<{ user: { id: string } }>();
 
+    const emailsBefore = internet.sentEmails.length;
+
     const { user } = await signInWithLine(internet, newLineProfile({ email }));
 
     expect(user?.id).toBe(emailUser.user.id);
+    expect(internet.sentEmails.slice(emailsBefore)).toEqual([]);
+    expect(internet.sentEmails.slice(emailsBefore).some((sent) => sent.subject === "ยินดีต้อนรับสู่ JotList")).toBe(false);
     expect(await providersOf(emailUser.user.id)).toEqual(["credential", "line"]);
     expect(await userCount(email)).toBe(1);
   });

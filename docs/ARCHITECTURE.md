@@ -20,7 +20,7 @@ Decisions marked **(owner)** were made by the owner. Decisions marked **(default
 | API framework | **Hono** **(owner)** |
 | Database | **Cloudflare D1** (SQLite) via **Drizzle ORM** + Drizzle migrations **(owner)** |
 | Auth | **Better Auth** (Drizzle adapter on D1): email/password + LINE **(owner)** |
-| Email | **Resend**, from `no-reply@mail.eukron.com` (env `EMAIL_FROM`; SPF/DKIM on mail.eukron.com). Only for email verification and password reset **(owner)** |
+| Email | **Resend**, from `no-reply@mail.eukron.com` (env `EMAIL_FROM`; SPF/DKIM on mail.eukron.com). Only for auth emails: email verification, a welcome email once the email is verified, and password reset. The welcome email adds 1 email per sign-up against Resend's 100/day free quota **(owner)** |
 | File storage | **Cloudflare R2**, private bucket, for task images and profile photos (§16) **(owner)** |
 | Bot protection | **Cloudflare Turnstile** on sign-up and forgot-password **(owner)** |
 | Rate limiting | **Workers Rate Limiting binding** **(owner)** |
@@ -117,7 +117,7 @@ Errors use one shape: `{ "error": { "code": "TASK_LIMIT", "message": "<Thai text
 - Complete and delete are sent to the server immediately. **Undo (5 s)** sends the reverse mutation (`uncomplete` / `restore`), so nothing is lost if the tab closes during the toast.
 
 ## 8. Authentication
-- **Email/password** with **required email verification**: an account cannot sign in until its email is verified. Password reset by email. Both emails via Resend. Turnstile on sign-up and forgot-password. **(owner)**
+- **Email/password** with **required email verification**: an account cannot sign in until its email is verified. Password reset by email. A welcome email is sent once, right after the email is verified (email sign-ups only, never LINE). All three emails go through Resend. Turnstile on sign-up and forgot-password. **(owner)**
 - **LINE login** via Better Auth's LINE provider, requesting the `email` scope. ⚠️ The owner must apply for **email permission** in the LINE Developers Console first.
 - **Account linking by email** **(owner)**: the same email = the same account.
   - LINE sign-in with an email that belongs to a verified email account → linked into that account.
