@@ -61,6 +61,8 @@ describe("welcomeEmailTemplate", () => {
     expect(email.html).toContain("สวัสดี สมชาย,");
     expect(email.html).toContain("ยืนยันแล้ว");
     expect(email.html).toContain("VERIFIED");
+    expect(email.html).toMatch(/white-space:nowrap">ยืนยันแล้ว</);
+    expect(email.html).toMatch(/white-space:nowrap">VERIFIED</);
     for (const step of ["01", "02", "03", "เข้าสู่ระบบ", "SIGN IN", "สร้างรายการแรกของคุณ", "WRITE YOUR FIRST LIST"]) {
       expect(email.html).toContain(step);
     }

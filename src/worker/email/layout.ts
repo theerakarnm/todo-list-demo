@@ -43,7 +43,7 @@ export function paragraph(text: string, kind: "thai" | "mono" = "thai") {
 
 export function headline(text: string, shadow = false) {
   const textShadow = shadow ? `;text-shadow:-3px -3px 0 ${t.orange},3px 3px 0 ${t.blue}` : "";
-  return `<h1 style="margin:0 0 16px 0;font-family:${t.display};font-size:44px;line-height:56px;font-weight:800;color:${t.ink}${textShadow}">${escapeHtml(text)}</h1>`;
+  return `<h1 class="hl" style="margin:0 0 16px 0;font-family:${t.display};font-size:44px;line-height:56px;font-weight:800;color:${t.ink}${textShadow}">${escapeHtml(text)}</h1>`;
 }
 
 /** The big "jotlist" wordmark: live text with an orange and blue offset (plain black where text-shadow is unsupported). */
@@ -115,7 +115,7 @@ export function emailLayout({ job, band = false, content }: Layout) {
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@800&family=Noto+Sans+Thai:wght@400;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{color-scheme:light only;supported-color-schemes:light only}
-@media (max-width:480px){.px{padding-left:20px!important;padding-right:20px!important}}
+@media (max-width:480px){.px{padding-left:20px!important;padding-right:20px!important}.hl{font-size:34px!important;line-height:44px!important}.stamp{padding:6px 10px!important}.stamp div:first-child{font-size:18px!important}}
 </style>
 </head>
 <body bgcolor="${t.paper}" style="margin:0;padding:0;background-color:${t.paper};color:${t.ink}">

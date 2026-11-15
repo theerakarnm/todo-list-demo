@@ -85,7 +85,7 @@ function welcomeStep([number, thai, english]: (typeof WELCOME_STEPS)[number]) {
 export function welcomeEmailTemplate(appLink: string, name: string) {
   const { ink, blue, display, mono } = emailTokens;
   const spacer = (height: number) => `<div style="height:${height}px;line-height:${height}px;font-size:0">&nbsp;</div>`;
-  const stamp = `<div style="display:inline-block;border:3px solid ${blue};padding:8px 18px;text-align:center;transform:rotate(-4deg);color:${blue}"><div style="font-family:${display};font-size:24px;line-height:30px;font-weight:800;color:${blue}">ยืนยันแล้ว</div><div style="font-family:${mono};font-size:12px;line-height:16px;letter-spacing:1px;color:${ink}">VERIFIED</div></div>`;
+  const stamp = `<div class="stamp" style="display:inline-block;border:3px solid ${blue};padding:8px 18px;text-align:center;transform:rotate(-4deg);color:${blue}"><div style="font-family:${display};font-size:24px;line-height:30px;font-weight:800;color:${blue};white-space:nowrap">ยืนยันแล้ว</div><div style="font-family:${mono};font-size:12px;line-height:16px;letter-spacing:1px;color:${ink};white-space:nowrap">VERIFIED</div></div>`;
   const support = `<a href="mailto:${SUPPORT_EMAIL}" style="color:${ink};text-decoration:underline">${SUPPORT_EMAIL}</a>`;
   const content = [
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td valign="top">${monoLabel("01 - ยินดีต้อนรับ / WELCOME")}</td><td align="right" valign="top" rowspan="2">${stamp}</td></tr><tr><td valign="top">${headline("ยินดีต้อนรับ", true)}</td></tr></table>`,
