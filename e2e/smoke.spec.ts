@@ -9,9 +9,9 @@ async function signIn(page: Page) {
   await page.context().route(/^(?!http:\/\/localhost:5199\/)/, (route) => route.abort());
   // Signed out, /app goes to the Login page.
   await page.goto("/app");
-  await page.getByLabel("อีเมล / email").fill(e2eEmail());
-  await page.getByLabel("รหัสผ่าน / password").fill(E2E_PASSWORD);
-  await page.getByRole("button", { name: "Log in" }).click();
+  await page.getByLabel("อีเมล", { exact: true }).fill(e2eEmail());
+  await page.getByLabel("รหัสผ่าน", { exact: true }).fill(E2E_PASSWORD);
+  await page.getByRole("button", { name: "เข้าสู่ระบบ", exact: true }).click();
 }
 
 test("sign in, quick add for tomorrow, complete with Undo, then add a subtask", async ({ page }) => {
@@ -22,14 +22,14 @@ test("sign in, quick add for tomorrow, complete with Undo, then add a subtask", 
 
   // A new account goes through onboarding once: keep the name, then skip the starter projects.
   await expect(page).toHaveURL(/\/onboarding\/1/);
-  await page.getByRole("button", { name: "Continue", exact: true }).click();
-  await page.getByRole("button", { name: "Skip" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "Today" })).toBeVisible();
+  await page.getByRole("button", { name: "ต่อไป", exact: true }).click();
+  await page.getByRole("button", { name: "ข้าม" }).click();
+  await expect(page.getByRole("heading", { level: 1, name: "วันนี้" })).toBeVisible();
 
   // Quick Add with Q: "พรุ่งนี้" becomes the date and leaves the title.
   await page.keyboard.press("q");
-  const quickAdd = page.getByRole("dialog", { name: "quick add" });
-  await quickAdd.getByRole("textbox", { name: "งานใหม่ / new task" }).fill(`${title} พรุ่งนี้`);
+  const quickAdd = page.getByRole("dialog", { name: "เพิ่มด่วน" });
+  await quickAdd.getByRole("textbox", { name: "งานใหม่", exact: true }).fill(`${title} พรุ่งนี้`);
   await expect(quickAdd.getByLabel("เลือกวันที่").locator("..")).toContainText("พรุ่งนี้");
   const saved = page.waitForResponse((response) => response.request().method() === "PUT" && response.ok());
   await page.keyboard.press("Enter");
@@ -37,7 +37,7 @@ test("sign in, quick add for tomorrow, complete with Undo, then add a subtask", 
   await expect(quickAdd).toBeHidden();
 
   // It is in Upcoming, under tomorrow.
-  await page.getByRole("complementary").getByRole("link", { name: "Upcoming" }).click();
+  await page.getByRole("complementary").getByRole("link", { name: "เร็ว ๆ นี้" }).click();
   const tomorrow = page.getByRole("region", { name: /^พรุ่งนี้/ });
   const taskLink = tomorrow.getByRole("link", { name: title, exact: true });
   await expect(taskLink).toBeVisible();
@@ -45,7 +45,7 @@ test("sign in, quick add for tomorrow, complete with Undo, then add a subtask", 
   // Complete, then Undo within 5 seconds.
   await tomorrow.getByRole("button", { name: `ทำเครื่องหมายว่าเสร็จ: ${title}` }).click();
   await expect(taskLink).toBeHidden();
-  await page.getByRole("button", { name: "Undo" }).click();
+  await page.getByRole("button", { name: "เลิกทำ" }).click();
   await expect(taskLink).toBeVisible();
 
   // Open the TaskDrawer and add a subtask.
@@ -55,7 +55,7 @@ test("sign in, quick add for tomorrow, complete with Undo, then add a subtask", 
   const subtaskSaved = page.waitForResponse(
     (response) => response.url().includes("/api/subtasks/") && response.request().method() === "PUT" && response.ok(),
   );
-  await drawer.getByRole("textbox", { name: "เพิ่มงานย่อย / add subtask" }).fill("ห่อของขวัญ");
+  await drawer.getByRole("textbox", { name: "เพิ่มงานย่อย", exact: true }).fill("ห่อของขวัญ");
   await page.keyboard.press("Enter");
   await subtaskSaved;
   await expect(drawer.getByRole("textbox", { name: "ชื่องานย่อย" })).toHaveValue("ห่อของขวัญ");
@@ -69,11 +69,11 @@ test("sign in, quick add for tomorrow, complete with Undo, then add a subtask", 
 test("attach an image to a task, view it, see 📎 1 on the row, then delete it", async ({ page }) => {
   const title = `ใบเสร็จค่าไฟ ${Date.now()}`;
   await signIn(page);
-  await expect(page.getByRole("heading", { level: 1, name: "Today" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "วันนี้" })).toBeVisible();
 
   // A task due today, from Quick Add on the Today page.
   await page.keyboard.press("q");
-  await page.getByRole("textbox", { name: "งานใหม่ / new task" }).fill(title);
+  await page.getByRole("textbox", { name: "งานใหม่", exact: true }).fill(title);
   await page.keyboard.press("Enter");
   const taskLink = page.getByRole("main").getByRole("link", { name: title, exact: true });
   await taskLink.click();
@@ -84,7 +84,7 @@ test("attach an image to a task, view it, see 📎 1 on the row, then delete it"
     (response) => response.url().endsWith("/attachments") && response.request().method() === "POST",
   );
   const served = page.waitForResponse((response) => response.url().includes("/api/files/u/"));
-  await drawer.getByLabel("เพิ่มรูป / add image").setInputFiles("e2e/fixtures/receipt.png");
+  await drawer.getByLabel("เพิ่มรูป", { exact: true }).setInputFiles("e2e/fixtures/receipt.png");
   expect((await uploaded).status()).toBe(201);
   // The private bucket answers through the owner-checked file route.
   expect((await served).status()).toBe(200);
@@ -112,7 +112,7 @@ test("attach an image to a task, view it, see 📎 1 on the row, then delete it"
   );
   await drawer.getByRole("button", { name: "ลบรูปที่ 1" }).click();
   expect((await deleted).ok()).toBe(true);
-  await expect(drawer.getByText("รูปภาพ / images - 0/10")).toBeVisible();
+  await expect(drawer.getByText("รูปภาพ - 0/10")).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(row.getByText("📎 1")).toBeHidden();
 });

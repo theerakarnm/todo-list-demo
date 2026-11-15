@@ -23,7 +23,7 @@ describe("SidebarContent", () => {
     const projects = within(screen.getByRole("navigation", { name: th.nav.projects })).getAllByRole("link");
     expect(projects.map((link) => link.textContent)).toEqual(["งาน1", "ส่วนตัว0"]);
     const views = within(screen.getByRole("navigation", { name: th.nav.smartViews }));
-    expect(views.getByRole("link", { name: /Inbox/ }).textContent).toContain("1");
-    expect(views.getByRole("link", { name: /Today/ }).textContent).toContain("1");
+    expect(views.getByRole("link", { name: /กล่องรับงาน/ }).textContent).toContain("1");
+    expect(views.getByRole("link", { name: /วันนี้/ }).textContent).toContain("1");
   });
 });

@@ -121,13 +121,13 @@ describe("Settings → Account: display name", () => {
   });
 
   it("puts the old name back and shows the error when the server refuses", async () => {
-    answer("PATCH /api/settings", apiError(400, "VALIDATION_ERROR", "ข้อมูลไม่ถูกต้อง"));
+    answer("PATCH /api/settings", apiError(400, "VALIDATION_ERROR"));
     await openPage("/app/settings");
 
     fireEvent.change(screen.getByLabelText(t.nameLabel), { target: { value: "สมชาย" } });
     click(t.save);
 
-    expect((await findPageAlert()).textContent).toContain("ข้อมูลไม่ถูกต้อง");
+    expect((await findPageAlert()).textContent).toContain(th.errors.api.VALIDATION_ERROR);
     expect(sidebar().getByText("นรินทร์ ก.")).toBeTruthy();
   });
 });
@@ -168,7 +168,7 @@ describe("Settings → Account: email and password", () => {
   });
 
   it("marks a wrong current password", async () => {
-    answer("POST /api/auth/change-password", apiError(400, "WRONG_PASSWORD", "รหัสผ่านปัจจุบันไม่ถูกต้อง"));
+    answer("POST /api/auth/change-password", apiError(400, "WRONG_PASSWORD"));
     await openPage("/app/settings");
 
     click(t.changePassword);
@@ -176,7 +176,7 @@ describe("Settings → Account: email and password", () => {
     fireEvent.change(screen.getByLabelText(t.newPassword), { target: { value: "new-horse-22" } });
     click(t.savePassword);
 
-    expect((await findPageAlert()).textContent).toContain("รหัสผ่านปัจจุบันไม่ถูกต้อง");
+    expect((await findPageAlert()).textContent).toContain(th.errors.api.WRONG_PASSWORD);
     expect(screen.getByLabelText(t.currentPassword).getAttribute("aria-invalid")).toBe("true");
   });
 });

@@ -92,7 +92,7 @@ describe("mobile drawer", () => {
     const router = await renderShellAt("/app/today");
     const drawer = openDrawer();
 
-    act(() => within(drawer).getByRole("link", { name: /Inbox/ }).click());
+    act(() => within(drawer).getByRole("link", { name: /กล่องรับงาน/ }).click());
 
     await screen.findByRole("heading", { level: 1, name: th.pages.inbox.title });
     expect(router.state.location.pathname).toBe("/app/inbox");

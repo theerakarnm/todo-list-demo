@@ -51,7 +51,7 @@ describe("the reminder cron", () => {
     await runCronAt(DUE_AT);
 
     expect(internet.push.payloadsTo(endpoint)).toEqual([
-      { title: "โทรนัดช่างแอร์", body: "Inbox", url: `/task/${task.id}`, tag: `task-${task.id}` },
+      { title: "โทรนัดช่างแอร์", body: "กล่องรับงาน", url: `/task/${task.id}`, tag: `task-${task.id}` },
     ]);
   });
 

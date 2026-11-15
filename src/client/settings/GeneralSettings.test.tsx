@@ -72,12 +72,12 @@ describe("Settings → General", () => {
   });
 
   it("goes back to the old value and shows the error when the server refuses", async () => {
-    answer("PATCH /api/settings", apiError(429, "RATE_LIMITED", "ส่งคำขอถี่เกินไป"));
+    answer("PATCH /api/settings", apiError(429, "RATE_LIMITED"));
     await openPage("/app/settings?tab=general");
 
     pick(th.theme.dark);
 
-    expect((await findPageAlert()).textContent).toContain("ส่งคำขอถี่เกินไป");
+    expect((await findPageAlert()).textContent).toContain(th.errors.api.RATE_LIMITED);
     expect(isPicked(th.theme.system)).toBe(true);
     expect(document.documentElement.dataset.theme).toBe("light");
   });

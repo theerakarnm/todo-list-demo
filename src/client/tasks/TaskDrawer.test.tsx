@@ -50,13 +50,13 @@ describe("TaskDrawer", () => {
     const add = drawer.getByRole("textbox", { name: th.drawer.addSubtask });
     fireEvent.change(add, { target: { value: "โทรถามลูกค้า" } });
     fireEvent.keyDown(add, { key: "Enter" });
-    expect(await drawer.findByText("งานย่อย / subtasks - 0/2")).toBeTruthy();
+    expect(await drawer.findByText("งานย่อย - 0/2")).toBeTruthy();
 
     fireEvent.click(drawer.getByRole("button", { name: "ทำเครื่องหมายว่าเสร็จ: ทำตัวเลข" }));
-    expect(await drawer.findByText("งานย่อย / subtasks - 1/2")).toBeTruthy();
+    expect(await drawer.findByText("งานย่อย - 1/2")).toBeTruthy();
 
     fireEvent.click(drawer.getByRole("button", { name: "ลบงานย่อย: ทำตัวเลข" }));
-    expect(await drawer.findByText("งานย่อย / subtasks - 0/1")).toBeTruthy();
+    expect(await drawer.findByText("งานย่อย - 0/1")).toBeTruthy();
     await waitFor(() => expect(calls.map((call) => call.method)).toEqual(["PUT", "PATCH", "DELETE"]));
     expect(calls[0]?.body).toMatchObject({ taskId: "t1", title: "โทรถามลูกค้า" });
   });
@@ -122,7 +122,7 @@ describe("TaskDrawer images", () => {
       anAttachment({ id: "a1", taskId: "t1", position: "a0" }),
     ]);
 
-    expect(drawer.getByText("รูปภาพ / images - 2/10")).toBeTruthy();
+    expect(drawer.getByText("รูปภาพ - 2/10")).toBeTruthy();
     expect(imageSources(drawer)).toEqual(["/api/files/u/user-1/t/t1/a1", "/api/files/u/user-1/t/t1/a2"]);
   });
 
@@ -138,7 +138,7 @@ describe("TaskDrawer images", () => {
     const progress = await drawer.findByRole("progressbar", { name: "กำลังอัปโหลดรูปที่ 1" });
     expect(progress.getAttribute("aria-valuenow")).toBe("0");
     expect(imageSources(drawer)).toEqual(["blob:preview-1"]);
-    expect(drawer.getByText("รูปภาพ / images - 1/10")).toBeTruthy();
+    expect(drawer.getByText("รูปภาพ - 1/10")).toBeTruthy();
 
     const id = (await vi.waitFor(async () => {
       const form = await stubbedUploadForm();
@@ -233,7 +233,7 @@ describe("TaskDrawer images: delete", () => {
     fireEvent.click(drawer.getByRole("button", { name: "ลบรูปที่ 1" }));
 
     await waitFor(() => expect(imageSources(drawer)).toEqual(["/api/files/u/user-1/t/t1/a2"]));
-    expect(drawer.getByText("รูปภาพ / images - 1/10")).toBeTruthy();
+    expect(drawer.getByText("รูปภาพ - 1/10")).toBeTruthy();
     await waitFor(() => expect(calls.map((call) => call.path)).toEqual(["/api/attachments/a1"]));
   });
 
@@ -251,7 +251,7 @@ describe("TaskDrawer images: delete", () => {
     fireEvent.click(toast.getByRole("button", { name: th.toast.undo }));
 
     await waitFor(() => expect(imageSources(drawer)).toEqual(["/api/files/u/user-1/t/t1/a1"]));
-    expect(drawer.getByText("รูปภาพ / images - 1/10")).toBeTruthy();
+    expect(drawer.getByText("รูปภาพ - 1/10")).toBeTruthy();
     await waitFor(() =>
       expect(calls.map((call) => `${call.method} ${call.path}`)).toEqual([
         "DELETE /api/attachments/a1",

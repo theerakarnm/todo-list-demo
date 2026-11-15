@@ -21,7 +21,7 @@ describe("Landing page", () => {
     await openPage("/");
 
     expect(screen.getByRole("link", { name: th.landing.nav.logIn }).getAttribute("href")).toBe("/login");
-    for (const link of screen.getAllByRole("link", { name: /Get Started Free/ })) {
+    for (const link of screen.getAllByRole("link", { name: /เริ่มใช้ฟรี/ })) {
       expect(link.getAttribute("href")).toBe("/signup");
     }
     expect(screen.getByRole("button", { name: th.auth.continueWithLine })).toBeTruthy();

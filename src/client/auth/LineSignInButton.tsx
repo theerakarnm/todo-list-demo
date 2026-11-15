@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { apiErrorMessage } from "../api/error-message";
 import { startLineSignIn } from "./auth-api";
-import { errorMessage } from "./error-message";
 import { goToExternalPage } from "./external-page";
 import { FormError } from "./FormError";
 
@@ -34,7 +34,7 @@ export function LineSignInButton({ next, className = "w-full min-h-14" }: { next
         </svg>
         {t("auth.continueWithLine")}
       </button>
-      {lineSignIn.isError && <FormError>{errorMessage(lineSignIn.error, t)}</FormError>}
+      {lineSignIn.isError && <FormError>{apiErrorMessage(t, lineSignIn.error)}</FormError>}
     </>
   );
 }

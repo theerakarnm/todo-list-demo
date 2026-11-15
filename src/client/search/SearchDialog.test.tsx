@@ -33,8 +33,8 @@ describe("SearchDialog", () => {
   it("groups tasks and projects and marks the matched text", async () => {
     const { calls } = renderSearch();
 
-    const tasks = await screen.findByRole("group", { name: "tasks - 3" });
-    const projects = screen.getByRole("group", { name: "projects - 1" });
+    const tasks = await screen.findByRole("group", { name: "งาน - 3" });
+    const projects = screen.getByRole("group", { name: "โปรเจกต์ - 1" });
 
     expect(calls.at(-1)?.search.get("q")).toBe("งาน");
     const options = within(tasks).getAllByRole("option");
@@ -57,7 +57,7 @@ describe("SearchDialog", () => {
 
   it("moves with the arrow keys and opens a project with Enter", async () => {
     const { input, router, onClose } = renderSearch();
-    await screen.findByRole("group", { name: "projects - 1" });
+    await screen.findByRole("group", { name: "โปรเจกต์ - 1" });
 
     expect(screen.getAllByRole("option")[0]?.getAttribute("aria-selected")).toBe("true");
     fireEvent.keyDown(input, { key: "ArrowUp" });
@@ -70,7 +70,7 @@ describe("SearchDialog", () => {
 
   it("opens a completed task in the TaskDrawer, with its subtasks in the store", async () => {
     const { input, router, queryClient } = renderSearch();
-    await screen.findByRole("group", { name: "tasks - 3" });
+    await screen.findByRole("group", { name: "งาน - 3" });
 
     fireEvent.keyDown(input, { key: "ArrowDown" });
     fireEvent.keyDown(input, { key: "Enter" });

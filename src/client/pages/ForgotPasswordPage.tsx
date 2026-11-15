@@ -2,10 +2,10 @@ import { useMutation } from "@tanstack/react-query";
 import type { FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router";
+import { apiErrorMessage } from "../api/error-message";
 import { requestPasswordReset } from "../auth/auth-api";
 import { AuthLayout } from "../auth/AuthLayout";
 import { AuthNotice } from "../auth/AuthNotice";
-import { errorMessage } from "../auth/error-message";
 import { EmailField } from "../auth/fields";
 import { FormError } from "../auth/FormError";
 import { useTurnstile } from "../auth/use-turnstile";
@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
         <form onSubmit={handleSubmit}>
           <EmailField id="email" label={t("auth.emailLabel")} />
           <div ref={turnstile.containerRef} className="mt-6 min-h-[65px]" />
-          {requestReset.isError && <FormError>{errorMessage(requestReset.error, t)}</FormError>}
+          {requestReset.isError && <FormError>{apiErrorMessage(t, requestReset.error)}</FormError>}
           <button
             type="submit"
             className="btn btn-lg mt-[26px] w-full"

@@ -90,14 +90,14 @@ describe("Signup page", () => {
   });
 
   it.each([
-    ["RATE_LIMITED", 429, "ส่งคำขอถี่เกินไป"],
-    ["TURNSTILE_FAILED", 400, "ยืนยันว่าไม่ใช่บอทไม่สำเร็จ"],
-  ] as const)("shows the server's message for %s", async (code, status, message) => {
-    answer("POST /api/auth/sign-up/email", apiError(status, code, message));
+    ["RATE_LIMITED", 429],
+    ["TURNSTILE_FAILED", 400],
+  ] as const)("shows the Thai text for %s", async (code, status) => {
+    answer("POST /api/auth/sign-up/email", apiError(status, code));
     await openSignupWithTurnstileSolved();
 
     signUp();
 
-    expect((await findPageAlert()).textContent).toContain(message);
+    expect((await findPageAlert()).textContent).toContain(th.errors.api[code]);
   });
 });
